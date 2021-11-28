@@ -1,0 +1,55 @@
+{
+  "name": "@flowmap.gl/data",
+  "version": "10.0.0",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
+  "author": "Ilya Boyandin <ilya@boyandin.me>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rm -rf dist && tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@mapbox/geo-viewport": "^0.4.0",
+    "@math.gl/web-mercator": "^3.2.1",
+    "d3-array": "^3.0.2",
+    "d3-collection": "^1.0.7",
+    "d3-color": "^2.0.0",
+    "d3-ease": "^2.0.0",
+    "d3-format": "^2.0.0",
+    "d3-geo": "^3.0.1",
+    "d3-interpolate": "^2.0.1",
+    "d3-scale": "^4.0.0",
+    "d3-scale-chromatic": "^3.0.0",
+    "d3-time": "^2.0.0",
+    "d3-time-format": "^3.0.0",
+    "kdbush": "^3.0.0",
+    "lodash.throttle": "^4.1.1",
+    "reselect": "^4.0.0",
+    "seedrandom": "^3.0.5",
+    "zustand": "^3.5.10"
+  },
+  "devDependencies": {
+    "@types/d3-array": "^3.0.1",
+    "@types/d3-collection": "^1.0.10",
+    "@types/d3-color": "^1.2.1",
+    "@types/d3-ease": "^1.0.7",
+    "@types/d3-format": "^1.3.0",
+    "@types/d3-geo": "^3.0.2",
+    "@types/d3-interpolate": "^1.3.1",
+    "@types/d3-scale": "^4.0.1",
+    "@types/d3-scale-chromatic": "^1.3.1",
+    "@types/d3-time": "^1.0.10",
+    "@types/d3-time-format": "^4.0.0",
+    "@types/geojson": "^7946.0.7",
+    "@types/kdbush": "^3.0.0",
+    "@types/lodash.debounce": "^4.0.4",
+    "@types/lodash.throttle": "^4.1.6",
+    "@types/mapbox__geo-viewport": "^0.4.1",
+    "@types/seedrandom": "^3.0.1"
+  },
+  "peerDependencies": {
+  }
+}

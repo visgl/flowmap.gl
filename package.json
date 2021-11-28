@@ -1,0 +1,21 @@
+{
+  "name": "flowmap.gl",
+  "private": true,
+  "version": "10",
+  "description": "Flow map drawing layer for Deck.gl",
+  "main": "index.js",
+  "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
+  "author": "Ilya Boyandin <ilya@boyandin.me>",
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn build:layers && yarn build:data",
+    "build:layers": "cd packages/layers && yarn build",
+    "build:data": "cd packages/layers && yarn data"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "typescript": "^4.5.2"
+  }
+}
