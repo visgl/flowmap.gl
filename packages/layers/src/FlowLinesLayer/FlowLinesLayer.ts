@@ -20,14 +20,14 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './FlowLinesLayerFragment.glsl';
 import VertexShader from './FlowLinesLayerVertex.glsl';
-import {LayerProps} from '../LayerProps';
 import {Flow, FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {LayerProps} from '../types';
 
 export interface Props extends LayerProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
-  updateTriggers?: {[key: string]: {}};
+  updateTriggers?: {[key: string]: Record<string, unknown>};
   data: Flow[] | FlowLinesLayerAttributes;
   drawOutline: boolean;
   outlineColor?: RGBA;
@@ -135,8 +135,8 @@ class FlowLinesLayer extends Layer {
     this.state.model
       .setUniforms({
         ...uniforms,
-        outlineColor: outlineColor!.map((x: number) => x / 255),
-        thicknessUnit: thicknessUnit! * 2.0,
+        outlineColor: outlineColor.map((x: number) => x / 255),
+        thicknessUnit: thicknessUnit * 2.0,
         gap: 0.5,
       })
       .draw();
@@ -166,7 +166,7 @@ class FlowLinesLayer extends Layer {
         ],
       );
 
-      const tout = outlineThickness!;
+      const tout = outlineThickness;
       const tin = INNER_SIDE_OUTLINE_THICKNESS; // the outline shouldn't cover the opposite arrow
       // perpendicular_offset_in_pixels, direction_of_travel_offset_in_pixels, fill_outline_color_mix
       // prettier-ignore

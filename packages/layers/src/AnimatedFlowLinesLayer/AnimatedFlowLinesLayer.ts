@@ -20,19 +20,19 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
-import {LayerProps} from '../LayerProps';
 import {
   AccessorObjectInfo,
   Flow,
   FlowLinesLayerAttributes,
   RGBA,
 } from '@flowmap.gl/data';
+import {LayerProps} from '../types';
 
 export interface Props extends LayerProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
-  updateTriggers?: {[key: string]: {}};
+  updateTriggers?: {[key: string]: Record<string, unknown>};
   data: Flow[] | FlowLinesLayerAttributes;
   drawOutline: boolean;
   outlineColor?: RGBA;
@@ -143,7 +143,7 @@ export default class AnimatedFlowLinesLayer extends Layer {
     this.state.model
       .setUniforms({
         ...uniforms,
-        thicknessUnit: thicknessUnit! * 4,
+        thicknessUnit: thicknessUnit * 4,
         animationTailLength,
         currentTime,
       })

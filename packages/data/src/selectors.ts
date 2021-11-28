@@ -29,7 +29,6 @@ import {
   getFlowTime,
   getLocationId,
   isCluster,
-  isLocationCluster,
   isLocationClusterNode,
   Location,
   LocationFilterMode,
@@ -165,7 +164,7 @@ export const getTimeGranularityKey: Selector<TimeGranularityKey | undefined> =
 
       const minOrder = min(
         flows,
-        (d) => getTimeGranularityForDate(getFlowTime(d)!).order,
+        (d) => getTimeGranularityForDate(getFlowTime(d)).order,
       );
       if (minOrder == null) return undefined;
       const timeGranularity = getTimeGranularityByOrder(minOrder);
@@ -618,7 +617,7 @@ export const getTotalCountsByTime: Selector<CountByTime[] | undefined> =
       if (!flows || !timeGranularity || !timeExtent) return undefined;
       const byTime = flows.reduce((m, flow) => {
         if (isFlowInSelection(flow, selectedLocationSet, locationFilterMode)) {
-          const key = timeGranularity.interval(getFlowTime(flow)!).getTime();
+          const key = timeGranularity.interval(getFlowTime(flow)).getTime();
           m.set(key, (m.get(key) ?? 0) + getFlowMagnitude(flow));
         }
         return m;

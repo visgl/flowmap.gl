@@ -27,7 +27,7 @@ import {
 import {range} from 'd3-array';
 import {scalePow, scaleSequential, scaleSequentialPow} from 'd3-scale';
 import {interpolateRgbBasis} from 'd3-interpolate';
-import {color as d3color, hcl, rgb} from 'd3-color';
+import {color as d3color, hcl} from 'd3-color';
 import {SettingsState} from './FlowMapState';
 
 const DEFAULT_OUTLINE_COLOR = '#fff';
@@ -371,7 +371,7 @@ export function getColors(
     ]);
 
     if (!fadeEnabled || fadeAmount === 0) {
-      scheme = indices.map((c, i) => colorScale(i)!);
+      scheme = indices.map((c, i) => colorScale(i));
     } else {
       const amount = scalePow()
         // .exponent(animate ? 1 : 1/2.5)

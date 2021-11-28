@@ -20,10 +20,10 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './FlowCirclesLayerFragment.glsl';
 import VertexShader from './FlowCirclesLayerVertex.glsl';
-import {LayerProps} from '../LayerProps';
 import {FlowCirclesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {LayerProps} from '../types';
 
-export type FlowCirclesDatum = any;
+export type FlowCirclesDatum = Record<string, unknown>;
 
 export interface Props extends LayerProps {
   id: string;
@@ -36,7 +36,7 @@ export interface Props extends LayerProps {
   getInRadius?: (d: FlowCirclesDatum) => number;
   getOutRadius?: (d: FlowCirclesDatum) => number;
   data: FlowCirclesDatum[] | FlowCirclesLayerAttributes;
-  updateTriggers?: {[key: string]: {}};
+  updateTriggers?: {[key: string]: Record<string, unknown>};
 }
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
@@ -44,7 +44,7 @@ const DEFAULT_EMPTY_COLOR = [255, 255, 255, 255];
 const DEFAULT_EMPTY_OUTLINE_COLOR = [180, 180, 180, 255];
 
 class FlowCirclesLayer extends Layer {
-  static layerName: string = 'FlowCirclesLayer';
+  static layerName = 'FlowCirclesLayer';
 
   static defaultProps = {
     getColor: {type: 'accessor', value: DEFAULT_COLOR},

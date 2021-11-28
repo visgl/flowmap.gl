@@ -18,6 +18,8 @@
 import {FeatureCollection, GeometryObject} from 'geojson';
 import {Flow, Location} from '@flowmap.gl/data';
 
+export type LayerProps = any;
+
 export type LocationProperties = any;
 
 export type Locations =

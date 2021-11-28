@@ -102,7 +102,7 @@ export function buildIndex(clusterLevels: ClusterLevels): ClusterIndex {
       leavesToClustersByZoom.set(zoom, leavesToClusters);
     }
     visitClusterLeaves(cluster, (leafId) => {
-      leavesToClusters!.set(leafId, cluster);
+      leavesToClusters.set(leafId, cluster);
     });
   }
 
