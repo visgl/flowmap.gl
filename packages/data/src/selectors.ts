@@ -764,6 +764,7 @@ const _getLocationIdsInViewport: Selector<Set<string> | undefined> =
 export const getLocationIdsInViewport: Selector<Set<string> | undefined> =
   // @ts-ignore
   createSelectorCreator<Set<string> | undefined>(
+    // @ts-ignore
     defaultMemoize,
     (
       s1: Set<string> | undefined,
