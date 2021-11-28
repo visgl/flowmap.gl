@@ -1,4 +1,4 @@
-import { timeFormat, timeParse } from 'd3-time-format';
+import {timeFormat, timeParse} from 'd3-time-format';
 import {
   timeDay,
   timeHour,
@@ -63,21 +63,23 @@ const formatMillisecond = timeFormat('.%L'),
   formatYear = timeFormat('%Y');
 
 export function tickMultiFormat(date: Date) {
-  return (timeSecond(date) < date
-    ? formatMillisecond
-    : timeMinute(date) < date
-    ? formatSecond
-    : timeHour(date) < date
-    ? formatMinute
-    : timeDay(date) < date
-    ? formatHour
-    : timeMonth(date) < date
-    ? timeWeek(date) < date
-      ? formatDay
-      : formatWeek
-    : timeYear(date) < date
-    ? formatMonth
-    : formatYear)(date);
+  return (
+    timeSecond(date) < date
+      ? formatMillisecond
+      : timeMinute(date) < date
+      ? formatSecond
+      : timeHour(date) < date
+      ? formatMinute
+      : timeDay(date) < date
+      ? formatHour
+      : timeMonth(date) < date
+      ? timeWeek(date) < date
+        ? formatDay
+        : formatWeek
+      : timeYear(date) < date
+      ? formatMonth
+      : formatYear
+  )(date);
 }
 
 export const TIME_GRANULARITIES: TimeGranularity[] = [
@@ -137,7 +139,7 @@ export function getTimeGranularityByOrder(order: number) {
 export function getTimeGranularityForDate(date: Date): TimeGranularity {
   let prev = undefined;
   for (const current of TIME_GRANULARITIES) {
-    const { interval } = current;
+    const {interval} = current;
     const floored = interval(date);
     if (floored < date) {
       if (!prev) return current;
@@ -148,7 +150,10 @@ export function getTimeGranularityForDate(date: Date): TimeGranularity {
   return TIME_GRANULARITIES[TIME_GRANULARITIES.length - 1];
 }
 
-export function areRangesEqual(a: [Date, Date] | undefined, b: [Date, Date] | undefined): boolean {
+export function areRangesEqual(
+  a: [Date, Date] | undefined,
+  b: [Date, Date] | undefined,
+): boolean {
   if (!a && !b) return true;
   if (!a || !b) return false;
   return a[0] === b[0] && a[1] === b[1];

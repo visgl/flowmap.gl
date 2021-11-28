@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "esnext",
-    "lib": [
-      "esnext",
-      "DOM"
-    ],
+    "lib": ["esnext", "DOM"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -19,10 +16,7 @@
     "downlevelIteration": true,
     "jsx": "preserve"
   },
-  "exclude": [
-    "**/node_modules",
-    "**/dist/**/*"
-  ],
+  "exclude": ["**/node_modules", "**/dist/**/*"],
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/src/**/*.tsx",

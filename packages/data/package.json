@@ -50,6 +50,5 @@
     "@types/mapbox__geo-viewport": "^0.4.1",
     "@types/seedrandom": "^3.0.1"
   },
-  "peerDependencies": {
-  }
+  "peerDependencies": {}
 }

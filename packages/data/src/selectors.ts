@@ -29,7 +29,8 @@ import {
   getFlowTime,
   getLocationId,
   isCluster,
-  isLocationCluster, isLocationClusterNode,
+  isLocationCluster,
+  isLocationClusterNode,
   Location,
   LocationFilterMode,
   LocationTotals,
@@ -710,9 +711,13 @@ export const getLocationsTree: Selector<KDBushTree> = createSelector(
     return new KDBush(
       locations,
       (location: Location | ClusterNode) =>
-        lngX(isLocationClusterNode(location) ? location.centroid[0] : location.lon),
+        lngX(
+          isLocationClusterNode(location) ? location.centroid[0] : location.lon,
+        ),
       (location: Location | ClusterNode) =>
-        latY(isLocationClusterNode(location) ? location.centroid[1] : location.lat),
+        latY(
+          isLocationClusterNode(location) ? location.centroid[1] : location.lat,
+        ),
     );
   },
 );
@@ -758,7 +763,7 @@ const _getLocationIdsInViewport: Selector<Set<string> | undefined> =
   );
 
 export const getLocationIdsInViewport: Selector<Set<string> | undefined> =
-// @ts-ignore
+  // @ts-ignore
   createSelectorCreator<Set<string> | undefined>(
     defaultMemoize,
     (

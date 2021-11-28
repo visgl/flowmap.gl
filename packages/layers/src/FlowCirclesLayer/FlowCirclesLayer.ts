@@ -15,12 +15,12 @@
  *
  */
 
-import { Layer, picking, project32 } from '@deck.gl/core';
+import {Layer, picking, project32} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
-import { Geometry, Model } from '@luma.gl/core';
+import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './FlowCirclesLayerFragment.glsl';
 import VertexShader from './FlowCirclesLayerVertex.glsl';
-import { LayerProps } from '../LayerProps';
+import {LayerProps} from '../LayerProps';
 import {FlowCirclesLayerAttributes, RGBA} from '@flowmap.gl/data';
 
 export type FlowCirclesDatum = any;
@@ -36,7 +36,7 @@ export interface Props extends LayerProps {
   getInRadius?: (d: FlowCirclesDatum) => number;
   getOutRadius?: (d: FlowCirclesDatum) => number;
   data: FlowCirclesDatum[] | FlowCirclesLayerAttributes;
-  updateTriggers?: { [key: string]: {} };
+  updateTriggers?: {[key: string]: {}};
 }
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
@@ -47,12 +47,12 @@ class FlowCirclesLayer extends Layer {
   static layerName: string = 'FlowCirclesLayer';
 
   static defaultProps = {
-    getColor: { type: 'accessor', value: DEFAULT_COLOR },
-    emptyColor: { type: 'accessor', value: DEFAULT_EMPTY_COLOR },
-    emptyOutlineColor: { type: 'accessor', value: DEFAULT_EMPTY_OUTLINE_COLOR },
-    getPosition: { type: 'accessor', value: (d: FlowCirclesDatum) => d.position },
-    getInRadius: { type: 'accessor', value: 1 },
-    getOutRadius: { type: 'accessor', value: 1 },
+    getColor: {type: 'accessor', value: DEFAULT_COLOR},
+    emptyColor: {type: 'accessor', value: DEFAULT_EMPTY_COLOR},
+    emptyOutlineColor: {type: 'accessor', value: DEFAULT_EMPTY_OUTLINE_COLOR},
+    getPosition: {type: 'accessor', value: (d: FlowCirclesDatum) => d.position},
+    getInRadius: {type: 'accessor', value: 1},
+    getOutRadius: {type: 'accessor', value: 1},
     parameters: {
       depthTest: false,
     },
@@ -102,20 +102,20 @@ class FlowCirclesLayer extends Layer {
     });
   }
 
-  updateState({ props, oldProps, changeFlags }: any) {
-    super.updateState({ props, oldProps, changeFlags });
+  updateState({props, oldProps, changeFlags}: any) {
+    super.updateState({props, oldProps, changeFlags});
     if (changeFlags.extensionsChanged) {
-      const { gl } = this.context;
+      const {gl} = this.context;
       if (this.state.model) {
         this.state.model.delete();
       }
-      this.setState({ model: this._getModel(gl) });
+      this.setState({model: this._getModel(gl)});
       this.getAttributeManager().invalidateAll();
     }
   }
 
-  draw({ uniforms }: any) {
-    const { emptyColor, emptyOutlineColor } = this.props;
+  draw({uniforms}: any) {
+    const {emptyColor, emptyOutlineColor} = this.props;
     this.state.model
       .setUniforms({
         ...uniforms,
@@ -137,11 +137,11 @@ class FlowCirclesLayer extends Layer {
           drawMode: GL.TRIANGLE_FAN,
           vertexCount: 4,
           attributes: {
-            positions: { size: 3, value: new Float32Array(positions) },
+            positions: {size: 3, value: new Float32Array(positions)},
           },
         }),
         isInstanced: true,
-      })
+      }),
     );
   }
 }

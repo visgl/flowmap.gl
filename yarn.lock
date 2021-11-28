@@ -673,6 +673,11 @@ pad-left@^2.1.0:
   dependencies:
     repeat-string "^1.5.4"
 
+prettier@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.5.0.tgz#a6370e2d4594e093270419d9cc47f7670488f893"
+  integrity sha512-FM/zAKgWTxj40rH03VxzIPdXmj39SwSjwG0heUcNFwI+EMZJnY93yAiKXM3dObIKAM5TA88werc8T/EwhB45eg==
+
 probe.gl@^3.4.0:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/probe.gl/-/probe.gl-3.4.1.tgz#88d8629fbac5a627049d6fdc6b8c364d56f00815"
