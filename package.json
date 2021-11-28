@@ -10,7 +10,7 @@
   "scripts": {
     "build": "yarn build:layers && yarn build:data",
     "build:layers": "cd packages/layers && yarn build",
-    "build:data": "cd packages/layers && yarn data"
+    "build:data": "cd packages/data && yarn build"
   },
   "workspaces": [
     "packages/*"

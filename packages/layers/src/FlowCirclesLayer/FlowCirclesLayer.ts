@@ -21,8 +21,7 @@ import { Geometry, Model } from '@luma.gl/core';
 import FragmentShader from './FlowCirclesLayerFragment.glsl';
 import VertexShader from './FlowCirclesLayerVertex.glsl';
 import { LayerProps } from '../LayerProps';
-import { RGBA } from '../../data/colors';
-import { FlowCirclesLayerAttributes } from '../../data/prepareLayersData';
+import {FlowCirclesLayerAttributes, RGBA} from '@flowmap.gl/data';
 
 export type FlowCirclesDatum = any;
 

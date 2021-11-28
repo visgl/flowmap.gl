@@ -4,6 +4,7 @@
     "module": "esnext",
     "lib": [
       "esnext",
+      "DOM"
     ],
     "allowJs": true,
     "skipLibCheck": true,
