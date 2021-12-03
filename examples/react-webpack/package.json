@@ -1,0 +1,26 @@
+{
+  "name": "@flowmap.gl/react-webpack-example",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "webpack-dev-server --progress --hot",
+    "build": "webpack --progress"
+  },
+  "dependencies": {
+    "d3-fetch": "^3.0.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-map-gl": "^6.1.17"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/plugin-transform-runtime": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "@babel/preset-react": "^7.16.0",
+    "babel-loader": "^8.2.3",
+    "dotenv-webpack": "^7.0.3",
+    "html-webpack-plugin": "^5.5.0",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
+  }
+}
