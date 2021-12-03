@@ -1,4 +1,3 @@
-/* global document */
 import * as React from 'react';
 import {useEffect} from 'react';
 import {render} from 'react-dom';
@@ -103,6 +102,7 @@ function App() {
         data: lineAttributes,
         opacity: 1,
         pickable: true,
+        drawOutline: true,
         outlineColor: [0, 0, 0],
       }),
     );

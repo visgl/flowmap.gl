@@ -8,7 +8,8 @@
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "MIT",
   "scripts": {
-    "dev": "yarn workspace @flowmap.gl/react-webpack-example start",
+    "start": "yarn dev",
+    "dev": "yarn workspace @flowmap.gl/react-cra-example start",
     "build": "yarn build:layers && yarn build:data",
     "build:layers": "yarn workspace @flowmap.gl/layers build",
     "build:data": "yarn workspace @flowmap.gl/data build",
@@ -32,9 +33,8 @@
     "typescript": "^4.5.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
-    "eslint": "^8.3.0",
+    "eslint": "^7.32.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2"
   }

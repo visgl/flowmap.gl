@@ -1,4 +1,4 @@
-# flowmap.gl example with React
+# Flowmap.gl example with React
 
 This example shows a minimal app configuration to use flowmap.gl in a React web app.
 
