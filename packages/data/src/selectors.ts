@@ -162,10 +162,10 @@ export const getTimeGranularityKey: Selector<TimeGranularityKey | undefined> =
     (flows, timeExtent) => {
       if (!flows || !timeExtent) return undefined;
 
-      const minOrder = min(
-        flows,
-        (d) => getTimeGranularityForDate(getFlowTime(d)).order,
-      );
+      const minOrder = min(flows, (d) => {
+        const t = getFlowTime(d);
+        return t ? getTimeGranularityForDate(t).order : null;
+      });
       if (minOrder == null) return undefined;
       const timeGranularity = getTimeGranularityByOrder(minOrder);
       return timeGranularity ? timeGranularity.key : undefined;
@@ -708,6 +708,7 @@ export const getLocationsTree: Selector<KDBushTree> = createSelector(
       return undefined;
     }
     return new KDBush(
+      // @ts-ignore
       locations,
       (location: Location | ClusterNode) =>
         lngX(

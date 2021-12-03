@@ -1,15 +1,14 @@
 {
   "name": "@flowmap.gl/data",
   "version": "10.0.0",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "MIT",
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "rm -rf dist && tsc --project tsconfig.json --outDir dist"
+    "build": "rm -rf dist && tsc"
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",

@@ -2,14 +2,16 @@
   "compilerOptions": {
     "target": "es6",
     "module": "esnext",
-    "lib": ["esnext", "DOM"],
+    "lib": ["esnext", "dom"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": false,
+    "noEmit": true,
     "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -17,11 +19,5 @@
     "downlevelIteration": true,
     "jsx": "preserve"
   },
-  "exclude": ["**/node_modules", "**/dist/**/*"],
-  "include": [
-    "packages/*/src/**/*.ts",
-    "packages/*/src/**/*.tsx",
-    "**/typings.d.ts",
-    "types.d.ts"
-  ]
+  "exclude": ["**/node_modules", "**/dist/**/*"]
 }

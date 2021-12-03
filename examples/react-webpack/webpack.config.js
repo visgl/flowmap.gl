@@ -10,7 +10,7 @@ module.exports = {
   mode: 'development',
 
   entry: {
-    app: './app.js',
+    app: './src/app.js',
   },
 
   devtool: 'source-map',

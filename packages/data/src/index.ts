@@ -22,3 +22,4 @@ export {default as prepareLayersData} from './prepareLayersData';
 export * from './FlowMapState';
 export * from './selectors';
 export * from './time';
+export * from './getViewStateForLocations';

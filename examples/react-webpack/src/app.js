@@ -7,7 +7,7 @@ import {FlowCirclesLayer, FlowLinesLayer} from '@flowmap.gl/layers';
 import {csv} from 'd3-fetch';
 import {LocationFilterMode, prepareLayersData} from '@flowmap.gl/data';
 import {StaticMap} from 'react-map-gl';
-import {getViewStateForLocations} from '@flowmap.gl/data/src/getViewStateForLocations';
+import {getViewStateForLocations} from '@flowmap.gl/data';
 
 // eslint-disable-next-line no-undef
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
