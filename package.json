@@ -9,10 +9,13 @@
   "license": "MIT",
   "scripts": {
     "start": "yarn dev",
-    "dev": "yarn workspace @flowmap.gl/react-cra-example start",
-    "build": "yarn build:layers && yarn build:data",
-    "build:layers": "yarn workspace @flowmap.gl/layers build",
+    "build": "yarn build:data && yarn build:layers",
+    "dev": "concurrently -p npm:dev:data npm:dev:layers npm:dev:example",
+    "dev:example": "yarn workspace @flowmap.gl/react-cra-example start",
+    "dev:data": "yarn workspace @flowmap.gl/data dev",
+    "dev:layers": "yarn workspace @flowmap.gl/layers dev",
     "build:data": "yarn workspace @flowmap.gl/data build",
+    "build:layers": "yarn workspace @flowmap.gl/layers build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
     "prepare": "husky install"
@@ -34,6 +37,7 @@
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^5.4.0",
+    "concurrently": "^6.4.0",
     "eslint": "^7.32.0",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2"

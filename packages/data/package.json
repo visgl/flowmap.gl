@@ -8,6 +8,7 @@
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "MIT",
   "scripts": {
+    "dev": "tsc --watch",
     "build": "rm -rf dist && tsc"
   },
   "dependencies": {
