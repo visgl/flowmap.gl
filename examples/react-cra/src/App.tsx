@@ -2,17 +2,16 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {FlowCirclesLayer, FlowLinesLayer} from '@flowmap.gl/layers';
-import {csv} from 'd3-fetch';
 import {
   Flow,
+  getViewStateForLocations,
   Location,
   LocationFilterMode,
   prepareLayersData,
 } from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
-import {getViewStateForLocations} from '@flowmap.gl/data';
+import fetchData from './fetchData';
 
-// eslint-disable-next-line no-undef
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
 const INITIAL_VIEW_STATE = {
@@ -54,21 +53,7 @@ function App() {
   const [layersData, setLayersData] = useState();
   useEffect(() => {
     (async () => {
-      const base = 'https://gist.githubusercontent.com/ilyabo/';
-      const path = `${base}/a7b9701424257146b571149d92a14926/raw/2e9e1e9bcf64cf0090781b451037229ccb78e1b1`;
-      const [locations, flows] = await Promise.all([
-        csv(`${path}/locations.csv`, (row, i) => ({
-          id: row.id!,
-          name: row.name!,
-          lat: Number(row.lat),
-          lon: Number(row.lon),
-        })),
-        csv(`${path}/flows.csv`, (row) => ({
-          origin: row.origin!,
-          dest: row.dest!,
-          count: Number(row.count),
-        })),
-      ]);
+      const {locations, flows} = await fetchData();
       setData({
         locations,
         flows,
