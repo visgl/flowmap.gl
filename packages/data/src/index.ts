@@ -23,3 +23,5 @@ export * from './FlowMapState';
 export * from './selectors';
 export * from './time';
 export * from './getViewStateForLocations';
+export type {default as FlowMapDataProvider} from './provider/FlowMapDataProvider';
+export {default as LocalFlowMapDataProvider} from './provider/LocalFlowMapDataProvider';

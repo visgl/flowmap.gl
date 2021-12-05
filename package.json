@@ -10,7 +10,7 @@
   "scripts": {
     "start": "yarn dev",
     "build": "yarn build:data && yarn build:layers",
-    "dev": "concurrently -p npm:dev:data npm:dev:layers npm:dev:example",
+    "dev": "concurrently \"npm:dev:*\"",
     "dev:example": "yarn workspace @flowmap.gl/react-cra-example start",
     "dev:data": "yarn workspace @flowmap.gl/data dev",
     "dev:layers": "yarn workspace @flowmap.gl/layers dev",

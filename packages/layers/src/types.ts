@@ -18,9 +18,9 @@
 import {FeatureCollection, GeometryObject} from 'geojson';
 import {Flow, Location} from '@flowmap.gl/data';
 
-export type LayerProps = any;
+export type LayerProps = Record<string, unknown>;
 
-export type LocationProperties = any;
+export type LocationProperties = Record<string, unknown>;
 
 export type Locations =
   | FeatureCollection<GeometryObject, LocationProperties>

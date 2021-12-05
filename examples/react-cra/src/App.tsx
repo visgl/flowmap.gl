@@ -1,14 +1,8 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
-import {FlowCirclesLayer, FlowLinesLayer} from '@flowmap.gl/layers';
-import {
-  Flow,
-  getViewStateForLocations,
-  Location,
-  LocationFilterMode,
-  prepareLayersData,
-} from '@flowmap.gl/data';
+import {FlowMapLayer} from '@flowmap.gl/layers';
+import {Flow, getViewStateForLocations, Location} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
 
@@ -23,34 +17,10 @@ const INITIAL_VIEW_STATE = {
   pitch: 0,
   bearing: 0,
 };
-const INITIAL_FLOW_MAP_STATE = {
-  viewport: INITIAL_VIEW_STATE,
-  adjustViewportToLocations: true,
-  filterState: {
-    selectedLocations: undefined,
-    locationFilterMode: LocationFilterMode.ALL,
-    selectedTimeRange: undefined,
-  },
-  settingsState: {
-    locationTotalsEnabled: true,
-    baseMapEnabled: true,
-    adaptiveScalesEnabled: true,
-    animationEnabled: false,
-    clusteringEnabled: true,
-    manualClusterZoom: undefined,
-    fadeEnabled: true,
-    clusteringAuto: true,
-    darkMode: true,
-    fadeAmount: 50,
-    baseMapOpacity: 50,
-    colorSchemeKey: 'Teal',
-  },
-};
 
 function App() {
   const [viewState, setViewState] = useState<ViewportProps>(INITIAL_VIEW_STATE);
   const [data, setData] = useState<{locations: Location[]; flows: Flow[]}>();
-  const [layersData, setLayersData] = useState();
   useEffect(() => {
     (async () => {
       const {locations, flows} = await fetchData();
@@ -74,44 +44,12 @@ function App() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (data) {
-      setLayersData(
-        // @ts-ignore
-        prepareLayersData(
-          {
-            ...INITIAL_FLOW_MAP_STATE,
-            // @ts-ignore
-            viewport: viewState,
-          },
-          data,
-        ),
-      );
-    }
-  }, [data, viewState]);
-
   const layers = [];
-
-  if (layersData) {
-    const {circleAttributes, lineAttributes} = layersData;
+  if (data) {
     layers.push(
-      new FlowLinesLayer({
-        id: 'lines',
-        data: lineAttributes,
-        opacity: 1,
-        pickable: true,
-        drawOutline: true,
-        outlineColor: [0, 0, 0, 255],
-      }),
-    );
-    layers.push(
-      new FlowCirclesLayer({
-        id: 'circles',
-        data: circleAttributes,
-        opacity: 1,
-        pickable: true,
-        emptyColor: [0, 0, 0, 255],
-        emptyOutlineColor: [0, 0, 0, 255],
+      new FlowMapLayer({
+        locations: data.locations,
+        flows: data.flows,
       }),
     );
   }
