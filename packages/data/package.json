@@ -13,12 +13,9 @@
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.5.0",
-    "@math.gl/web-mercator": "^3.2.1",
     "d3-array": "^3.0.2",
     "d3-collection": "^1.0.7",
     "d3-color": "^3.0.1",
-    "d3-ease": "^3.0.1",
-    "d3-format": "^3.0.1",
     "d3-geo": "^3.0.1",
     "d3-interpolate": "^3.0.1",
     "d3-scale": "^4.0.0",
@@ -26,17 +23,13 @@
     "d3-time": "^3.0.0",
     "d3-time-format": "^4.0.0",
     "kdbush": "^3.0.0",
-    "lodash.throttle": "^4.1.1",
     "reselect": "^4.0.0",
-    "seedrandom": "^3.0.5",
-    "zustand": "^3.5.10"
+    "seedrandom": "^3.0.5"
   },
   "devDependencies": {
     "@types/d3-array": "^3.0.1",
     "@types/d3-collection": "^1.0.10",
     "@types/d3-color": "^3.0.2",
-    "@types/d3-ease": "^3.0.0",
-    "@types/d3-format": "^3.0.1",
     "@types/d3-geo": "^3.0.2",
     "@types/d3-interpolate": "^3.0.1",
     "@types/d3-scale": "^4.0.1",
@@ -45,9 +38,6 @@
     "@types/d3-time-format": "^4.0.0",
     "@types/geojson": "^7946.0.7",
     "@types/kdbush": "^3.0.0",
-    "@types/lodash.debounce": "^4.0.4",
-    "@types/lodash.throttle": "^4.1.6",
-    "@types/mapbox__geo-viewport": "^0.4.1",
     "@types/seedrandom": "^3.0.1"
   },
   "peerDependencies": {}

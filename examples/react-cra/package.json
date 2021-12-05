@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@deck.gl/core": "^8.1.1",
+    "@luma.gl/constants": "^8.1.0",
+    "@luma.gl/core": "^8.1.0",
     "@deck.gl/react": "^8.6.4",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",

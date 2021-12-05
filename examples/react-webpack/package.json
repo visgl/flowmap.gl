@@ -6,6 +6,9 @@
     "build": "webpack --progress"
   },
   "dependencies": {
+    "@deck.gl/core": "^8.1.1",
+    "@luma.gl/constants": "^8.1.0",
+    "@luma.gl/core": "^8.1.0",
     "d3-fetch": "^3.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
