@@ -11,6 +11,12 @@ export interface LocationTotals {
   within: number;
 }
 
+export interface LocationsTotals {
+  incoming: {[id: string]: number};
+  outgoing: {[id: string]: number};
+  within: {[id: string]: number};
+}
+
 export interface Flow {
   origin: string;
   dest: string;
@@ -18,6 +24,11 @@ export interface Flow {
   time?: Date;
   color?: string;
 }
+
+export type FlowMapData = {
+  locations: Location[] | undefined;
+  flows: Flow[] | undefined;
+};
 
 export interface ViewState {
   latitude: number;
@@ -57,11 +68,11 @@ export interface LocationAccessors {
   getLocationTotalWithin?: LocationAccessor<number>;
 }
 
-export const getFlowTime = (flow: Flow) => flow.time;
-export const getFlowMagnitude = (flow: Flow) => +flow.count || 0;
-export const getFlowOriginId = (flow: Flow) => flow.origin;
-export const getFlowDestId = (flow: Flow) => flow.dest;
-export const getLocationId = (loc: Location | ClusterNode) => loc.id;
+export const getFlowTime = (flow: Flow): Date | undefined => flow.time;
+export const getFlowMagnitude = (flow: Flow): number => +flow.count || 0;
+export const getFlowOriginId = (flow: Flow): string => flow.origin;
+export const getFlowDestId = (flow: Flow): string => flow.dest;
+export const getLocationId = (loc: Location | ClusterNode): string => loc.id;
 
 export function isLocationCluster(l: Location | Cluster): l is Cluster {
   const {zoom} = l as Cluster;
@@ -167,3 +178,32 @@ export enum LocationFilterMode {
   OUTGOING = 'OUTGOING',
   BETWEEN = 'BETWEEN',
 }
+
+export interface FlowCirclesLayerAttributes {
+  length: number;
+  attributes: {
+    getPosition: LayersDataAttrValues<Float32Array>;
+    getColor: LayersDataAttrValues<Uint8Array>;
+    getInRadius: LayersDataAttrValues<Float32Array>;
+    getOutRadius: LayersDataAttrValues<Float32Array>;
+  };
+}
+
+export interface FlowLinesLayerAttributes {
+  length: number;
+  attributes: {
+    getSourcePosition: LayersDataAttrValues<Float32Array>;
+    getTargetPosition: LayersDataAttrValues<Float32Array>;
+    getThickness: LayersDataAttrValues<Float32Array>;
+    getColor: LayersDataAttrValues<Uint8Array>;
+    getEndpointOffsets: LayersDataAttrValues<Float32Array>;
+    getStaggering?: LayersDataAttrValues<Float32Array>;
+  };
+}
+
+export interface LayersData {
+  circleAttributes: FlowCirclesLayerAttributes;
+  lineAttributes: FlowLinesLayerAttributes;
+}
+
+export type LayersDataAttrValues<T> = {value: T; size: number};

@@ -66,7 +66,7 @@ class FlowLinesLayer extends Layer {
     super(props);
   }
 
-  getShaders() {
+  getShaders(): Record<string, any> {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
@@ -75,7 +75,7 @@ class FlowLinesLayer extends Layer {
     });
   }
 
-  initializeState() {
+  initializeState(): void {
     const {attributeManager} = this.state;
 
     attributeManager.addInstanced({
@@ -115,7 +115,7 @@ class FlowLinesLayer extends Layer {
     });
   }
 
-  updateState({props, oldProps, changeFlags}: any) {
+  updateState({props, oldProps, changeFlags}: Record<string, any>): void {
     super.updateState({props, oldProps, changeFlags});
 
     if (changeFlags.extensionsChanged) {
@@ -128,7 +128,7 @@ class FlowLinesLayer extends Layer {
     }
   }
 
-  draw({uniforms}: any) {
+  draw({uniforms}: Record<string, any>): void {
     const {gl} = this.context;
     const {outlineColor, thicknessUnit} = this.props;
     gl.lineWidth(1);
@@ -142,7 +142,7 @@ class FlowLinesLayer extends Layer {
       .draw();
   }
 
-  _getModel(gl: WebGLRenderingContext) {
+  _getModel(gl: WebGLRenderingContext): Record<string, any> {
     let positions: number[] = [];
     let pixelOffsets: number[] = [];
 

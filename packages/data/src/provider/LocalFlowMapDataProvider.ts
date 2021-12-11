@@ -1,20 +1,24 @@
 import FlowMapDataProvider from './FlowMapDataProvider';
-import {ClusterNode, Location, Flow, ViewportProps} from '../types';
-import prepareLayersData, {LayersData} from '../prepareLayersData';
+import {
+  ClusterNode,
+  Flow,
+  FlowMapData,
+  LayersData,
+  ViewportProps,
+  Location,
+} from '../types';
 import {FlowMapState} from '../FlowMapState';
+import FlowMapSelectors from '../FlowMapSelectors';
 
 export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
-  private locations: Location[];
-  private flows: Flow[];
+  private selectors: FlowMapSelectors;
+  private flowMapData: FlowMapData;
   private flowMapState: FlowMapState;
 
-  constructor(
-    locations: Location[],
-    flows: Flow[],
-    flowMapState: FlowMapState,
-  ) {
-    this.locations = locations;
-    this.flows = flows;
+  constructor(flowMapData: FlowMapData, flowMapState: FlowMapState) {
+    // scope selectors to the concrete instance of FlowMapDataProvider
+    this.selectors = new FlowMapSelectors();
+    this.flowMapData = flowMapData;
     this.flowMapState = flowMapState;
   }
 
@@ -22,22 +26,39 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
     this.flowMapState = flowMapState;
   }
 
-  async getFlowByIndex(index: number): Promise<Flow> {
-    return Promise.resolve({} as Flow);
+  async getFlowByIndex(idx: number): Promise<Flow | undefined> {
+    const flows = this.selectors.getFlowsForFlowMapLayer(
+      this.flowMapState,
+      this.flowMapData,
+    );
+    return flows?.[idx];
+  }
+
+  async getLocationByIndex(
+    idx: number,
+  ): Promise<Location | ClusterNode | undefined> {
+    const locations = this.selectors.getLocationsForFlowMapLayer(
+      this.flowMapState,
+      this.flowMapData,
+    );
+    return locations?.[idx];
   }
 
   async getLayersData(): Promise<LayersData> {
-    const {locations, flows} = this;
-    // TODO: scope selectors to the concrete instance of FlowMapDataProvider
-    return prepareLayersData(this.flowMapState, {locations, flows});
+    return this.selectors.prepareLayersData(
+      this.flowMapState,
+      this.flowMapData,
+    );
   }
 
-  async getLocationById(id: string): Promise<undefined> {
-    return undefined;
-  }
-
-  async getLocationByIndex(idx: number): Promise<undefined> {
-    return undefined;
+  async getLocationById(
+    id: string,
+  ): Promise<Location | ClusterNode | undefined> {
+    const locationsById = this.selectors.getLocationsById(
+      this.flowMapState,
+      this.flowMapData,
+    );
+    return locationsById?.get(id);
   }
 
   getViewportForLocations(dims: [number, number]): Promise<ViewportProps> {

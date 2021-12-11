@@ -48,8 +48,12 @@ function App() {
   if (data) {
     layers.push(
       new FlowMapLayer({
-        locations: data.locations,
-        flows: data.flows,
+        id: 'my-flowmap-layer',
+        data: {
+          locations: data.locations,
+          flows: data.flows,
+        },
+        // pickable: true,
       }),
     );
   }

@@ -17,11 +17,10 @@
 
 export * from './types';
 export * from './colors';
-export * from './prepareLayersData';
-export {default as prepareLayersData} from './prepareLayersData';
 export * from './FlowMapState';
-export * from './selectors';
+export * from './FlowMapSelectors';
 export * from './time';
 export * from './getViewStateForLocations';
+export * from './provider/FlowMapDataProvider';
 export type {default as FlowMapDataProvider} from './provider/FlowMapDataProvider';
 export {default as LocalFlowMapDataProvider} from './provider/LocalFlowMapDataProvider';
