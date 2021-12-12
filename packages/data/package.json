@@ -38,8 +38,8 @@
     "@types/d3-time-format": "^4.0.0",
     "@types/geojson": "^7946.0.7",
     "@types/kdbush": "^3.0.0",
-    "@types/seedrandom": "^3.0.1",
-    "@types/mapbox__geo-viewport": "^0.4.1"
+    "@types/mapbox__geo-viewport": "^0.4.1",
+    "@types/seedrandom": "^3.0.1"
   },
   "peerDependencies": {}
 }

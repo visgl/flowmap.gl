@@ -31,7 +31,7 @@ export default interface FlowMapDataProvider {
 
   // getLocationsForSearchBox(): Promise<(Location | ClusterNode)[] | undefined>;
 
-  getLayersData(): Promise<LayersData>;
+  getLayersData(): Promise<LayersData | undefined>;
 }
 
 export function isFlowMapData(data: Record<string, any>): data is FlowMapData {

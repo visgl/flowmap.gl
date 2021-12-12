@@ -1,35 +1,40 @@
 import {CompositeLayer} from '@deck.gl/core';
 import {ScatterplotLayer} from '@deck.gl/layers';
 import {
-  FlowMapState,
-  LayersData,
-  LocationFilterMode,
-  FlowMapDataProvider,
-  LocalFlowMapDataProvider,
-  ViewportProps,
-  FlowMapData,
-  isFlowMapData,
-  Action,
-  mainReducer,
-  HighlightType,
-  getLocationId,
-  Highlight,
-  ActionType,
-  FlowLinesLayerAttributes,
-  getOuterCircleRadiusByIndex,
-  getLocationCentroid,
   colorAsRgba,
-  getFlowMapColors,
+  FlowLinesLayerAttributes,
+  FlowMapData,
+  FlowMapDataProvider,
   getFlowLineAttributesByIndex,
+  getFlowMapColors,
+  getLocationCentroid,
+  getLocationId,
+  getOuterCircleRadiusByIndex,
+  Highlight,
+  HighlightType,
+  isFlowMapData,
+  isFlowMapDataProvider,
+  LayersData,
+  LocalFlowMapDataProvider,
+  LocationFilterMode,
+  ViewportProps,
 } from '@flowmap.gl/data';
 import FlowLinesLayer from './FlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
-import {LayerProps, PickingType} from './types';
-import {isFlowMapDataProvider} from '@flowmap.gl/data';
-import deepEqual from 'fast-deep-equal';
+import {LayerProps} from './types';
 
-export type Props = {
+export type FlowMapLayerProps = {
   data: FlowMapData | FlowMapDataProvider;
+  locationTotalsEnabled?: boolean;
+  adaptiveScalesEnabled?: boolean;
+  animationEnabled?: boolean;
+  clusteringEnabled?: boolean;
+  manualClusterZoom?: number;
+  fadeEnabled?: boolean;
+  clusteringAuto?: boolean;
+  darkMode?: boolean;
+  fadeAmount?: number;
+  colorSchemeKey?: string;
 } & LayerProps;
 
 type HighlightedLocationObject = {
@@ -47,15 +52,27 @@ type HighlightedObject = HighlightedLocationObject | HighlightedFlowObject;
 
 type State = {
   dataProvider: FlowMapDataProvider | undefined;
-  flowmapState: FlowMapState | undefined;
+  // flowmapState: FlowMapState | undefined;
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
 };
 
 export default class FlowMapLayer extends CompositeLayer {
+  static defaultProps = {
+    darkMode: true,
+    fadeAmount: 50,
+    locationTotalsEnabled: true,
+    animationEnabled: false,
+    clusteringEnabled: true,
+    fadeEnabled: true,
+    clusteringAuto: true,
+    manualClusterZoom: undefined,
+    adaptiveScalesEnabled: true,
+    colorSchemeKey: 'Teal',
+  };
   state: State | undefined;
 
-  constructor(props: Props) {
+  constructor(props: FlowMapLayerProps) {
     super({
       ...props,
       onHover: (info: any) => {
@@ -70,79 +87,63 @@ export default class FlowMapLayer extends CompositeLayer {
   }
 
   initializeState(context: {viewport: ViewportProps}): void {
+    this._handleDataChange();
+  }
+
+  private _handleDataChange() {
     const {data} = this.props;
-    const flowmapState = {
-      viewport: asViewState(context.viewport),
-      // TODO: remove adjustViewportToLocations
-      adjustViewportToLocations: true,
-      filterState: {
-        selectedLocations: undefined,
-        locationFilterMode: LocationFilterMode.ALL,
-        selectedTimeRange: undefined,
-      },
-      settingsState: {
-        locationTotalsEnabled: true,
-        baseMapEnabled: true,
-        adaptiveScalesEnabled: true,
-        animationEnabled: false,
-        clusteringEnabled: true,
-        manualClusterZoom: undefined,
-        fadeEnabled: true,
-        clusteringAuto: true,
-        darkMode: true,
-        fadeAmount: 50,
-        baseMapOpacity: 50,
-        colorSchemeKey: 'Teal',
-      },
-    };
     let dataProvider = undefined;
     if (isFlowMapDataProvider(data)) {
       dataProvider = data;
     } else if (isFlowMapData(data)) {
-      dataProvider = new LocalFlowMapDataProvider(data, flowmapState);
+      dataProvider = new LocalFlowMapDataProvider();
+      dataProvider.setFlowMapData(data);
     }
     this.setState({
       dataProvider,
-      flowmapState,
     });
   }
 
-  private dispatch(action: Action) {
-    const {flowmapState} = this.state || {};
-    if (flowmapState) {
-      const nextFlowMapState = mainReducer(flowmapState, action);
-      this.setState({
-        flowmapState: nextFlowMapState,
-      });
-      this.state?.dataProvider?.setFlowMapState(nextFlowMapState);
-    } else {
-      console.warn(
-        'FlowMapLayer: flowmapState is undefined, could not dispatch action',
-        action,
-      );
-    }
-  }
+  // private dispatch(action: Action) {
+  //   const {flowmapState} = this.state || {};
+  //   if (flowmapState) {
+  //     const nextFlowMapState = mainReducer(flowmapState, action);
+  //     this.setState({
+  //       flowmapState: nextFlowMapState,
+  //     });
+  //     this.state?.dataProvider?.setFlowMapState(nextFlowMapState);
+  //   } else {
+  //     console.warn(
+  //       'FlowMapLayer: flowmapState is undefined, could not dispatch action',
+  //       action,
+  //     );
+  //   }
+  // }
 
   private handleHighlight(
     highlight: Highlight | undefined,
     highlightedObject?: HighlightedObject,
   ) {
-    this.dispatch({type: ActionType.SET_HIGHLIGHT, highlight});
+    // this.dispatch({type: ActionType.SET_HIGHLIGHT, highlight});
     this.setState({highlightedObject});
   }
 
-  private _viewportChanged() {
-    const {flowmapState, dataProvider} = this.state || {};
-    if (!flowmapState || !dataProvider) {
-      return false;
-    }
-
-    const nextViewport = asViewState(this.context.viewport);
-    return !deepEqual(nextViewport, asViewState(flowmapState.viewport));
-  }
+  // private _viewportChanged() {
+  //   const {flowmapState, dataProvider} = this.state || {};
+  //   if (!flowmapState || !dataProvider) {
+  //     return false;
+  //   }
+  //
+  //   const nextViewport = asViewState(this.context.viewport);
+  //   return !deepEqual(nextViewport, asViewState(flowmapState.viewport));
+  // }
 
   shouldUpdateState(params: Record<string, any>): boolean {
-    if (this._viewportChanged()) {
+    const {changeFlags} = params;
+    // if (this._viewportChanged()) {
+    //   return true;
+    // }
+    if (changeFlags.viewportChanged) {
       return true;
     }
 
@@ -152,80 +153,73 @@ export default class FlowMapLayer extends CompositeLayer {
   }
 
   updateState({oldProps, props, changeFlags}: Record<string, any>): void {
-    console.log('updateState');
     const {dataProvider} = this.state || {};
     if (!dataProvider) {
       return;
     }
-
-    const viewportChanged = this._viewportChanged();
-    if (viewportChanged) {
-      this.dispatch({
-        type: ActionType.SET_VIEWPORT,
-        viewport: asViewState(this.context.viewport),
-      });
+    if (changeFlags.dataChanged) {
+      this._handleDataChange();
     }
-    if (viewportChanged || changeFlags.dataChanged) {
-      // dataProvider.setFlowMapState(nextState);
+
+    // const viewportChanged = this._viewportChanged();
+    // if (viewportChanged) {
+    //   this.dispatch({
+    //     type: ActionType.SET_VIEWPORT,
+    //     viewport: asViewState(this.context.viewport),
+    //   });
+    // }
+    if (changeFlags.viewportChanged || changeFlags.propsOrDataChanged) {
+      dataProvider.setFlowMapState(this._getFlowMapState());
 
       (async () => {
-        console.log('updateState: getLayersData');
         const layersData = await dataProvider.getLayersData();
         this.setState({layersData});
       })();
     }
   }
 
-  // TODO: Use for highlight  https://deck.gl/docs/api-reference/core/composite-layer#filtersublayer
-
-  getPickingInfo(params: Record<string, any>): Record<string, any> {
-    const {info, sourceLayer} = params;
-
-    // const type = getPickType(params.sourceLayer);
-    // if (!type) {
-    //   return params.info;
-    // }
-
-    // const info = {
-    //   ...params.info,
-    //   type,
-    // };
-
-    // const { selectors } = this.state;
-    // if (type === PickingType.FLOW) {
-    //   const getLocationById = selectors.getLocationByIdGetter(this.props);
-    //   const { getFlowOriginId, getFlowDestId } = selectors.getInputAccessors();
-    //   const flow = info.object as Flow;
-    //   return {
-    //     ...info,
-    //     ...(flow && {
-    //       origin: getLocationById(getFlowOriginId(flow)),
-    //       dest: getLocationById(getFlowDestId(flow)),
-    //     }),
-    //   };
-    // }
-
-    // if (type === PickingType.LOCATION || type === PickingType.LOCATION_AREA) {
-    //   const location: Location = type === PickingType.LOCATION ? info.object && info.object.location : info.object;
-    //   const getLocationTotalIn = selectors.getLocationTotalInGetter(this.props);
-    //   const getLocationTotalOut = selectors.getLocationTotalOutGetter(this.props);
-    //   const getLocationTotalWithin = selectors.getLocationTotalWithinGetter(this.props);
-    //   const getLocationCircleRadius = selectors.getLocationCircleRadiusGetter(this.props);
-
-    //   return {
-    //     ...info,
-    //     ...(location && {
-    //       object: location,
-    //       totalIn: getLocationTotalIn(location),
-    //       totalOut: getLocationTotalOut(location),
-    //       totalWithin: getLocationTotalWithin(location),
-    //       circleRadius: getLocationCircleRadius({ location, type: LocationCircleType.OUTER }),
-    //     }),
-    //   };
-    // }
-
-    return info;
+  private _getSettingsState() {
+    const {
+      locationTotalsEnabled,
+      adaptiveScalesEnabled,
+      animationEnabled,
+      clusteringEnabled,
+      manualClusterZoom,
+      fadeEnabled,
+      clusteringAuto,
+      darkMode,
+      fadeAmount,
+      colorSchemeKey,
+    } = this.props;
+    return {
+      locationTotalsEnabled,
+      adaptiveScalesEnabled,
+      animationEnabled,
+      clusteringEnabled,
+      manualClusterZoom,
+      fadeEnabled,
+      clusteringAuto,
+      darkMode,
+      fadeAmount,
+      colorSchemeKey,
+    };
   }
+
+  private _getFlowMapState() {
+    return {
+      viewport: asViewState(this.context.viewport),
+      // TODO: remove adjustViewportToLocations
+      adjustViewportToLocations: true,
+      filterState: {
+        selectedLocations: undefined,
+        locationFilterMode: LocationFilterMode.ALL,
+        selectedTimeRange: undefined,
+      },
+      settingsState: this._getSettingsState(),
+    };
+  }
+
+  // TODO: Maybe use for highlight  https://deck.gl/docs/api-reference/core/composite-layer#filtersublayer
 
   async _onHover(
     info: Record<string, any>,
@@ -305,18 +299,15 @@ export default class FlowMapLayer extends CompositeLayer {
   }
 
   renderLayers(): Array<any> {
-    console.log('renderLayers');
     const layers = [];
 
     if (this.state?.layersData) {
-      const {layersData, highlightedObject, flowmapState} = this.state;
-      const {settingsState} = flowmapState || {};
+      const {layersData, highlightedObject} = this.state;
       const {circleAttributes, lineAttributes} = layersData;
-      if (circleAttributes && lineAttributes && settingsState) {
-        const flowMapColors = getFlowMapColors(settingsState);
+      if (circleAttributes && lineAttributes) {
+        const flowMapColors = getFlowMapColors(this._getSettingsState());
         const outlineColor = colorAsRgba(
-          flowMapColors.outlineColor ||
-            (settingsState.darkMode ? '#000' : '#fff'),
+          flowMapColors.outlineColor || (this.props.darkMode ? '#000' : '#fff'),
         );
         layers.push(
           new FlowLinesLayer({

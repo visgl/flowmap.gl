@@ -52,10 +52,10 @@ import {nest} from 'd3-collection';
 import {bounds} from '@mapbox/geo-viewport';
 import KDBush from 'kdbush';
 import {scaleLinear, scaleSqrt} from 'd3-scale';
-import {FlowMapState, MAX_ZOOM_LEVEL} from './FlowMapState';
+import {FlowMapState} from './FlowMapState';
 import {flatMap} from './util';
-import {LayersDataAttrValues} from '.';
 
+const MAX_CLUSTER_ZOOM_LEVEL = 20;
 const NUMBER_OF_FLOWS_TO_DISPLAY = 5000;
 type KDBushTree = any;
 
@@ -279,7 +279,7 @@ export default class FlowMapSelectors {
         {getLocationId, getLocationCentroid},
         getLocationWeight,
         {
-          maxZoom: MAX_ZOOM_LEVEL,
+          maxZoom: MAX_CLUSTER_ZOOM_LEVEL,
         },
       );
       const clusterIndex = buildIndex(clusterLevels);

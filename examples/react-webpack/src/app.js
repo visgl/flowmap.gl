@@ -28,7 +28,6 @@ const INITIAL_FLOW_MAP_STATE = {
   },
   settingsState: {
     locationTotalsEnabled: true,
-    baseMapEnabled: true,
     adaptiveScalesEnabled: true,
     animationEnabled: false,
     clusteringEnabled: true,
@@ -37,7 +36,6 @@ const INITIAL_FLOW_MAP_STATE = {
     clusteringAuto: true,
     darkMode: true,
     fadeAmount: 50,
-    baseMapOpacity: 50,
     colorSchemeKey: 'Teal',
   },
 };
