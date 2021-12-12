@@ -22,6 +22,7 @@ import {
 import FlowLinesLayer from './FlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import {LayerProps} from './types';
+import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 
 export type FlowMapLayerProps = {
   data: FlowMapData | FlowMapDataProvider;
@@ -52,7 +53,6 @@ type HighlightedObject = HighlightedLocationObject | HighlightedFlowObject;
 
 type State = {
   dataProvider: FlowMapDataProvider | undefined;
-  // flowmapState: FlowMapState | undefined;
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
 };
@@ -104,39 +104,12 @@ export default class FlowMapLayer extends CompositeLayer {
     });
   }
 
-  // private dispatch(action: Action) {
-  //   const {flowmapState} = this.state || {};
-  //   if (flowmapState) {
-  //     const nextFlowMapState = mainReducer(flowmapState, action);
-  //     this.setState({
-  //       flowmapState: nextFlowMapState,
-  //     });
-  //     this.state?.dataProvider?.setFlowMapState(nextFlowMapState);
-  //   } else {
-  //     console.warn(
-  //       'FlowMapLayer: flowmapState is undefined, could not dispatch action',
-  //       action,
-  //     );
-  //   }
-  // }
-
   private handleHighlight(
     highlight: Highlight | undefined,
     highlightedObject?: HighlightedObject,
   ) {
-    // this.dispatch({type: ActionType.SET_HIGHLIGHT, highlight});
     this.setState({highlightedObject});
   }
-
-  // private _viewportChanged() {
-  //   const {flowmapState, dataProvider} = this.state || {};
-  //   if (!flowmapState || !dataProvider) {
-  //     return false;
-  //   }
-  //
-  //   const nextViewport = asViewState(this.context.viewport);
-  //   return !deepEqual(nextViewport, asViewState(flowmapState.viewport));
-  // }
 
   shouldUpdateState(params: Record<string, any>): boolean {
     const {changeFlags} = params;
@@ -146,19 +119,24 @@ export default class FlowMapLayer extends CompositeLayer {
     if (changeFlags.viewportChanged) {
       return true;
     }
-
     return super.shouldUpdateState(params);
     // TODO: be smarter on when to update
     // (e.g. ignore viewport changes when adaptiveScalesEnabled and clustering are false)
   }
 
   updateState({oldProps, props, changeFlags}: Record<string, any>): void {
-    const {dataProvider} = this.state || {};
+    const {dataProvider, highlightedObject} = this.state || {};
     if (!dataProvider) {
       return;
     }
     if (changeFlags.dataChanged) {
       this._handleDataChange();
+    }
+
+    if (changeFlags.viewportChanged) {
+      if (highlightedObject) {
+        this.handleHighlight(undefined, undefined);
+      }
     }
 
     // const viewportChanged = this._viewportChanged();
@@ -219,8 +197,6 @@ export default class FlowMapLayer extends CompositeLayer {
     };
   }
 
-  // TODO: Maybe use for highlight  https://deck.gl/docs/api-reference/core/composite-layer#filtersublayer
-
   async _onHover(
     info: Record<string, any>,
     onHover: (info: Record<string, any>) => void,
@@ -231,7 +207,10 @@ export default class FlowMapLayer extends CompositeLayer {
     //   // Skipping, because this is not the latest hover event
     //   return;
     // }
-    if (sourceLayer instanceof FlowLinesLayer) {
+    if (
+      sourceLayer instanceof FlowLinesLayer ||
+      sourceLayer instanceof AnimatedFlowLinesLayer
+    ) {
       const flow =
         index === -1 ? undefined : await dataProvider?.getFlowByIndex(index);
       if (flow) {
@@ -300,7 +279,6 @@ export default class FlowMapLayer extends CompositeLayer {
 
   renderLayers(): Array<any> {
     const layers = [];
-
     if (this.state?.layersData) {
       const {layersData, highlightedObject} = this.state;
       const {circleAttributes, lineAttributes} = layersData;
@@ -309,29 +287,42 @@ export default class FlowMapLayer extends CompositeLayer {
         const outlineColor = colorAsRgba(
           flowMapColors.outlineColor || (this.props.darkMode ? '#000' : '#fff'),
         );
-        layers.push(
-          new FlowLinesLayer({
-            ...this.getSubLayerProps({
-              id: 'lines',
-              data: lineAttributes,
-              opacity: 1,
-              pickable: true,
-              drawOutline: true,
-              outlineColor: outlineColor,
-              parameters: {
-                // prevent z-fighting at non-zero bearing/pitch
-                depthTest: false,
-              },
+        const commonLineLayerProps = {
+          data: lineAttributes,
+          parameters: {
+            // prevent z-fighting at non-zero bearing/pitch
+            depthTest: false,
+          },
+        };
+        if (this.props.animationEnabled) {
+          layers.push(
+            // @ts-ignore
+            new AnimatedFlowLinesLayer({
+              ...this.getSubLayerProps({
+                ...commonLineLayerProps,
+                id: 'animated-flow-lines',
+                drawOutline: false,
+                thicknessUnit: 20,
+              }),
             }),
-          }),
-        );
+          );
+        } else {
+          layers.push(
+            new FlowLinesLayer({
+              ...this.getSubLayerProps({
+                ...commonLineLayerProps,
+                id: 'flow-lines',
+                drawOutline: true,
+                outlineColor: outlineColor,
+              }),
+            }),
+          );
+        }
         layers.push(
           new FlowCirclesLayer(
             this.getSubLayerProps({
               id: 'circles',
               data: circleAttributes,
-              opacity: 1,
-              pickable: true,
               emptyColor: [0, 0, 0, 255],
               emptyOutlineColor: [0, 0, 0, 255],
             }),
@@ -375,28 +366,6 @@ export default class FlowMapLayer extends CompositeLayer {
     return layers;
   }
 }
-
-// type DeckGLLayer = any;
-
-// function getLayerKind(id: string): LayerKind {
-//   const kind = id.substr(id.lastIndexOf(LAYER_ID_SEPARATOR) + LAYER_ID_SEPARATOR.length);
-//   return LayerKind[kind as keyof typeof LayerKind];
-// }
-
-// function getPickType({ id }: DeckGLLayer): PickingType | undefined {
-//   switch (getLayerKind(id)) {
-//     case LayerKind.FLOWS:
-//     case LayerKind.FLOWS_HIGHLIGHTED:
-//       return PickingType.FLOW;
-//     case LayerKind.LOCATIONS:
-//     case LayerKind.LOCATIONS_HIGHLIGHTED:
-//       return PickingType.LOCATION;
-//     case LayerKind.LOCATION_AREAS:
-//       return PickingType.LOCATION_AREA;
-//     default:
-//       return undefined;
-//   }
-// }
 
 function asViewState(viewport: Record<string, any>): ViewportProps {
   const {width, height, longitude, latitude, zoom, pitch, bearing} = viewport;

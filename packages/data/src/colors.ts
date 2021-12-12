@@ -385,7 +385,7 @@ export function getColors(
         // .range(darkMode ? [1-fadeAmount/100, 1] : [1, 1 - fadeAmount/100])
         // .range(darkMode ? [1 - fadeAmount/100, 1] : [fadeAmount/100, 0])
         // .range([1 - fadeAmount/100, 1])
-        .range([0, ((animate ? 2.5 : 2) * fadeAmount) / 100]);
+        .range([0, (2 * fadeAmount) / 100]);
 
       scheme = indices.map(
         (c, i) => {
@@ -433,7 +433,7 @@ export function getFlowColorScale(
   colors: ColorsRGBA | DiffColorsRGBA,
   magnitudeExtent: [number, number] | undefined,
   animate: boolean | undefined,
-) {
+): (magnitude: number) => [number, number, number, number] {
   const minMagnitude = magnitudeExtent ? magnitudeExtent[0] : 0;
   const maxMagnitude = magnitudeExtent ? magnitudeExtent[1] : 0;
   if (isDiffColorsRGBA(colors)) {
@@ -708,7 +708,7 @@ export function rgbaAsString(color: RGBA): string {
   return `rgba(${color.join(',')})`;
 }
 
-export function midpoint(a: number, b: number, zeroToOne: number) {
+export function midpoint(a: number, b: number, zeroToOne: number): number {
   return a + (b - a) * zeroToOne;
 }
 

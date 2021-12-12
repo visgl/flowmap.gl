@@ -7,6 +7,7 @@ import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
 import useUI from './useUI';
 import {UI_CONFIG, UI_INITIAL} from './ui-config';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
@@ -38,6 +39,7 @@ function App() {
       new FlowMapLayer({
         id: 'my-flowmap-layer',
         data,
+        pickable: true,
         darkMode: config.darkMode,
         colorSchemeKey: config.colorSchemeKey,
         fadeAmount: config.fadeAmount,

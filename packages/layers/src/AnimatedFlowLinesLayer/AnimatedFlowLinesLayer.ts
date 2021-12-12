@@ -50,6 +50,9 @@ export interface Props extends LayerProps {
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
+const loopLength = 1800;
+const animationSpeed = 20;
+const loopTime = loopLength / animationSpeed;
 
 export default class AnimatedFlowLinesLayer extends Layer {
   static defaultProps = {
@@ -74,7 +77,7 @@ export default class AnimatedFlowLinesLayer extends Layer {
     super(props);
   }
 
-  getShaders() {
+  getShaders(): Record<string, unknown> {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
@@ -83,7 +86,7 @@ export default class AnimatedFlowLinesLayer extends Layer {
     });
   }
 
-  initializeState() {
+  initializeState(): void {
     const attributeManager = this.getAttributeManager();
 
     /* eslint-disable max-len */
@@ -125,7 +128,11 @@ export default class AnimatedFlowLinesLayer extends Layer {
     /* eslint-enable max-len */
   }
 
-  updateState({props, oldProps, changeFlags}: any) {
+  getNeedsRedraw(): boolean {
+    return true;
+  }
+
+  updateState({props, oldProps, changeFlags}: Record<string, any>): void {
     super.updateState({props, oldProps, changeFlags});
 
     if (changeFlags.extensionsChanged) {
@@ -138,19 +145,22 @@ export default class AnimatedFlowLinesLayer extends Layer {
     }
   }
 
-  draw({uniforms}: any) {
-    const {currentTime, thicknessUnit, animationTailLength} = this.props;
+  draw({uniforms}: Record<string, any>): void {
+    const {thicknessUnit, animationTailLength} = this.props;
+    const timestamp = Date.now() / 1000;
+    const animationTime = ((timestamp % loopTime) / loopTime) * loopLength;
+
     this.state.model
       .setUniforms({
         ...uniforms,
         thicknessUnit: thicknessUnit * 4,
         animationTailLength,
-        currentTime,
+        currentTime: animationTime,
       })
       .draw();
   }
 
-  _getModel(gl: WebGLRenderingContext) {
+  _getModel(gl: WebGLRenderingContext): Record<string, unknown> {
     /*
      *  (0, -1)-------------_(1, -1)
      *       |          _,-"  |

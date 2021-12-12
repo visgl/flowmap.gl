@@ -66,7 +66,7 @@ class FlowLinesLayer extends Layer {
     super(props);
   }
 
-  getShaders(): Record<string, any> {
+  getShaders(): Record<string, unknown> {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
