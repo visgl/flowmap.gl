@@ -14,11 +14,13 @@
     "dev:example": "yarn workspace @flowmap.gl/react-cra-example start",
     "dev:data": "yarn workspace @flowmap.gl/data dev",
     "dev:layers": "yarn workspace @flowmap.gl/layers dev",
+    "build:example": "yarn workspace @flowmap.gl/react-cra-example build",
     "build:data": "yarn workspace @flowmap.gl/data build",
     "build:layers": "yarn workspace @flowmap.gl/layers build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "deploy": "yarn build:example && gh-pages -d examples/react-cra/build/"
   },
   "prettier": {
     "arrowParens": "always",
@@ -40,6 +42,7 @@
     "@typescript-eslint/parser": "^5.4.0",
     "concurrently": "^6.4.0",
     "eslint": "^7.32.0",
+    "gh-pages": "^3.2.3",
     "husky": "^7.0.0",
     "lint-staged": "^12.1.2"
   }
