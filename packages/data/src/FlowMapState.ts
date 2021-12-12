@@ -40,6 +40,5 @@ export interface FlowMapState {
   filterState: FilterState;
   settingsState: SettingsState;
   viewport: ViewportProps;
-  adjustViewportToLocations: boolean;
   highlight?: Highlight;
 }

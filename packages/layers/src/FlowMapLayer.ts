@@ -186,8 +186,6 @@ export default class FlowMapLayer extends CompositeLayer {
   private _getFlowMapState() {
     return {
       viewport: asViewState(this.context.viewport),
-      // TODO: remove adjustViewportToLocations
-      adjustViewportToLocations: true,
       filterState: {
         selectedLocations: undefined,
         locationFilterMode: LocationFilterMode.ALL,

@@ -20,7 +20,6 @@ const INITIAL_VIEW_STATE = {
 };
 const INITIAL_FLOW_MAP_STATE = {
   viewport: INITIAL_VIEW_STATE,
-  adjustViewportToLocations: true,
   filterState: {
     selectedLocations: undefined,
     locationFilterMode: LocationFilterMode.ALL,
