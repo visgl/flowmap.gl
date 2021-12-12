@@ -30,10 +30,10 @@ export interface SettingsState {
   adaptiveScalesEnabled: boolean;
   clusteringEnabled: boolean;
   clusteringAuto: boolean;
-  manualClusterZoom?: number;
+  clusteringLevel?: number;
   darkMode: boolean;
   fadeAmount: number;
-  colorSchemeKey: string | undefined;
+  colorScheme: string | undefined;
 }
 
 export interface FlowMapState {

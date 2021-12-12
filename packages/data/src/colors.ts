@@ -335,7 +335,7 @@ export function getFlowMapColors(
 ): Colors | DiffColors {
   return getColors(
     false, // TODO: diffMode
-    settingsState.colorSchemeKey,
+    settingsState.colorScheme,
     settingsState.darkMode,
     settingsState.fadeEnabled,
     settingsState.fadeAmount,

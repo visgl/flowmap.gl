@@ -89,7 +89,7 @@ const getSelectedTimeRange = (state: FlowMapState, props: FlowMapData) =>
 const getColorSchemeKey: Selector<string | undefined> = (
   state: FlowMapState,
   props: FlowMapData,
-) => state.settingsState.colorSchemeKey;
+) => state.settingsState.colorScheme;
 
 const getDarkMode: Selector<boolean> = (
   state: FlowMapState,
@@ -369,13 +369,10 @@ export default class FlowMapSelectors {
   getClusterZoom = (state: FlowMapState, props: FlowMapData) => {
     const {settingsState} = state;
     if (!settingsState.clusteringEnabled) return undefined;
-    if (
-      settingsState.clusteringAuto ||
-      settingsState.manualClusterZoom == null
-    ) {
+    if (settingsState.clusteringAuto || settingsState.clusteringLevel == null) {
       return this._getClusterZoom(state, props);
     }
-    return settingsState.manualClusterZoom;
+    return settingsState.clusteringLevel;
   };
 
   getLocationsForSearchBox: Selector<(FlowLocation | Cluster)[] | undefined> =

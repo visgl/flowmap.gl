@@ -30,12 +30,12 @@ const INITIAL_FLOW_MAP_STATE = {
     adaptiveScalesEnabled: true,
     animationEnabled: false,
     clusteringEnabled: true,
-    manualClusterZoom: undefined,
+    clusteringLevel: undefined,
     fadeEnabled: true,
     clusteringAuto: true,
     darkMode: true,
     fadeAmount: 50,
-    colorSchemeKey: 'Teal',
+    colorScheme: 'Teal',
   },
 };
 

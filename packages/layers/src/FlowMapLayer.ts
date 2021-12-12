@@ -30,12 +30,12 @@ export type FlowMapLayerProps = {
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
-  manualClusterZoom?: number;
+  clusteringLevel?: number;
   fadeEnabled?: boolean;
   clusteringAuto?: boolean;
   darkMode?: boolean;
   fadeAmount?: number;
-  colorSchemeKey?: string;
+  colorScheme?: string;
 } & LayerProps;
 
 type HighlightedLocationObject = {
@@ -66,9 +66,9 @@ export default class FlowMapLayer extends CompositeLayer {
     clusteringEnabled: true,
     fadeEnabled: true,
     clusteringAuto: true,
-    manualClusterZoom: undefined,
+    clusteringLevel: undefined,
     adaptiveScalesEnabled: true,
-    colorSchemeKey: 'Teal',
+    colorScheme: 'Teal',
   };
   state: State | undefined;
 
@@ -162,24 +162,24 @@ export default class FlowMapLayer extends CompositeLayer {
       adaptiveScalesEnabled,
       animationEnabled,
       clusteringEnabled,
-      manualClusterZoom,
+      clusteringLevel,
       fadeEnabled,
       clusteringAuto,
       darkMode,
       fadeAmount,
-      colorSchemeKey,
+      colorScheme,
     } = this.props;
     return {
       locationTotalsEnabled,
       adaptiveScalesEnabled,
       animationEnabled,
       clusteringEnabled,
-      manualClusterZoom,
+      clusteringLevel,
       fadeEnabled,
       clusteringAuto,
       darkMode,
       fadeAmount,
-      colorSchemeKey,
+      colorScheme,
     };
   }
 
