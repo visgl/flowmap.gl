@@ -99,11 +99,11 @@ export interface ViewportProps {
   zoom: number;
   bearing: number;
   pitch: number;
-  altitude: number;
-  maxZoom: number;
-  minZoom: number;
-  maxPitch: number;
-  minPitch: number;
+  altitude?: number;
+  maxZoom?: number;
+  minZoom?: number;
+  maxPitch?: number;
+  minPitch?: number;
   transitionDuration?: number | 'auto';
   transitionInterpolator?: any;
   transitionInterruption?: any;

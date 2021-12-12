@@ -49,10 +49,7 @@ function App() {
     layers.push(
       new FlowMapLayer({
         id: 'my-flowmap-layer',
-        data: {
-          locations: data.locations,
-          flows: data.flows,
-        },
+        data,
         // pickable: true,
       }),
     );
