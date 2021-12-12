@@ -16,7 +16,7 @@
  */
 
 import {FeatureCollection, GeometryObject} from 'geojson';
-import {Flow, Location} from '@flowmap.gl/data';
+import {Flow, FlowLocation} from '@flowmap.gl/data';
 
 export type LayerProps = Record<string, unknown>;
 
@@ -24,7 +24,7 @@ export type LocationProperties = Record<string, unknown>;
 
 export type Locations =
   | FeatureCollection<GeometryObject, LocationProperties>
-  | Location[];
+  | FlowLocation[];
 
 export function isFeatureCollection(
   locations: Locations,
@@ -42,11 +42,11 @@ export const enum LocationCircleType {
 }
 
 export interface LocationCircle {
-  location: Location;
+  location: FlowLocation;
   type: LocationCircleType;
 }
 
-export type PickingInfoData = Flow | Location | LocationCircle;
+export type PickingInfoData = Flow | FlowLocation | LocationCircle;
 
 export enum PickingType {
   LOCATION = 'location',
@@ -72,7 +72,7 @@ export type PickingHandler<T> = (
 
 export interface LocationPickingInfo extends PickingInfo<PickingInfoData> {
   type: PickingType.LOCATION;
-  object: Location;
+  object: FlowLocation;
   totalIn: number;
   totalOut: number;
   totalWithin: number;
@@ -81,14 +81,14 @@ export interface LocationPickingInfo extends PickingInfo<PickingInfoData> {
 
 export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
   type: PickingType.LOCATION_AREA;
-  object: Location;
+  object: FlowLocation;
 }
 
 export interface FlowPickingInfo extends PickingInfo<PickingInfoData> {
   type: PickingType.FLOW;
   object: Flow;
-  origin: Location;
-  dest: Location;
+  origin: FlowLocation;
+  dest: FlowLocation;
 }
 
 export type FlowLayerPickingInfo =

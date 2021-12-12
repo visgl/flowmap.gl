@@ -16,7 +16,7 @@ import {
   isCluster,
   isLocationClusterNode,
   LayersData,
-  Location,
+  FlowLocation,
   LocationFilterMode,
   LocationsTotals,
   LocationTotals,
@@ -60,11 +60,11 @@ const NUMBER_OF_FLOWS_TO_DISPLAY = 5000;
 type KDBushTree = any;
 
 export const getLocationCentroid = (
-  location: Location | ClusterNode,
+  location: FlowLocation | ClusterNode,
 ): [number, number] =>
   isLocationClusterNode(location)
     ? location.centroid
-    : [(location as Location).lon, (location as Location).lat];
+    : [(location as FlowLocation).lon, (location as FlowLocation).lat];
 
 export type Selector<T> = ParametricSelector<FlowMapState, FlowMapData, T>;
 
@@ -129,7 +129,7 @@ export default class FlowMapSelectors {
     },
   );
 
-  getLocations: Selector<Location[] | undefined> = createSelector(
+  getLocations: Selector<FlowLocation[] | undefined> = createSelector(
     getFetchedLocations,
     this.getInvalidLocationIds,
     (locations, invalidIds) => {
@@ -137,7 +137,7 @@ export default class FlowMapSelectors {
       if (!invalidIds || invalidIds.length === 0) return locations;
       const invalid = new Set(invalidIds);
       return locations.filter(
-        (location: Location) => !invalid.has(getLocationId(location)),
+        (location: FlowLocation) => !invalid.has(getLocationId(location)),
       );
     },
   );
@@ -237,29 +237,30 @@ export default class FlowMapSelectors {
       },
     );
 
-  getLocationsHavingFlows: Selector<Location[] | undefined> = createSelector(
-    this.getSortedFlowsForKnownLocations,
-    this.getLocations,
-    (flows, locations) => {
-      if (!locations || !flows) return locations;
-      const withFlows = new Set();
-      for (const flow of flows) {
-        withFlows.add(getFlowOriginId(flow));
-        withFlows.add(getFlowDestId(flow));
-      }
-      return locations.filter((location: Location) =>
-        withFlows.has(getLocationId(location)),
-      );
-    },
-  );
+  getLocationsHavingFlows: Selector<FlowLocation[] | undefined> =
+    createSelector(
+      this.getSortedFlowsForKnownLocations,
+      this.getLocations,
+      (flows, locations) => {
+        if (!locations || !flows) return locations;
+        const withFlows = new Set();
+        for (const flow of flows) {
+          withFlows.add(getFlowOriginId(flow));
+          withFlows.add(getFlowDestId(flow));
+        }
+        return locations.filter((location: FlowLocation) =>
+          withFlows.has(getLocationId(location)),
+        );
+      },
+    );
 
-  getLocationsById: Selector<Map<string, Location> | undefined> =
+  getLocationsById: Selector<Map<string, FlowLocation> | undefined> =
     createSelector(this.getLocationsHavingFlows, (locations) => {
       if (!locations) return undefined;
-      return nest<Location, Location>()
-        .key((d: Location) => d.id)
+      return nest<FlowLocation, FlowLocation>()
+        .key((d: FlowLocation) => d.id)
         .rollup(([d]) => d)
-        .map(locations) as any as Map<string, Location>;
+        .map(locations) as any as Map<string, FlowLocation>;
     });
 
   getClusterIndex: Selector<ClusterIndex | undefined> = createSelector(
@@ -377,7 +378,7 @@ export default class FlowMapSelectors {
     return settingsState.manualClusterZoom;
   };
 
-  getLocationsForSearchBox: Selector<(Location | Cluster)[] | undefined> =
+  getLocationsForSearchBox: Selector<(FlowLocation | Cluster)[] | undefined> =
     createSelector(
       getClusteringEnabled,
       this.getLocationsHavingFlows,
@@ -392,7 +393,7 @@ export default class FlowMapSelectors {
         clusterIndex,
       ) => {
         if (!locations) return undefined;
-        let result: (Location | Cluster)[] = locations;
+        let result: (FlowLocation | Cluster)[] = locations;
         // if (clusteringEnabled) {
         //   if (clusterIndex) {
         //     const zoomItems = clusterIndex.getClusterNodesFor(clusterZoom);
@@ -603,7 +604,7 @@ export default class FlowMapSelectors {
       },
     );
 
-  getLocationsForZoom: Selector<Location[] | ClusterNode[] | undefined> =
+  getLocationsForZoom: Selector<FlowLocation[] | ClusterNode[] | undefined> =
     createSelector(
       getClusteringEnabled,
       this.getLocationsHavingFlows,
@@ -663,13 +664,13 @@ export default class FlowMapSelectors {
       return new KDBush(
         // @ts-ignore
         locations,
-        (location: Location | ClusterNode) =>
+        (location: FlowLocation | ClusterNode) =>
           lngX(
             isLocationClusterNode(location)
               ? location.centroid[0]
               : location.lon,
           ),
-        (location: Location | ClusterNode) =>
+        (location: FlowLocation | ClusterNode) =>
           latY(
             isLocationClusterNode(location)
               ? location.centroid[1]
@@ -899,25 +900,26 @@ export default class FlowMapSelectors {
     },
   );
 
-  getSortedLocationsForZoom: Selector<Location[] | ClusterNode[] | undefined> =
-    createSelector(
-      this.getLocationsForZoom,
-      this.getInCircleSizeGetter,
-      this.getOutCircleSizeGetter,
-      (locations, getInCircleSize, getOutCircleSize) => {
-        if (!locations) return undefined;
-        const nextLocations = [...locations] as Location[] | ClusterNode[];
-        return nextLocations.sort((a, b) =>
-          ascending(
-            Math.max(getInCircleSize(a.id), getOutCircleSize(a.id)),
-            Math.max(getInCircleSize(b.id), getOutCircleSize(b.id)),
-          ),
-        );
-      },
-    );
+  getSortedLocationsForZoom: Selector<
+    FlowLocation[] | ClusterNode[] | undefined
+  > = createSelector(
+    this.getLocationsForZoom,
+    this.getInCircleSizeGetter,
+    this.getOutCircleSizeGetter,
+    (locations, getInCircleSize, getOutCircleSize) => {
+      if (!locations) return undefined;
+      const nextLocations = [...locations] as FlowLocation[] | ClusterNode[];
+      return nextLocations.sort((a, b) =>
+        ascending(
+          Math.max(getInCircleSize(a.id), getOutCircleSize(a.id)),
+          Math.max(getInCircleSize(b.id), getOutCircleSize(b.id)),
+        ),
+      );
+    },
+  );
 
   getLocationsForFlowMapLayer: Selector<
-    Array<Location | ClusterNode> | undefined
+    Array<FlowLocation | ClusterNode> | undefined
   > = createSelector(
     this.getSortedLocationsForZoom,
     this.getLocationIdsInViewport,
@@ -934,7 +936,7 @@ export default class FlowMapSelectors {
       // return filtered;
       // @ts-ignore
       // return locations.filter(
-      //   (loc: Location | ClusterNode) => locationIdsInViewport!.has(loc.id)
+      //   (loc: FlowLocation | ClusterNode) => locationIdsInViewport!.has(loc.id)
       // );
       // TODO: return location in viewport + "connected" ones
       return locations;
@@ -942,7 +944,7 @@ export default class FlowMapSelectors {
   );
 
   getLocationsForFlowMapLayerById: Selector<
-    Map<string, Location | ClusterNode> | undefined
+    Map<string, FlowLocation | ClusterNode> | undefined
   > = createSelector(this.getLocationsForFlowMapLayer, (locations) => {
     if (!locations) return undefined;
     return locations.reduce(
@@ -1065,11 +1067,11 @@ export default class FlowMapSelectors {
 export function getLocationsInBbox(
   tree: KDBushTree,
   bbox: [number, number, number, number],
-): Array<Location> | undefined {
+): Array<FlowLocation> | undefined {
   if (!tree) return undefined;
   return _getLocationsInBboxIndices(tree, bbox).map(
     (idx: number) => tree.points[idx],
-  ) as Array<Location>;
+  ) as Array<FlowLocation>;
 }
 
 function isFlowInSelection(
@@ -1130,7 +1132,7 @@ function latY(lat: number) {
 }
 
 export function calcLocationTotals(
-  locations: (Location | ClusterNode)[],
+  locations: (FlowLocation | ClusterNode)[],
   flows: Flow[],
   inputAccessors: FlowAccessors,
 ): LocationsTotals {

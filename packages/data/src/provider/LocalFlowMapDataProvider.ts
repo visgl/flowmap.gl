@@ -5,7 +5,7 @@ import {
   FlowMapData,
   LayersData,
   ViewportProps,
-  Location,
+  FlowLocation,
 } from '../types';
 import {FlowMapState} from '../FlowMapState';
 import FlowMapSelectors from '../FlowMapSelectors';
@@ -43,7 +43,7 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
 
   async getLocationByIndex(
     idx: number,
-  ): Promise<Location | ClusterNode | undefined> {
+  ): Promise<FlowLocation | ClusterNode | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }
@@ -66,7 +66,7 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
 
   async getLocationById(
     id: string,
-  ): Promise<Location | ClusterNode | undefined> {
+  ): Promise<FlowLocation | ClusterNode | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }

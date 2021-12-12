@@ -4,7 +4,7 @@ import {
   Flow,
   FlowMapData,
   LayersData,
-  Location,
+  FlowLocation,
   ViewportProps,
 } from '../types';
 
@@ -19,17 +19,19 @@ export default interface FlowMapDataProvider {
 
   getFlowByIndex(index: number): Promise<Flow | undefined>;
 
-  getLocationById(id: string): Promise<Location | ClusterNode | undefined>;
+  getLocationById(id: string): Promise<FlowLocation | ClusterNode | undefined>;
 
-  getLocationByIndex(idx: number): Promise<Location | ClusterNode | undefined>;
+  getLocationByIndex(
+    idx: number,
+  ): Promise<FlowLocation | ClusterNode | undefined>;
 
   // getTotalsForLocation(id: string): Promise<LocationTotals | undefined>;
 
   // getLocationsInBbox(
   //   bbox: [number, number, number, number],
-  // ): Promise<Array<Location | ClusterNode> | undefined>;
+  // ): Promise<Array<FlowLocation | ClusterNode> | undefined>;
 
-  // getLocationsForSearchBox(): Promise<(Location | ClusterNode)[] | undefined>;
+  // getLocationsForSearchBox(): Promise<(FlowLocation | ClusterNode)[] | undefined>;
 
   getLayersData(): Promise<LayersData | undefined>;
 }

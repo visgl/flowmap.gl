@@ -42,7 +42,7 @@ import {
   Cluster,
   ClusterLevel,
   ClusterNode,
-  Location,
+  FlowLocation,
   LocationAccessors,
 } from '../types';
 
@@ -98,7 +98,7 @@ export function isClusterPoint(p: Point): p is ClusterPoint {
 type ZoomLevelKDBush = any;
 
 export function clusterLocations(
-  locations: Location[],
+  locations: FlowLocation[],
   locationAccessors: LocationAccessors,
   getLocationWeight: LocationWeightGetter,
   options?: Partial<Options>,

@@ -1,4 +1,4 @@
-export interface Location {
+export interface FlowLocation {
   id: string;
   lon: number;
   lat: number;
@@ -26,7 +26,7 @@ export interface Flow {
 }
 
 export type FlowMapData = {
-  locations: Location[] | undefined;
+  locations: FlowLocation[] | undefined;
   flows: Flow[] | undefined;
 };
 
@@ -50,7 +50,7 @@ export type FlowAccessor<T> = (
   flow: Flow,
   objectInfo?: AccessorObjectInfo,
 ) => T;
-export type LocationAccessor<T> = (location: Location) => T;
+export type LocationAccessor<T> = (location: FlowLocation) => T;
 
 export interface FlowAccessors {
   getFlowOriginId: FlowAccessor<string>;
@@ -72,15 +72,11 @@ export const getFlowTime = (flow: Flow): Date | undefined => flow.time;
 export const getFlowMagnitude = (flow: Flow): number => +flow.count || 0;
 export const getFlowOriginId = (flow: Flow): string => flow.origin;
 export const getFlowDestId = (flow: Flow): string => flow.dest;
-export const getLocationId = (loc: Location | ClusterNode): string => loc.id;
-
-export function isLocationCluster(l: Location | Cluster): l is Cluster {
-  const {zoom} = l as Cluster;
-  return zoom !== undefined;
-}
+export const getLocationId = (loc: FlowLocation | ClusterNode): string =>
+  loc.id;
 
 export function isLocationClusterNode(
-  l: Location | ClusterNode,
+  l: FlowLocation | ClusterNode,
 ): l is ClusterNode {
   const {zoom} = l as ClusterNode;
   return zoom !== undefined;
@@ -109,23 +105,6 @@ export interface ViewportProps {
   transitionInterruption?: any;
   transitionEasing?: any;
 }
-
-export declare type AsyncState<T> =
-  | {
-      loading: boolean;
-      error?: undefined;
-      value?: undefined;
-    }
-  | {
-      loading?: false;
-      error: Error;
-      value?: undefined;
-    }
-  | {
-      loading?: false;
-      error?: undefined;
-      value: T;
-    };
 
 export interface ClusterNode {
   id: string;

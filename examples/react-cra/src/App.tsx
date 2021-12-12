@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {FlowMapLayer} from '@flowmap.gl/layers';
-import {Flow, getViewStateForLocations, Location} from '@flowmap.gl/data';
+import {Flow, getViewStateForLocations, FlowLocation} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
 import useUI from './useUI';
@@ -16,7 +16,8 @@ const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/light-v10';
 function App() {
   const config = useUI(UI_INITIAL, UI_CONFIG);
   const [viewState, setViewState] = useState<ViewportProps>();
-  const [data, setData] = useState<{locations: Location[]; flows: Flow[]}>();
+  const [data, setData] =
+    useState<{locations: FlowLocation[]; flows: Flow[]}>();
 
   useEffect(() => {
     (async () => {
