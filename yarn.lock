@@ -3280,11 +3280,6 @@ confusing-browser-globals@2.0.0-next.102+657739fb:
   resolved "https://registry.yarnpkg.com/confusing-browser-globals/-/confusing-browser-globals-2.0.0-next.102.tgz#723e1a52959342ef334da17e4ed6614ad7eca58e"
   integrity sha512-3J271XYW5deSgBspYIt0XQfOgICG2n9ZcQQqy6sW3ekued3lMVuBaLmIPy1B1qANvdqLzKqtSAi4dcQ+5+AXOg==
 
-confusing-browser-globals@^1.0.10:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/confusing-browser-globals/-/confusing-browser-globals-1.0.10.tgz#30d1e7f3d1b882b25ec4933d1d1adac353d20a59"
-  integrity sha512-gNld/3lySHwuhaVluJUKLePYirM3QNCKzVxqAdhJII9/WXKVX5PURzMVJspS1jTslSqjeuG4KMVTSouit5YPHA==
-
 connect-history-api-fallback@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/connect-history-api-fallback/-/connect-history-api-fallback-1.6.0.tgz#8b32089359308d111115d81cad3fceab888f97bc"
@@ -4155,7 +4150,7 @@ escodegen@^2.0.0:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-react-app@7.0.0-next.102+657739fb:
+eslint-config-react-app@7.0.0-next.102+657739fb, eslint-config-react-app@^7.0.0-next.102:
   version "7.0.0-next.102"
   resolved "https://registry.yarnpkg.com/eslint-config-react-app/-/eslint-config-react-app-7.0.0-next.102.tgz#6d2017238293280079de93815c08945865daedae"
   integrity sha512-sbJvZgE/0WJTZ5LuVCmAaShUcxyniPlJwcoxcxz5HSvpweEVKX85fY23ifwVO3/Rq8nIBCOQ+A1MOEjcmZ2C3A==
@@ -4174,13 +4169,6 @@ eslint-config-react-app@7.0.0-next.102+657739fb:
     eslint-plugin-react "^7.27.1"
     eslint-plugin-react-hooks "^4.3.0"
     eslint-plugin-testing-library "^5.0.1"
-
-eslint-config-react-app@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-react-app/-/eslint-config-react-app-6.0.0.tgz#ccff9fc8e36b322902844cbd79197982be355a0e"
-  integrity sha512-bpoAAC+YRfzq0dsTk+6v9aHm/uqnDwayNAXleMypGl6CpxI9oXXscVHo4fk3eJPIn+rsbtNetB4r/ZIidFIE8A==
-  dependencies:
-    confusing-browser-globals "^1.0.10"
 
 eslint-import-resolver-node@^0.3.6:
   version "0.3.6"
