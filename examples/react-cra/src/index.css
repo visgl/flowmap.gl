@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+.light .mapboxgl-map {
+  filter: grayscale(0.85);
+  opacity: 0.5;
+}
+
+.dark {
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+}
+.dark .mapboxgl-map {
+  filter: grayscale(0.1)invert(1)hue-rotate(-180deg)saturate(0.5)contrast(0.9);
+  opacity: 0.3;
+}

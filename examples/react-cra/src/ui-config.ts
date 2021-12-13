@@ -3,8 +3,8 @@ import {FlowMapLayer} from '@flowmap.gl/layers';
 import {COLOR_SCHEMES} from '@flowmap.gl/data';
 
 export const UI_INITIAL = {
-  darkMode: FlowMapLayer.defaultProps.darkMode,
-  colorScheme: FlowMapLayer.defaultProps.colorScheme,
+  darkMode: true,
+  colorScheme: 'Teal',
   fadeEnabled: FlowMapLayer.defaultProps.fadeEnabled,
   fadeAmount: FlowMapLayer.defaultProps.fadeAmount,
   clusteringEnabled: FlowMapLayer.defaultProps.clusteringEnabled,
