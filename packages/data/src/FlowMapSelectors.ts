@@ -283,7 +283,10 @@ export default class FlowMapSelectors<L, F> {
     (locations, locationsById, flows) => {
       if (!locations || !locationsById || !flows) return undefined;
 
-      const getLocationWeight = makeLocationWeightGetter(flows, this.accessors);
+      const getLocationWeight = makeLocationWeightGetter(
+        flows,
+        this.accessors.getFlowMapDataAccessors(),
+      );
       const clusterLevels = clusterLocations(
         locations,
         this.accessors.getFlowMapDataAccessors(),
@@ -293,32 +296,40 @@ export default class FlowMapSelectors<L, F> {
         },
       );
       const clusterIndex = buildIndex<F>(clusterLevels);
+      const {getLocationName, getLocationClusterName} =
+        this.accessors.getFlowMapDataAccessors();
 
       // Adding meaningful names
       const getName = (id: string) => {
         const loc = locationsById.get(id);
         if (loc) {
-          return (
-            this.accessors.getFlowMapDataAccessors().getLocationName(loc) ||
-            this.accessors.getLocationId(loc) ||
-            id
-          );
+          return getLocationName
+            ? getLocationName(loc)
+            : this.accessors.getLocationId(loc) || id;
         }
-        return `#${id}`;
+        return `"${id}"`;
       };
       for (const level of clusterLevels) {
         for (const node of level.nodes) {
           // Here mutating the nodes (adding names)
           if (isCluster(node)) {
             const leaves = clusterIndex.expandCluster(node);
-            const topId = leaves.reduce((m: string | undefined, d: string) =>
-              !m || getLocationWeight(d) > getLocationWeight(m) ? d : m,
+
+            leaves.sort((a, b) =>
+              descending(getLocationWeight(a), getLocationWeight(b)),
             );
-            const otherId =
-              leaves.length === 2 && leaves.find((id: string) => id !== topId);
-            node.name = `"${getName(topId)}" and ${
-              otherId ? `"${getName(otherId)}"` : `${leaves.length - 1} others`
-            }`;
+
+            if (getLocationClusterName) {
+              node.name = getLocationClusterName(leaves);
+            } else {
+              const topId = leaves[0];
+              const otherId = leaves.length === 2 ? leaves[1] : undefined;
+              node.name = `"${getName(topId)}" and ${
+                otherId
+                  ? `"${getName(otherId)}"`
+                  : `${leaves.length - 1} others`
+              }`;
+            }
           } else {
             (node as any).name = getName(node.id);
           }
@@ -514,10 +525,13 @@ export default class FlowMapSelectors<L, F> {
           //   : flows,
           flows,
           clusterZoom,
-          this.accessors,
+          this.accessors.getFlowMapDataAccessors(),
         );
       } else {
-        aggregated = aggregateFlows(flows, this.accessors);
+        aggregated = aggregateFlows(
+          flows,
+          this.accessors.getFlowMapDataAccessors(),
+        );
       }
       aggregated.sort((a, b) =>
         descending(

@@ -69,8 +69,6 @@ function App() {
         getFlowOriginId: (flow) => flow.origin,
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
-        getFlowTime: (flow) => new Date(0), // TODO: getFlowTime should be optional
-        // TODO: remove getLocationName and add instead makeClusterName
         getLocationName: (loc) => loc.name,
       }),
     );

@@ -44,6 +44,7 @@ export default class FlowMapAggregateAccessors<L, F> {
 
   // Note: Aggregate flows have no time
   getFlowTime = (f: F) => {
-    return this.accessors.getFlowTime(f);
+    const {getFlowTime} = this.accessors;
+    return getFlowTime ? getFlowTime(f) : undefined;
   };
 }

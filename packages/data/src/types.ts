@@ -10,21 +10,6 @@ export interface LocationsTotals {
   within: {[id: string]: number};
 }
 
-// export interface FlowLocation {
-//   id: string;
-//   lon: number;
-//   lat: number;
-//   name: string;
-// }
-
-// export interface Flow {
-//   origin: string;
-//   dest: string;
-//   count: number;
-//   time?: Date;
-//   color?: string;
-// }
-
 export type FlowMapData<L, F> = {
   locations: L[] | undefined;
   flows: F[] | undefined;
@@ -46,26 +31,19 @@ export interface FlowAccessors<F> {
   getFlowOriginId: FlowAccessor<F, string>;
   getFlowDestId: FlowAccessor<F, string>;
   getFlowMagnitude: FlowAccessor<F, number>;
-  getFlowTime: FlowAccessor<F, Date>; // TODO: use number instead of Date
+  getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
-  // getAnimatedFlowLineStaggering?: FlowAccessor<string | undefined>;
 }
 
 export interface LocationAccessors<L> {
   getLocationId: LocationAccessor<L, string>;
-  getLocationName: LocationAccessor<L, string>;
+  getLocationName?: LocationAccessor<L, string>;
   getLocationCentroid: LocationAccessor<L, [number, number]>;
+  getLocationClusterName?: (locationIds: string[]) => string;
   // getLocationTotalIn?: LocationAccessor<number>;
   // getLocationTotalOut?: LocationAccessor<number>;
   // getLocationTotalWithin?: LocationAccessor<number>;
 }
-
-// export const getFlowTime = (flow: Flow): Date | undefined => flow.time;
-// export const getFlowMagnitude = (flow: Flow): number => +flow.count || 0;
-// export const getFlowOriginId = (flow: Flow): string => flow.origin;
-// export const getFlowDestId = (flow: Flow): string => flow.dest;
-// export const getLocationId = (loc: FlowLocation | ClusterNode): string =>
-//   loc.id;
 
 export type FlowMapDataAccessors<L, F> = LocationAccessors<L> &
   FlowAccessors<F>;
