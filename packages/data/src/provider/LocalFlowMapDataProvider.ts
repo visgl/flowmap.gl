@@ -1,28 +1,36 @@
 import FlowMapDataProvider from './FlowMapDataProvider';
 import {
   ClusterNode,
-  Flow,
+  FlowAccessors,
   FlowMapData,
+  FlowMapDataAccessors,
   LayersData,
+  LocationAccessors,
   ViewportProps,
-  FlowLocation,
 } from '../types';
 import {FlowMapState} from '../FlowMapState';
 import FlowMapSelectors from '../FlowMapSelectors';
+import {AggregateFlow} from '..';
 
-export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
-  private selectors: FlowMapSelectors;
-  private flowMapData: FlowMapData | undefined;
+export default class LocalFlowMapDataProvider<L, F>
+  implements FlowMapDataProvider<L, F>
+{
+  private selectors: FlowMapSelectors<L, F>;
+  private flowMapData: FlowMapData<L, F> | undefined;
   private flowMapState: FlowMapState | undefined;
 
-  constructor() {
+  constructor(accessors: FlowMapDataAccessors<L, F>) {
     // scope selectors to the concrete instance of FlowMapDataProvider
-    this.selectors = new FlowMapSelectors();
+    this.selectors = new FlowMapSelectors<L, F>(accessors);
     this.flowMapData = undefined;
     this.flowMapState = undefined;
   }
 
-  async setFlowMapData(flowMapData: FlowMapData): Promise<void> {
+  setAccessors(accessors: FlowMapDataAccessors<L, F>) {
+    this.selectors.setAccessors(accessors);
+  }
+
+  async setFlowMapData(flowMapData: FlowMapData<L, F>): Promise<void> {
     this.flowMapData = flowMapData;
   }
 
@@ -30,7 +38,7 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
     this.flowMapState = flowMapState;
   }
 
-  async getFlowByIndex(idx: number): Promise<Flow | undefined> {
+  async getFlowByIndex(idx: number): Promise<F | AggregateFlow | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }
@@ -41,9 +49,7 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
     return flows?.[idx];
   }
 
-  async getLocationByIndex(
-    idx: number,
-  ): Promise<FlowLocation | ClusterNode | undefined> {
+  async getLocationByIndex(idx: number): Promise<L | ClusterNode | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }
@@ -64,9 +70,7 @@ export default class LocalFlowMapDataProvider implements FlowMapDataProvider {
     );
   }
 
-  async getLocationById(
-    id: string,
-  ): Promise<FlowLocation | ClusterNode | undefined> {
+  async getLocationById(id: string): Promise<L | ClusterNode | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }

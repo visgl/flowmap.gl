@@ -15,87 +15,86 @@
  *
  */
 
-import {FeatureCollection, GeometryObject} from 'geojson';
-import {Flow, FlowLocation} from '@flowmap.gl/data';
+// import {FeatureCollection, GeometryObject} from 'geojson';
 
 export type LayerProps = Record<string, unknown>;
 
-export type LocationProperties = Record<string, unknown>;
+// export type LocationProperties = Record<string, unknown>;
 
-export type Locations =
-  | FeatureCollection<GeometryObject, LocationProperties>
-  | FlowLocation[];
+// export type Locations =
+//   | FeatureCollection<GeometryObject, LocationProperties>
+//   | FlowLocation[];
 
-export function isFeatureCollection(
-  locations: Locations,
-): locations is FeatureCollection<GeometryObject, LocationProperties> {
-  return (
-    (locations as FeatureCollection<GeometryObject, LocationProperties>)
-      .type === 'FeatureCollection'
-  );
-}
+// export function isFeatureCollection(
+//   locations: Locations,
+// ): locations is FeatureCollection<GeometryObject, LocationProperties> {
+//   return (
+//     (locations as FeatureCollection<GeometryObject, LocationProperties>)
+//       .type === 'FeatureCollection'
+//   );
+// }
 
-export const enum LocationCircleType {
-  INNER = 'inner',
-  OUTER = 'outer',
-  OUTLINE = 'outline',
-}
+// export const enum LocationCircleType {
+//   INNER = 'inner',
+//   OUTER = 'outer',
+//   OUTLINE = 'outline',
+// }
 
-export interface LocationCircle {
-  location: FlowLocation;
-  type: LocationCircleType;
-}
+// export interface LocationCircle<L> {
+//   location: L;
+//   type: LocationCircleType;
+// }
 
-export type PickingInfoData = Flow | FlowLocation | LocationCircle;
+// export type PickingInfoData<L, F> = L | F | LocationCircle<L>;
 
-export enum PickingType {
-  LOCATION = 'location',
-  FLOW = 'flow',
-  LOCATION_AREA = 'location-area',
-}
+// export enum PickingType {
+//   LOCATION = 'location',
+//   FLOW = 'flow',
+//   LOCATION_AREA = 'location-area',
+// }
 
-export type DeckGLLayer = any;
+// export type DeckGLLayer = any;
 
-export interface PickingInfo<T> {
-  layer: DeckGLLayer;
-  index: number;
-  object: T;
-  x: number;
-  y: number;
-  lngLat: [number, number];
-}
+// export interface PickingInfo<T> {
+//   layer: DeckGLLayer;
+//   index: number;
+//   object: T;
+//   x: number;
+//   y: number;
+//   lngLat: [number, number];
+// }
 
-export type PickingHandler<T> = (
-  info: T,
-  event: {srcEvent: MouseEvent},
-) => void;
+// export type PickingHandler<T> = (
+//   info: T,
+//   event: {srcEvent: MouseEvent},
+// ) => void;
 
-export interface LocationPickingInfo extends PickingInfo<PickingInfoData> {
-  type: PickingType.LOCATION;
-  object: FlowLocation;
-  totalIn: number;
-  totalOut: number;
-  totalWithin: number;
-  circleRadius: number;
-}
+// export interface LocationPickingInfo extends PickingInfo<PickingInfoData> {
+//   type: PickingType.LOCATION;
+//   object: FlowLocation;
+//   totalIn: number;
+//   totalOut: number;
+//   totalWithin: number;
+//   circleRadius: number;
+// }
 
-export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
-  type: PickingType.LOCATION_AREA;
-  object: FlowLocation;
-}
+// export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
+//   type: PickingType.LOCATION_AREA;
+//   object: FlowLocation;
+// }
 
-export interface FlowPickingInfo extends PickingInfo<PickingInfoData> {
-  type: PickingType.FLOW;
-  object: Flow;
-  origin: FlowLocation;
-  dest: FlowLocation;
-}
+// export interface FlowPickingInfo extends PickingInfo<PickingInfoData> {
+//   type: PickingType.FLOW;
+//   object: Flow;
+//   origin: FlowLocation;
+//   dest: FlowLocation;
+// }
 
-export type FlowLayerPickingInfo =
-  | LocationPickingInfo
-  | LocationAreaPickingInfo
-  | FlowPickingInfo;
+// export type FlowLayerPickingInfo =
+//   | LocationPickingInfo
+//   | LocationAreaPickingInfo
+//   | FlowPickingInfo;
 
-export type LocationCircleAccessor<T> = (locCircle: LocationCircle) => T;
+// export type LocationCircleAccessor<T> = (locCircle: LocationCircle) => T;
 
-export type NumberScale = (value: number) => number;
+// export type NumberScale = (value: number) => number;

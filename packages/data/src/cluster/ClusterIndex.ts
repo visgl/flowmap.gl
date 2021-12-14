@@ -20,20 +20,19 @@ import {
   Cluster,
   ClusterLevels,
   ClusterNode,
-  Flow,
   FlowAccessors,
   FlowCountsMapReduce,
   isCluster,
 } from './../types';
 import {ascending, bisectLeft, extent} from 'd3-array';
 
-export type FlowItem = Flow | AggregateFlow;
+// export type FlowItem = Flow | AggregateFlow;
 export type LocationWeightGetter = (id: string) => number;
 
 /**
  * A data structure representing the cluster levels for efficient flow aggregation.
  */
-export interface ClusterIndex {
+export interface ClusterIndex<F> {
   availableZoomLevels: number[];
   getClusterById: (clusterId: string) => Cluster | undefined;
   /**
@@ -56,19 +55,19 @@ export interface ClusterIndex {
    * Aggregate flows for the specified zoom level.
    */
   aggregateFlows: (
-    flows: Flow[],
+    flows: F[],
     zoom: number,
-    {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors,
+    {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
     options?: {
-      flowCountsMapReduce?: FlowCountsMapReduce;
+      flowCountsMapReduce?: FlowCountsMapReduce<F>;
     },
-  ) => FlowItem[];
+  ) => (F | AggregateFlow)[];
 }
 
 /**
  * Build ClusterIndex from the given cluster hierarchy
  */
-export function buildIndex(clusterLevels: ClusterLevels): ClusterIndex {
+export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
   const nodesByZoom = new Map<number, ClusterNode[]>();
   const clustersById = new Map<string, Cluster>();
   const minZoomByLocationId = new Map<string, number>();
@@ -178,7 +177,7 @@ export function buildIndex(clusterLevels: ClusterLevels): ClusterIndex {
       if (zoom > maxZoom) {
         return flows;
       }
-      const result: Flow[] = [];
+      const result: (F | AggregateFlow)[] = [];
       const aggFlowsByKey = new Map<string, AggregateFlow>();
       const makeKey = (origin: string, dest: string) => `${origin}:${dest}`;
       const {
@@ -219,9 +218,9 @@ export function buildIndex(clusterLevels: ClusterLevels): ClusterIndex {
   };
 }
 
-export function makeLocationWeightGetter(
-  flows: Flow[],
-  {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors,
+export function makeLocationWeightGetter<F>(
+  flows: F[],
+  {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
 ): LocationWeightGetter {
   const locationTotals = {
     incoming: new Map<string, number>(),

@@ -20,14 +20,8 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
-import {
-  AccessorObjectInfo,
-  Flow,
-  FlowLinesLayerAttributes,
-  RGBA,
-} from '@flowmap.gl/data';
+import {Flow, FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
-
 export interface Props extends LayerProps {
   id: string;
   opacity?: number;
@@ -47,6 +41,13 @@ export interface Props extends LayerProps {
   getColor?: (d: Flow) => RGBA;
   getThickness?: (d: Flow) => number;
   getEndpointOffsets?: (d: Flow) => [number, number];
+}
+
+// https://deck.gl/#/documentation/developer-guide/using-layers?section=accessors
+export interface AccessorObjectInfo {
+  index: number;
+  data: any;
+  target: any;
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];

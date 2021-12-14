@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {FlowMapLayer} from '@flowmap.gl/layers';
-import {Flow, getViewStateForLocations, FlowLocation} from '@flowmap.gl/data';
+import {getViewStateForLocations} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
 import useUI from './useUI';
@@ -13,11 +13,24 @@ const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
 const MAPBOX_STYLE_DARK = MAPBOX_STYLE_LIGHT;
 
+type LocationDatum = {
+  id: string;
+  name: string;
+  lon: number;
+  lat: number;
+};
+
+type FlowDatum = {
+  origin: string;
+  dest: string;
+  count: number;
+};
+
 function App() {
   const config = useUI(UI_INITIAL, UI_CONFIG);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] =
-    useState<{locations: FlowLocation[]; flows: Flow[]}>();
+    useState<{locations: LocationDatum[]; flows: FlowDatum[]}>();
 
   useEffect(() => {
     (async () => {
@@ -37,7 +50,7 @@ function App() {
   const layers = [];
   if (data) {
     layers.push(
-      new FlowMapLayer({
+      new FlowMapLayer<LocationDatum, FlowDatum>({
         id: 'my-flowmap-layer',
         data,
         pickable: true,
@@ -51,6 +64,14 @@ function App() {
         clusteringAuto: config.clusteringAuto,
         clusteringLevel: config.clusteringLevel,
         adaptiveScalesEnabled: config.adaptiveScalesEnabled,
+        getLocationId: (loc) => loc.id,
+        getLocationCentroid: (loc) => [loc.lon, loc.lat],
+        getFlowOriginId: (flow) => flow.origin,
+        getFlowDestId: (flow) => flow.dest,
+        getFlowMagnitude: (flow) => flow.count,
+        getFlowTime: (flow) => new Date(0), // TODO: getFlowTime should be optional
+        // TODO: remove getLocationName and add instead makeClusterName
+        getLocationName: (loc) => loc.name,
       }),
     );
   }

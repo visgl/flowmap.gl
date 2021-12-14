@@ -38,13 +38,7 @@
 import {rollup} from 'd3-array';
 import KDBush from 'kdbush';
 import {LocationWeightGetter} from './ClusterIndex';
-import {
-  Cluster,
-  ClusterLevel,
-  ClusterNode,
-  FlowLocation,
-  LocationAccessors,
-} from '../types';
+import {Cluster, ClusterLevel, ClusterNode, LocationAccessors} from '../types';
 
 export interface Options {
   minZoom: number; // min zoom to generate clusters on
@@ -97,9 +91,9 @@ export function isClusterPoint(p: Point): p is ClusterPoint {
 
 type ZoomLevelKDBush = any;
 
-export function clusterLocations(
-  locations: FlowLocation[],
-  locationAccessors: LocationAccessors,
+export function clusterLocations<L>(
+  locations: L[],
+  locationAccessors: LocationAccessors<L>,
   getLocationWeight: LocationWeightGetter,
   options?: Partial<Options>,
 ): ClusterLevel[] {

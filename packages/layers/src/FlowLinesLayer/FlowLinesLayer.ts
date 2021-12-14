@@ -20,38 +20,38 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './FlowLinesLayerFragment.glsl';
 import VertexShader from './FlowLinesLayerVertex.glsl';
-import {Flow, FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
 
-export interface Props extends LayerProps {
+export interface Props<F> extends LayerProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
   updateTriggers?: {[key: string]: Record<string, unknown>};
-  data: Flow[] | FlowLinesLayerAttributes;
+  data: F[] | FlowLinesLayerAttributes;
   drawOutline: boolean;
   outlineColor?: RGBA;
   outlineThickness?: number;
   thicknessUnit?: number;
-  getSourcePosition?: (d: Flow) => [number, number];
-  getTargetPosition?: (d: Flow) => [number, number];
-  getColor?: (d: Flow) => RGBA;
-  getThickness?: (d: Flow) => number;
-  getPickable?: (d: Flow, {index}: {index: number}) => number; // >= 1.0 -> true
-  getEndpointOffsets?: (d: Flow) => [number, number];
+  getSourcePosition?: (d: F) => [number, number];
+  getTargetPosition?: (d: F) => [number, number];
+  getColor?: (d: F) => RGBA;
+  getThickness?: (d: F) => number;
+  getPickable?: (d: F, {index}: {index: number}) => number; // >= 1.0 -> true
+  getEndpointOffsets?: (d: F) => [number, number];
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
 const INNER_SIDE_OUTLINE_THICKNESS = 1;
 
-class FlowLinesLayer extends Layer {
+class FlowLinesLayer<F> extends Layer {
   static layerName = 'FlowLinesLayer';
   static defaultProps = {
-    getSourcePosition: {type: 'accessor', value: (d: Flow) => [0, 0]},
-    getTargetPosition: {type: 'accessor', value: (d: Flow) => [0, 0]},
+    getSourcePosition: {type: 'accessor', value: (d: any) => [0, 0]},
+    getTargetPosition: {type: 'accessor', value: (d: any) => [0, 0]},
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
-    getThickness: {type: 'accessor', value: (d: Flow) => d.count}, // 0..0.5
-    getPickable: {type: 'accessor', value: (d: Flow) => 1.0},
+    getThickness: {type: 'accessor', value: (d: any) => d.count}, // 0..0.5
+    getPickable: {type: 'accessor', value: (d: any) => 1.0},
     drawOutline: true,
     thicknessUnit: 12,
     outlineThickness: 1,
@@ -62,7 +62,7 @@ class FlowLinesLayer extends Layer {
   };
   // props!: Props;
 
-  constructor(props: Props) {
+  constructor(props: Props<F>) {
     super(props);
   }
 

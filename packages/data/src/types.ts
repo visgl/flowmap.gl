@@ -1,10 +1,3 @@
-export interface FlowLocation {
-  id: string;
-  lon: number;
-  lat: number;
-  name: string;
-}
-
 export interface LocationTotals {
   incoming: number;
   outgoing: number;
@@ -17,17 +10,24 @@ export interface LocationsTotals {
   within: {[id: string]: number};
 }
 
-export interface Flow {
-  origin: string;
-  dest: string;
-  count: number;
-  time?: Date;
-  color?: string;
-}
+// export interface FlowLocation {
+//   id: string;
+//   lon: number;
+//   lat: number;
+//   name: string;
+// }
 
-export type FlowMapData = {
-  locations: FlowLocation[] | undefined;
-  flows: Flow[] | undefined;
+// export interface Flow {
+//   origin: string;
+//   dest: string;
+//   count: number;
+//   time?: Date;
+//   color?: string;
+// }
+
+export type FlowMapData<L, F> = {
+  locations: L[] | undefined;
+  flows: F[] | undefined;
 };
 
 export interface ViewState {
@@ -39,48 +39,36 @@ export interface ViewState {
   altitude?: number;
 }
 
-// https://deck.gl/#/documentation/developer-guide/using-layers?section=accessors
-export interface AccessorObjectInfo {
-  index: number;
-  data: any;
-  target: any;
+export type FlowAccessor<F, T> = (flow: F) => T; // objectInfo?: AccessorObjectInfo,
+export type LocationAccessor<L, T> = (location: L) => T;
+
+export interface FlowAccessors<F> {
+  getFlowOriginId: FlowAccessor<F, string>;
+  getFlowDestId: FlowAccessor<F, string>;
+  getFlowMagnitude: FlowAccessor<F, number>;
+  getFlowTime: FlowAccessor<F, Date>; // TODO: use number instead of Date
+  // getFlowColor?: FlowAccessor<string | undefined>;
+  // getAnimatedFlowLineStaggering?: FlowAccessor<string | undefined>;
 }
 
-export type FlowAccessor<T> = (
-  flow: Flow,
-  objectInfo?: AccessorObjectInfo,
-) => T;
-export type LocationAccessor<T> = (location: FlowLocation) => T;
-
-export interface FlowAccessors {
-  getFlowOriginId: FlowAccessor<string>;
-  getFlowDestId: FlowAccessor<string>;
-  getFlowMagnitude: FlowAccessor<number>;
-  getFlowColor?: FlowAccessor<string | undefined>;
-  getAnimatedFlowLineStaggering?: FlowAccessor<string | undefined>;
+export interface LocationAccessors<L> {
+  getLocationId: LocationAccessor<L, string>;
+  getLocationName: LocationAccessor<L, string>;
+  getLocationCentroid: LocationAccessor<L, [number, number]>;
+  // getLocationTotalIn?: LocationAccessor<number>;
+  // getLocationTotalOut?: LocationAccessor<number>;
+  // getLocationTotalWithin?: LocationAccessor<number>;
 }
 
-export interface LocationAccessors {
-  getLocationId: LocationAccessor<string>;
-  getLocationCentroid: LocationAccessor<[number, number]>;
-  getLocationTotalIn?: LocationAccessor<number>;
-  getLocationTotalOut?: LocationAccessor<number>;
-  getLocationTotalWithin?: LocationAccessor<number>;
-}
+// export const getFlowTime = (flow: Flow): Date | undefined => flow.time;
+// export const getFlowMagnitude = (flow: Flow): number => +flow.count || 0;
+// export const getFlowOriginId = (flow: Flow): string => flow.origin;
+// export const getFlowDestId = (flow: Flow): string => flow.dest;
+// export const getLocationId = (loc: FlowLocation | ClusterNode): string =>
+//   loc.id;
 
-export const getFlowTime = (flow: Flow): Date | undefined => flow.time;
-export const getFlowMagnitude = (flow: Flow): number => +flow.count || 0;
-export const getFlowOriginId = (flow: Flow): string => flow.origin;
-export const getFlowDestId = (flow: Flow): string => flow.dest;
-export const getLocationId = (loc: FlowLocation | ClusterNode): string =>
-  loc.id;
-
-export function isLocationClusterNode(
-  l: FlowLocation | ClusterNode,
-): l is ClusterNode {
-  const {zoom} = l as ClusterNode;
-  return zoom !== undefined;
-}
+export type FlowMapDataAccessors<L, F> = LocationAccessors<L> &
+  FlowAccessors<F>;
 
 export interface CountByTime {
   time: Date;
@@ -119,6 +107,7 @@ export interface ClusterLevel {
 
 export type ClusterLevels = ClusterLevel[];
 
+// non-leaf cluster node
 export interface Cluster extends ClusterNode {
   name?: string;
   children: string[];
@@ -129,6 +118,11 @@ export function isCluster(c: ClusterNode): c is Cluster {
   return children && children.length > 0;
 }
 
+export function isLocationClusterNode<L>(l: L | ClusterNode): l is ClusterNode {
+  const {zoom} = l as ClusterNode;
+  return zoom !== undefined;
+}
+
 export interface AggregateFlow {
   origin: string;
   dest: string;
@@ -136,18 +130,20 @@ export interface AggregateFlow {
   aggregate: true;
 }
 
-export function isAggregateFlow(flow: Flow): flow is AggregateFlow {
-  const {origin, dest, count, aggregate} = flow as AggregateFlow;
+export function isAggregateFlow(
+  flow: Record<string, any>,
+): flow is AggregateFlow {
   return (
-    origin !== undefined &&
-    dest !== undefined &&
-    count !== undefined &&
-    (aggregate ? true : false)
+    flow &&
+    flow.origin !== undefined &&
+    flow.dest !== undefined &&
+    flow.count !== undefined &&
+    (flow.aggregate ? true : false)
   );
 }
 
-export interface FlowCountsMapReduce<T = any> {
-  map: (flow: Flow) => T;
+export interface FlowCountsMapReduce<F, T = any> {
+  map: (flow: F) => T;
   reduce: (accumulated: T, val: T) => T;
 }
 
