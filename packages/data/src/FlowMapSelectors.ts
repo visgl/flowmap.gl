@@ -46,7 +46,6 @@ import {
   isLocationClusterNode,
   LayersData,
   LocationFilterMode,
-  LocationsTotals,
   LocationTotals,
 } from './types';
 import {flatMap} from './util';
@@ -688,10 +687,14 @@ export default class FlowMapSelectors<L, F> {
           id: string,
           d: Partial<LocationTotals>,
         ): LocationTotals => {
-          const rv = totals.get(id) ?? {incoming: 0, outgoing: 0, within: 0};
-          if (d.incoming != null) rv.incoming += d.incoming;
-          if (d.outgoing != null) rv.outgoing += d.outgoing;
-          if (d.within != null) rv.within += d.within;
+          const rv = totals.get(id) ?? {
+            incomingCount: 0,
+            outgoingCount: 0,
+            internalCount: 0,
+          };
+          if (d.incomingCount != null) rv.incomingCount += d.incomingCount;
+          if (d.outgoingCount != null) rv.outgoingCount += d.outgoingCount;
+          if (d.internalCount != null) rv.internalCount += d.internalCount;
           return rv;
         };
         for (const f of flows) {
@@ -702,10 +705,10 @@ export default class FlowMapSelectors<L, F> {
             const destId = this.accessors.getFlowDestId(f);
             const count = this.accessors.getFlowMagnitude(f);
             if (originId === destId) {
-              totals.set(originId, add(originId, {within: count}));
+              totals.set(originId, add(originId, {internalCount: count}));
             } else {
-              totals.set(originId, add(originId, {outgoing: count}));
-              totals.set(destId, add(destId, {incoming: count}));
+              totals.set(originId, add(originId, {outgoingCount: count}));
+              totals.set(destId, add(destId, {incomingCount: count}));
             }
           }
         }
@@ -902,8 +905,8 @@ export default class FlowMapSelectors<L, F> {
         const total = locationTotals?.get(locationId);
         if (!total) return undefined;
         return Math.max(
-          Math.abs(total.incoming + total.within),
-          Math.abs(total.outgoing + total.within),
+          Math.abs(total.incomingCount + total.internalCount),
+          Math.abs(total.outgoingCount + total.internalCount),
         );
       };
     },
@@ -952,7 +955,11 @@ export default class FlowMapSelectors<L, F> {
       return (locationId: string) => {
         const total = locationTotals?.get(locationId);
         if (total && circleSizeScale) {
-          return circleSizeScale(Math.abs(total.incoming + total.within)) || 0;
+          return (
+            circleSizeScale(
+              Math.abs(total.incomingCount + total.internalCount),
+            ) || 0
+          );
         }
         return 0;
       };
@@ -966,7 +973,11 @@ export default class FlowMapSelectors<L, F> {
       return (locationId: string) => {
         const total = locationTotals?.get(locationId);
         if (total && circleSizeScale) {
-          return circleSizeScale(Math.abs(total.outgoing + total.within)) || 0;
+          return (
+            circleSizeScale(
+              Math.abs(total.outgoingCount + total.internalCount),
+            ) || 0
+          );
         }
         return 0;
       };
@@ -1204,26 +1215,26 @@ export default class FlowMapSelectors<L, F> {
     return true;
   }
 
-  calcLocationTotals(
-    locations: (L | ClusterNode)[],
-    flows: F[],
-  ): LocationsTotals {
-    return flows.reduce(
-      (acc: LocationsTotals, curr) => {
-        const originId = this.accessors.getFlowOriginId(curr);
-        const destId = this.accessors.getFlowDestId(curr);
-        const magnitude = this.accessors.getFlowMagnitude(curr);
-        if (originId === destId) {
-          acc.within[originId] = (acc.within[originId] || 0) + magnitude;
-        } else {
-          acc.outgoing[originId] = (acc.outgoing[originId] || 0) + magnitude;
-          acc.incoming[destId] = (acc.incoming[destId] || 0) + magnitude;
-        }
-        return acc;
-      },
-      {incoming: {}, outgoing: {}, within: {}},
-    );
-  }
+  // calcLocationTotals(
+  //   locations: (L | ClusterNode)[],
+  //   flows: F[],
+  // ): LocationsTotals {
+  //   return flows.reduce(
+  //     (acc: LocationsTotals, curr) => {
+  //       const originId = this.accessors.getFlowOriginId(curr);
+  //       const destId = this.accessors.getFlowDestId(curr);
+  //       const magnitude = this.accessors.getFlowMagnitude(curr);
+  //       if (originId === destId) {
+  //         acc.internal[originId] = (acc.internal[originId] || 0) + magnitude;
+  //       } else {
+  //         acc.outgoing[originId] = (acc.outgoing[originId] || 0) + magnitude;
+  //         acc.incoming[destId] = (acc.incoming[destId] || 0) + magnitude;
+  //       }
+  //       return acc;
+  //     },
+  //     {incoming: {}, outgoing: {}, internal: {}},
+  //   );
+  // }
 }
 
 function calcLocationTotalsExtent(
@@ -1232,10 +1243,21 @@ function calcLocationTotalsExtent(
 ) {
   if (!locationTotals) return undefined;
   let rv: [number, number] | undefined = undefined;
-  for (const [id, {incoming, outgoing, within}] of locationTotals.entries()) {
+  for (const [
+    id,
+    {incomingCount, outgoingCount, internalCount},
+  ] of locationTotals.entries()) {
     if (locationIdsInViewport == null || locationIdsInViewport.has(id)) {
-      const lo = Math.min(incoming + within, outgoing + within, within);
-      const hi = Math.max(incoming + within, outgoing + within, within);
+      const lo = Math.min(
+        incomingCount + internalCount,
+        outgoingCount + internalCount,
+        internalCount,
+      );
+      const hi = Math.max(
+        incomingCount + internalCount,
+        outgoingCount + internalCount,
+        internalCount,
+      );
       if (!rv) {
         rv = [lo, hi];
       } else {

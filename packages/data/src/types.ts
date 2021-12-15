@@ -1,15 +1,3 @@
-export interface LocationTotals {
-  incoming: number;
-  outgoing: number;
-  within: number;
-}
-
-export interface LocationsTotals {
-  incoming: {[id: string]: number};
-  outgoing: {[id: string]: number};
-  within: {[id: string]: number};
-}
-
 export type FlowMapData<L, F> = {
   locations: L[] | undefined;
   flows: F[] | undefined;
@@ -42,11 +30,23 @@ export interface LocationAccessors<L> {
   getLocationClusterName?: (locationIds: string[]) => string;
   // getLocationTotalIn?: LocationAccessor<number>;
   // getLocationTotalOut?: LocationAccessor<number>;
-  // getLocationTotalWithin?: LocationAccessor<number>;
+  // getLocationTotalInternal?: LocationAccessor<number>;
 }
 
 export type FlowMapDataAccessors<L, F> = LocationAccessors<L> &
   FlowAccessors<F>;
+
+export interface LocationTotals {
+  incomingCount: number;
+  outgoingCount: number;
+  internalCount: number;
+}
+
+// export interface LocationsTotals {
+//   incoming: {[id: string]: number};
+//   outgoing: {[id: string]: number};
+//   internal: {[id: string]: number};
+// }
 
 export interface CountByTime {
   time: Date;

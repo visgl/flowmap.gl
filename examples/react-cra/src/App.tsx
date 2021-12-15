@@ -1,7 +1,11 @@
 import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
-import {FlowMapLayer, PickingType} from '@flowmap.gl/layers';
+import {
+  FlowLayerPickingInfo,
+  FlowMapLayer,
+  PickingType,
+} from '@flowmap.gl/layers';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
@@ -27,7 +31,7 @@ type FlowDatum = {
 };
 
 type TooltipState = {
-  position: [number, number];
+  position: {left: number; top: number};
   content: ReactNode;
 };
 
@@ -77,38 +81,7 @@ function App() {
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
-        onHover: (info) => {
-          if (!info) {
-            setTooltip(undefined);
-            return;
-          }
-          const {x, y, type} = info;
-          let content;
-
-          switch (type) {
-            case PickingType.LOCATION:
-              content = (
-                <>
-                  <div>{info.name}</div>
-                </>
-              );
-              break;
-            case PickingType.FLOW:
-              content = (
-                <>
-                  <div>
-                    {info.origin.id}→{info.dest.id}
-                  </div>
-                  <div>{info.count}</div>
-                </>
-              );
-              break;
-          }
-          setTooltip({
-            position: [x, y],
-            content,
-          });
-        },
+        onHover: (info) => setTooltip(getTooltipState(info)),
       }),
     );
   }
@@ -136,18 +109,47 @@ function App() {
         />
       </DeckGL>
       {tooltip && (
-        <div
-          className="tooltip"
-          style={{
-            left: tooltip.position[0],
-            top: tooltip.position[1],
-          }}
-        >
+        <div className="tooltip" style={tooltip.position}>
           {tooltip.content}
         </div>
       )}
     </div>
   );
+}
+
+function getTooltipState(
+  info: FlowLayerPickingInfo<LocationDatum, FlowDatum> | undefined,
+): TooltipState | undefined {
+  if (!info) return undefined;
+  const {x, y, type} = info;
+  let content;
+
+  switch (type) {
+    case PickingType.LOCATION:
+      content = (
+        <>
+          <div>{info.name}</div>
+          <div>Incoming trips: {info.totals.incomingCount}</div>
+          <div>Outgoing trips: {info.totals.outgoingCount}</div>
+          <div>Internal or round trips: {info.totals.internalCount}</div>
+        </>
+      );
+      break;
+    case PickingType.FLOW:
+      content = (
+        <>
+          <div>
+            {info.origin.id}→{info.dest.id}
+          </div>
+          <div>{info.count}</div>
+        </>
+      );
+      break;
+  }
+  return {
+    position: {left: x, top: y},
+    content,
+  };
 }
 
 export default App;
