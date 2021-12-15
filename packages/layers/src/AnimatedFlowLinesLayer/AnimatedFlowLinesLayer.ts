@@ -1,46 +1,29 @@
-/*
- * Copyright 2019 Teralytics
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 import {Layer, picking, project32} from '@deck.gl/core';
 import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
-import {Flow, FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
-export interface Props extends LayerProps {
+export interface Props<F> extends LayerProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
   updateTriggers?: {[key: string]: Record<string, unknown>};
-  data: Flow[] | FlowLinesLayerAttributes;
+  data: F[] | FlowLinesLayerAttributes;
   drawOutline: boolean;
   outlineColor?: RGBA;
   outlineThickness?: number;
   currentTime?: number;
   thicknessUnit?: number;
   animationTailLength?: number;
-  getSourcePosition?: (d: Flow) => [number, number];
-  getTargetPosition?: (d: Flow) => [number, number];
-  getStaggering?: (d: Flow, info: AccessorObjectInfo) => number;
-  getPickable?: (d: Flow, {index}: {index: number}) => number; // >= 1.0 -> true
-  getColor?: (d: Flow) => RGBA;
-  getThickness?: (d: Flow) => number;
-  getEndpointOffsets?: (d: Flow) => [number, number];
+  getSourcePosition?: (d: F) => [number, number];
+  getTargetPosition?: (d: F) => [number, number];
+  getStaggering?: (d: F, info: AccessorObjectInfo) => number;
+  getPickable?: (d: F, {index}: {index: number}) => number; // >= 1.0 -> true
+  getColor?: (d: F) => RGBA;
+  getThickness?: (d: F) => number;
+  getEndpointOffsets?: (d: F) => [number, number];
 }
 
 // https://deck.gl/#/documentation/developer-guide/using-layers?section=accessors
@@ -55,16 +38,16 @@ const loopLength = 1800;
 const animationSpeed = 20;
 const loopTime = loopLength / animationSpeed;
 
-export default class AnimatedFlowLinesLayer extends Layer {
+export default class AnimatedFlowLinesLayer<F> extends Layer {
   static defaultProps = {
     currentTime: 0,
     animationTailLength: 0.7,
-    getSourcePosition: {type: 'accessor', value: (d: Flow) => [0, 0]},
-    getTargetPosition: {type: 'accessor', value: (d: Flow) => [0, 0]},
-    getPickable: {type: 'accessor', value: (d: Flow) => 1.0},
+    getSourcePosition: {type: 'accessor', value: (d: any) => [0, 0]},
+    getTargetPosition: {type: 'accessor', value: (d: any) => [0, 0]},
+    getPickable: {type: 'accessor', value: (d: any) => 1.0},
     getStaggering: {
       type: 'accessor',
-      value: (d: Flow, {index}: {index: number}) => Math.random(),
+      value: (d: any, {index}: {index: number}) => Math.random(),
     },
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
     getThickness: {type: 'accessor', value: 1},
@@ -74,7 +57,7 @@ export default class AnimatedFlowLinesLayer extends Layer {
     },
   };
 
-  constructor(props: Props) {
+  constructor(props: Props<F>) {
     super(props);
   }
 

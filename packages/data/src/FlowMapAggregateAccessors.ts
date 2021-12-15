@@ -3,6 +3,7 @@ import {
   ClusterNode,
   FlowMapDataAccessors,
   isAggregateFlow,
+  isCluster,
   isLocationClusterNode,
 } from './types';
 
@@ -24,6 +25,15 @@ export default class FlowMapAggregateAccessors<L, F> {
     isLocationClusterNode(location)
       ? location.id
       : this.accessors.getLocationId(location);
+
+  getLocationName = (location: L | ClusterNode): string =>
+    (isLocationClusterNode(location) && isCluster(location)
+      ? location.name
+      : undefined) ?? this.getLocationId(location);
+  // ? location.name // TODO getLocationName for locations and clusters
+  // : this.accessors.getLocationName
+  // ? this.accessors.getLocationName(location)
+  // : this.getLocationId(location);
 
   getLocationCentroid = (location: L | ClusterNode): [number, number] =>
     isLocationClusterNode(location)

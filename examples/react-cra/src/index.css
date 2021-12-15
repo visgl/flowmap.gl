@@ -12,7 +12,6 @@ code {
     monospace;
 }
 
-
 .light .mapboxgl-map {
   filter: grayscale(0.85);
   opacity: 0.5;
@@ -24,6 +23,16 @@ code {
   height: 100vh;
 }
 .dark .mapboxgl-map {
-  filter: grayscale(0.1)invert(1)hue-rotate(-180deg)saturate(0.5)contrast(0.9);
+  filter: grayscale(0.1) invert(1) hue-rotate(-180deg) saturate(0.5)
+    contrast(0.9);
   opacity: 0.3;
+}
+
+.tooltip {
+  position: absolute;
+  border-radius: 5px;
+  background-color: rgba(150, 150, 150, 0.5);
+  padding: 1em;
+  color: white;
+  pointer-events: none;
 }

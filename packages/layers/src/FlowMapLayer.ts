@@ -9,8 +9,6 @@ import {
   getFlowLineAttributesByIndex,
   getFlowMapColors,
   getOuterCircleRadiusByIndex,
-  Highlight,
-  HighlightType,
   isFlowMapData,
   isFlowMapDataProvider,
   isLocationClusterNode,
@@ -19,11 +17,18 @@ import {
   LocationFilterMode,
   ViewportProps,
   FlowMapAggregateAccessors,
+  ClusterNode,
+  AggregateFlow,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import FlowLinesLayer from './FlowLinesLayer';
-import {LayerProps} from './types';
+import {
+  FlowLayerPickingInfo,
+  LayerProps,
+  PickingInfo,
+  PickingType,
+} from './types';
 
 export type FlowMapLayerProps<L, F> = {
   data: FlowMapData<L, F> | FlowMapDataProvider<L, F>;
@@ -37,8 +42,15 @@ export type FlowMapLayerProps<L, F> = {
   darkMode?: boolean;
   fadeAmount?: number;
   colorScheme?: string;
+  onHover?: (info: FlowLayerPickingInfo<L, F> | undefined) => void;
+  onClick?: (info: FlowLayerPickingInfo<L, F>) => void;
 } & Partial<FlowMapDataAccessors<L, F>> &
   LayerProps;
+
+enum HighlightType {
+  LOCATION = 'location',
+  FLOW = 'flow',
+}
 
 type HighlightedLocationObject = {
   type: HighlightType.LOCATION;
@@ -75,16 +87,31 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
   };
   state: State<L, F> | undefined;
 
-  constructor(props: FlowMapLayerProps<L, F>) {
+  public constructor(props: FlowMapLayerProps<L, F>) {
     super({
       ...props,
-      onHover: (info: any) => {
-        const {onHover} = props;
-        this._onHover(info, onHover as (info: Record<string, any>) => void);
+      __onHover: props.onHover,
+      __onClick: props.onClick,
+      onHover: async (info: PickingInfo<any>) => {
+        await this._onHover(info);
       },
-      onClick: (info: any) => {
-        const {onClick} = props;
-        this._onClick(info, onClick as (info: Record<string, any>) => void);
+      onClick: async (
+        info: PickingInfo<any>,
+        event: {srcEvent: MouseEvent},
+      ) => {
+        // const location =
+        //   info.index === -1
+        //     ? undefined
+        //     : await this.dataProvider.getLocationByIndex(info.index);
+        //
+        // const {onHover} = props;
+        // if (typeof onHover === 'function') {
+        //   onHover({
+        //     ...info,
+        //     object: location,
+        //     event: event.srcEvent,
+        //   });
+        // }
       },
     });
   }
@@ -96,6 +123,11 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       layersData: undefined,
       highlightedObject: undefined,
     };
+  }
+
+  private _updateAccessors() {
+    this.state?.dataProvider?.setAccessors(this.props);
+    this.setState({accessors: new FlowMapAggregateAccessors(this.props)});
   }
 
   private _makeDataProvider() {
@@ -112,15 +144,21 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     );
   }
 
-  private _handleDataChange() {
+  private _updateDataProvider() {
     this.setState({dataProvider: this._makeDataProvider()});
   }
 
-  private handleHighlight(
-    highlight: Highlight | undefined,
+  private _updateHighlight(
+    pickingInfo:
+      | FlowLayerPickingInfo<L | ClusterNode, F | AggregateFlow>
+      | undefined,
     highlightedObject?: HighlightedObject,
   ) {
     this.setState({highlightedObject});
+    const {__onHover} = this.props;
+    if (typeof __onHover === 'function') {
+      __onHover(pickingInfo);
+    }
   }
 
   shouldUpdateState(params: Record<string, any>): boolean {
@@ -136,11 +174,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     // (e.g. ignore viewport changes when adaptiveScalesEnabled and clustering are false)
   }
 
-  private _updateAccessors() {
-    this.state?.dataProvider?.setAccessors(this.props);
-    this.setState({accessors: new FlowMapAggregateAccessors(this.props)});
-  }
-
   updateState({oldProps, props, changeFlags}: Record<string, any>): void {
     const {dataProvider, highlightedObject} = this.state || {};
     if (!dataProvider) {
@@ -151,12 +184,12 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       this._updateAccessors();
     }
     if (changeFlags.dataChanged) {
-      this._handleDataChange();
+      this._updateDataProvider();
     }
 
     if (changeFlags.viewportChanged) {
       if (highlightedObject) {
-        this.handleHighlight(undefined, undefined);
+        this._updateHighlight(undefined, undefined);
       }
     }
 
@@ -209,19 +242,28 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     };
   }
 
-  async _onHover(
-    info: Record<string, any>,
-    onHover: (info: Record<string, any>) => void,
-  ): Promise<void> {
+  private async _onHover(info: Record<string, any>): Promise<void> {
     const {index, sourceLayer} = info;
     const {dataProvider, accessors} = this.state || {};
     if (!dataProvider || !accessors) {
       return;
     }
-    // if (lastHoverEventStartTimeRef > startTime) {
+    // TODO: if (lastHoverEventStartTimeRef > startTime) {
     //   // Skipping, because this is not the latest hover event
     //   return;
     // }
+
+    const commonInfo = {
+      // ...info,
+      layer: info.layer,
+      index: info.index,
+      x: info.x,
+      y: info.y,
+      coordinate: info.coordinate,
+    };
+
+    let pickingInfo: FlowLayerPickingInfo<L, F> | undefined = undefined;
+    let highlightedObject: HighlightedObject | undefined = undefined;
     if (
       sourceLayer instanceof FlowLinesLayer ||
       sourceLayer instanceof AnimatedFlowLinesLayer
@@ -230,73 +272,69 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
         index === -1 ? undefined : await dataProvider.getFlowByIndex(index);
       if (flow) {
         const {lineAttributes} = this.state?.layersData || {};
-        this.handleHighlight(
-          {
-            type: HighlightType.FLOW,
-            flow: {
-              origin: accessors?.getFlowOriginId(flow),
-              dest: accessors?.getFlowDestId(flow),
-              count: accessors?.getFlowMagnitude(flow),
-            },
-          },
-          lineAttributes
-            ? {
-                type: HighlightType.FLOW,
-                lineAttributes: await getFlowLineAttributesByIndex(
-                  lineAttributes,
-                  info.index,
-                ),
-              }
-            : undefined,
+        const origin = await dataProvider.getLocationById(
+          accessors.getFlowOriginId(flow),
         );
-      } else {
-        this.handleHighlight(undefined);
+        const dest = await dataProvider.getLocationById(
+          accessors.getFlowDestId(flow),
+        );
+        if (origin && dest) {
+          pickingInfo = {
+            ...commonInfo,
+            type: PickingType.FLOW,
+            object: flow,
+            origin: origin,
+            dest: dest,
+            count: accessors.getFlowMagnitude(flow),
+          };
+          if (lineAttributes) {
+            highlightedObject = {
+              type: HighlightType.FLOW,
+              lineAttributes: await getFlowLineAttributesByIndex(
+                lineAttributes,
+                info.index,
+              ),
+            };
+          }
+        }
       }
     } else if (sourceLayer instanceof FlowCirclesLayer) {
-      // const location =
-      //   index === -1
-      //     ? undefined
-      //     : await dataProvider?.getLocationByIndex(index);
-
-      const location = await dataProvider?.getLocationByIndex(index);
+      const location =
+        index === -1 ? undefined : await dataProvider.getLocationByIndex(index);
 
       if (location) {
+        const id = accessors.getLocationId(location);
+        const name = accessors.getLocationName(location);
+        const totals = await dataProvider.getTotalsForLocation(id);
         const {circleAttributes} = this.state?.layersData || {};
-        this.handleHighlight(
-          {
+        if (totals && circleAttributes) {
+          const circleRadius = getOuterCircleRadiusByIndex(
+            circleAttributes,
+            info.index,
+          );
+          pickingInfo = {
+            ...commonInfo,
+            type: PickingType.LOCATION,
+            object: location,
+            id,
+            name,
+            totals,
+            circleRadius: circleRadius,
+            event: undefined,
+          };
+          highlightedObject = {
             type: HighlightType.LOCATION,
-            locationId: isLocationClusterNode(location)
-              ? location.id
-              : accessors.getLocationId(location),
-          },
-          circleAttributes
-            ? {
-                type: HighlightType.LOCATION,
-                centroid: accessors.getLocationCentroid(location),
-                radius: getOuterCircleRadiusByIndex(
-                  circleAttributes,
-                  info.index,
-                ),
-              }
-            : undefined,
-        );
-      } else {
-        this.handleHighlight(undefined);
+            centroid: accessors.getLocationCentroid(location),
+            radius: circleRadius,
+          };
+        }
       }
     }
-
-    if (typeof onHover === 'function') {
-      onHover(info);
-    }
+    this._updateHighlight(pickingInfo, highlightedObject);
   }
 
-  _onClick(
-    info: Record<string, any>,
-    onClick: (info: Record<string, any>) => void,
-  ): void {
-    if (typeof onClick === 'function') {
-      onClick(info);
-    }
+  handleClick(info: Record<string, any>): void {
+    console.log('_onClick', info);
   }
 
   renderLayers(): Array<any> {

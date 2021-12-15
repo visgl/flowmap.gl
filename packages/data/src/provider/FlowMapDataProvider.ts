@@ -1,4 +1,4 @@
-import {AggregateFlow, LocationAccessors} from '..';
+import {AggregateFlow, Cluster, LocationAccessors, LocationTotals} from '..';
 import {FlowMapState} from '../FlowMapState';
 import {
   ClusterNode,
@@ -21,11 +21,11 @@ export default interface FlowMapDataProvider<L, F> {
 
   getFlowByIndex(index: number): Promise<F | AggregateFlow | undefined>;
 
-  getLocationById(id: string): Promise<L | ClusterNode | undefined>;
+  getLocationById(id: string): Promise<L | Cluster | undefined>;
 
   getLocationByIndex(idx: number): Promise<L | ClusterNode | undefined>;
 
-  // getTotalsForLocation(id: string): Promise<LocationTotals | undefined>;
+  getTotalsForLocation(id: string): Promise<LocationTotals | undefined>;
 
   // getLocationsInBbox(
   //   bbox: [number, number, number, number],

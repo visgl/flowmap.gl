@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
-import {FlowMapLayer} from '@flowmap.gl/layers';
+import {FlowMapLayer, PickingType} from '@flowmap.gl/layers';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import fetchData from './fetchData';
@@ -26,11 +26,18 @@ type FlowDatum = {
   count: number;
 };
 
+type TooltipState = {
+  position: [number, number];
+  content: ReactNode;
+};
+
 function App() {
   const config = useUI(UI_INITIAL, UI_CONFIG);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] =
     useState<{locations: LocationDatum[]; flows: FlowDatum[]}>();
+
+  const [tooltip, setTooltip] = useState<TooltipState>();
 
   useEffect(() => {
     (async () => {
@@ -70,14 +77,50 @@ function App() {
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
+        onHover: (info) => {
+          if (!info) {
+            setTooltip(undefined);
+            return;
+          }
+          const {x, y, type} = info;
+          let content;
+
+          switch (type) {
+            case PickingType.LOCATION:
+              content = (
+                <>
+                  <div>{info.name}</div>
+                </>
+              );
+              break;
+            case PickingType.FLOW:
+              content = (
+                <>
+                  <div>
+                    {info.origin.id}→{info.dest.id}
+                  </div>
+                  <div>{info.count}</div>
+                </>
+              );
+              break;
+          }
+          setTooltip({
+            position: [x, y],
+            content,
+          });
+        },
       }),
     );
   }
   if (!viewState) {
     return null;
   }
+
   return (
-    <div className={config.darkMode ? 'dark' : 'light'}>
+    <div
+      className={config.darkMode ? 'dark' : 'light'}
+      style={{position: 'relative'}}
+    >
       <DeckGL
         width="100%"
         height="100%"
@@ -92,6 +135,17 @@ function App() {
           mapStyle={config.darkMode ? MAPBOX_STYLE_DARK : MAPBOX_STYLE_LIGHT}
         />
       </DeckGL>
+      {tooltip && (
+        <div
+          className="tooltip"
+          style={{
+            left: tooltip.position[0],
+            top: tooltip.position[1],
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 }

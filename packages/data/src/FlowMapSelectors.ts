@@ -998,11 +998,14 @@ export default class FlowMapSelectors<L, F> {
     Array<L | ClusterNode> | undefined
   > = createSelector(
     this.getSortedLocationsForZoom,
-    this.getLocationIdsInViewport,
-    (locations, locationIdsInViewport) => {
-      if (!locations) return undefined;
-      if (!locationIdsInViewport) return locations;
-      if (locationIdsInViewport.size === locations.length) return locations;
+    // this.getLocationIdsInViewport,
+    (
+      locations,
+      // locationIdsInViewport
+    ) => {
+      // if (!locations) return undefined;
+      // if (!locationIdsInViewport) return locations;
+      // if (locationIdsInViewport.size === locations.length) return locations;
       // const filtered = [];
       // for (const loc of locations) {
       //   if (locationIdsInViewport.has(loc.id)) {

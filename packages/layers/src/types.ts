@@ -1,24 +1,56 @@
-/*
- * Copyright 2018 Teralytics
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
-// import {FeatureCollection, GeometryObject} from 'geojson';
+import {
+  AggregateFlow,
+  Cluster,
+  ClusterNode,
+  LocationTotals,
+} from '@flowmap.gl/data';
 
 export type LayerProps = Record<string, unknown>;
 
+export enum PickingType {
+  LOCATION = 'location',
+  FLOW = 'flow',
+  // LOCATION_AREA = 'location-area',
+}
+
+export type DeckGLLayer = Record<string, any>;
+
+export interface PickingInfo<T> {
+  layer: DeckGLLayer;
+  index: number;
+  object: T | undefined;
+  x: number;
+  y: number;
+  coordinate: [number, number];
+}
+
+export interface LocationPickingInfo<L> extends PickingInfo<L | ClusterNode> {
+  type: PickingType.LOCATION;
+  id: string;
+  name: string;
+  totals: LocationTotals;
+  circleRadius: number;
+  event: MouseEvent | undefined;
+}
+
+export interface FlowPickingInfo<L, F> extends PickingInfo<F | AggregateFlow> {
+  type: PickingType.FLOW;
+  origin: L | ClusterNode;
+  dest: L | ClusterNode;
+  count: number;
+}
+
+// export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
+//   type: PickingType.LOCATION_AREA;
+//   object: FlowLocation;
+// }
+
+export type FlowLayerPickingInfo<L, F> =
+  | LocationPickingInfo<L>
+  // | LocationAreaPickingInfo
+  | FlowPickingInfo<L, F>;
+
+// import {FeatureCollection, GeometryObject} from 'geojson';
 // export type LocationProperties = Record<string, unknown>;
 
 // export type Locations =
@@ -33,68 +65,3 @@ export type LayerProps = Record<string, unknown>;
 //       .type === 'FeatureCollection'
 //   );
 // }
-
-// export const enum LocationCircleType {
-//   INNER = 'inner',
-//   OUTER = 'outer',
-//   OUTLINE = 'outline',
-// }
-
-// export interface LocationCircle<L> {
-//   location: L;
-//   type: LocationCircleType;
-// }
-
-// export type PickingInfoData<L, F> = L | F | LocationCircle<L>;
-
-// export enum PickingType {
-//   LOCATION = 'location',
-//   FLOW = 'flow',
-//   LOCATION_AREA = 'location-area',
-// }
-
-// export type DeckGLLayer = any;
-
-// export interface PickingInfo<T> {
-//   layer: DeckGLLayer;
-//   index: number;
-//   object: T;
-//   x: number;
-//   y: number;
-//   lngLat: [number, number];
-// }
-
-// export type PickingHandler<T> = (
-//   info: T,
-//   event: {srcEvent: MouseEvent},
-// ) => void;
-
-// export interface LocationPickingInfo extends PickingInfo<PickingInfoData> {
-//   type: PickingType.LOCATION;
-//   object: FlowLocation;
-//   totalIn: number;
-//   totalOut: number;
-//   totalWithin: number;
-//   circleRadius: number;
-// }
-
-// export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
-//   type: PickingType.LOCATION_AREA;
-//   object: FlowLocation;
-// }
-
-// export interface FlowPickingInfo extends PickingInfo<PickingInfoData> {
-//   type: PickingType.FLOW;
-//   object: Flow;
-//   origin: FlowLocation;
-//   dest: FlowLocation;
-// }
-
-// export type FlowLayerPickingInfo =
-//   | LocationPickingInfo
-//   | LocationAreaPickingInfo
-//   | FlowPickingInfo;
-
-// export type LocationCircleAccessor<T> = (locCircle: LocationCircle) => T;
-
-// export type NumberScale = (value: number) => number;

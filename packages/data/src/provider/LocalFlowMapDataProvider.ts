@@ -1,11 +1,13 @@
 import FlowMapDataProvider from './FlowMapDataProvider';
 import {
+  Cluster,
   ClusterNode,
   FlowAccessors,
   FlowMapData,
   FlowMapDataAccessors,
   LayersData,
   LocationAccessors,
+  LocationTotals,
   ViewportProps,
 } from '../types';
 import {FlowMapState} from '../FlowMapState';
@@ -70,15 +72,34 @@ export default class LocalFlowMapDataProvider<L, F>
     );
   }
 
-  async getLocationById(id: string): Promise<L | ClusterNode | undefined> {
+  async getLocationById(id: string): Promise<L | Cluster | undefined> {
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
+    }
+    const clusterIndex = this.selectors.getClusterIndex(
+      this.flowMapState,
+      this.flowMapData,
+    );
+    if (clusterIndex) {
+      const cluster = clusterIndex.getClusterById(id);
+      if (cluster) {
+        return cluster;
+      }
     }
     const locationsById = this.selectors.getLocationsById(
       this.flowMapState,
       this.flowMapData,
     );
     return locationsById?.get(id);
+  }
+
+  async getTotalsForLocation(id: string): Promise<LocationTotals | undefined> {
+    if (!this.flowMapState || !this.flowMapData) {
+      return undefined;
+    }
+    return this.selectors
+      .getLocationTotals(this.flowMapState, this.flowMapData)
+      ?.get(id);
   }
 
   getViewportForLocations(dims: [number, number]): Promise<ViewportProps> {
