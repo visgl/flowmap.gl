@@ -23,13 +23,15 @@ type LocationDatum = {
   lon: number;
   lat: number;
 };
-
 type FlowDatum = {
   origin: string;
   dest: string;
   count: number;
 };
-
+type LoadedData = {
+  locations: LocationDatum[];
+  flows: FlowDatum[];
+};
 type TooltipState = {
   position: {left: number; top: number};
   content: ReactNode;
@@ -38,9 +40,7 @@ type TooltipState = {
 function App() {
   const config = useUI(UI_INITIAL, UI_CONFIG);
   const [viewState, setViewState] = useState<ViewportProps>();
-  const [data, setData] =
-    useState<{locations: LocationDatum[]; flows: FlowDatum[]}>();
-
+  const [data, setData] = useState<LoadedData>();
   const [tooltip, setTooltip] = useState<TooltipState>();
 
   useEffect(() => {
@@ -139,7 +139,7 @@ function getTooltipState(
       content = (
         <>
           <div>
-            {info.origin.id}→{info.dest.id}
+            {info.origin.id} → {info.dest.id}
           </div>
           <div>{info.count}</div>
         </>
