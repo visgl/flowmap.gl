@@ -91,7 +91,7 @@ function App() {
 
   return (
     <div
-      className={config.darkMode ? 'dark' : 'light'}
+      className={`flowmap-container ${config.darkMode ? 'dark' : 'light'}`}
       style={{position: 'relative'}}
     >
       <DeckGL
