@@ -124,34 +124,34 @@ function getTooltipState(
 ): TooltipState | undefined {
   if (!info) return undefined;
   const {x, y, type} = info;
-  let content;
-
+  const position = {left: x, top: y};
   switch (type) {
     case PickingType.LOCATION:
-      content = (
-        <>
-          <div>{info.name}</div>
-          <div>Incoming trips: {info.totals.incomingCount}</div>
-          <div>Outgoing trips: {info.totals.outgoingCount}</div>
-          <div>Internal or round trips: {info.totals.internalCount}</div>
-        </>
-      );
-      break;
+      return {
+        position,
+        content: (
+          <>
+            <div>{info.name}</div>
+            <div>Incoming trips: {info.totals.incomingCount}</div>
+            <div>Outgoing trips: {info.totals.outgoingCount}</div>
+            <div>Internal or round trips: {info.totals.internalCount}</div>
+          </>
+        ),
+      };
     case PickingType.FLOW:
-      content = (
-        <>
-          <div>
-            {info.origin.id} → {info.dest.id}
-          </div>
-          <div>{info.count}</div>
-        </>
-      );
-      break;
+      return {
+        position,
+        content: (
+          <>
+            <div>
+              {info.origin.id} → {info.dest.id}
+            </div>
+            <div>{info.count}</div>
+          </>
+        ),
+      };
   }
-  return {
-    position: {left: x, top: y},
-    content,
-  };
+  return undefined;
 }
 
 export default App;
