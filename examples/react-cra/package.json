@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/react-cra-example",
-  "version": "0.1.0",
+  "version": "8.0.0-alpha.0",
   "homepage": "https://flowmapblue.github.io/flowmap.gl/",
   "private": true,
   "dependencies": {

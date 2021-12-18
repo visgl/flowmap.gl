@@ -1,12 +1,11 @@
 {
   "name": "flowmap.gl",
   "private": true,
-  "version": "10",
   "description": "Flow map drawing layer for Deck.gl",
   "main": "index.js",
   "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "yarn dev",
     "build": "yarn build:data && yarn build:layers",
@@ -20,7 +19,10 @@
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
     "prepare": "husky install",
-    "deploy": "yarn build:example && gh-pages -d examples/react-cra/build/"
+    "deploy": "yarn build:example && gh-pages -d examples/react-cra/build/",
+    "bump": "lerna version --no-push --force-publish",
+    "publish-prerelease": "lerna publish --dist-tag next from-package",
+    "typecheck": "lerna run --stream typecheck"
   },
   "prettier": {
     "arrowParens": "always",
