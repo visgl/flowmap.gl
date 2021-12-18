@@ -25,9 +25,9 @@ import {
   getFlowLineAttributesByIndex,
   getFlowMapColors,
   getOuterCircleRadiusByIndex,
+  getLocationCentroidByIndex,
   isFlowMapData,
   isFlowMapDataProvider,
-  isLocationClusterNode,
   LayersData,
   LocalFlowMapDataProvider,
   LocationFilterMode,
@@ -58,8 +58,11 @@ export type FlowMapLayerProps<L, F> = {
   darkMode?: boolean;
   fadeAmount?: number;
   colorScheme?: string;
-  onHover?: (info: FlowLayerPickingInfo<L, F> | undefined) => void;
-  onClick?: (info: FlowLayerPickingInfo<L, F>) => void;
+  onHover?: (
+    info: FlowLayerPickingInfo<L, F> | undefined,
+    event: SourceEvent,
+  ) => void;
+  onClick?: (info: FlowLayerPickingInfo<L, F>, event: SourceEvent) => void;
 } & Partial<FlowMapDataAccessors<L, F>> &
   LayerProps;
 
@@ -88,6 +91,8 @@ type State<L, F> = {
   highlightedObject: HighlightedObject | undefined;
 };
 
+export type SourceEvent = {srcEvent: MouseEvent};
+
 export default class FlowMapLayer<L, F> extends CompositeLayer {
   static defaultProps = {
     darkMode: true,
@@ -106,28 +111,26 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowMapLayerProps<L, F>) {
     super({
       ...props,
-      __onHover: props.onHover,
-      __onClick: props.onClick,
-      onHover: async (info: PickingInfo<any>) => {
-        await this._onHover(info);
-      },
-      onClick: async (
-        info: PickingInfo<any>,
-        event: {srcEvent: MouseEvent},
-      ) => {
-        // const location =
-        //   info.index === -1
-        //     ? undefined
-        //     : await this.dataProvider.getLocationByIndex(info.index);
-        //
-        // const {onHover} = props;
-        // if (typeof onHover === 'function') {
-        //   onHover({
-        //     ...info,
-        //     object: location,
-        //     event: event.srcEvent,
-        //   });
+      onHover: async (info: PickingInfo<any>, event: SourceEvent) => {
+        // TODO: if (lastHoverEventStartTimeRef > startTime) {
+        //   // Skipping, because this is not the latest hover event
+        //   return;
         // }
+        const highlightedObject = await this._getHighlightedObject(info);
+        this.setState({highlightedObject});
+        const {onHover} = props;
+        if (onHover) {
+          onHover(await this._getFlowLayerPickingInfo(info), event);
+        }
+      },
+      onClick: async (info: PickingInfo<any>, event: SourceEvent) => {
+        const {onClick} = props;
+        if (onClick) {
+          const _info = await this._getFlowLayerPickingInfo(info);
+          if (_info) {
+            onClick(_info, event);
+          }
+        }
       },
     });
   }
@@ -164,19 +167,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     this.setState({dataProvider: this._makeDataProvider()});
   }
 
-  private _updateHighlight(
-    pickingInfo:
-      | FlowLayerPickingInfo<L | ClusterNode, F | AggregateFlow>
-      | undefined,
-    highlightedObject?: HighlightedObject,
-  ) {
-    this.setState({highlightedObject});
-    const {__onHover} = this.props;
-    if (typeof __onHover === 'function') {
-      __onHover(pickingInfo);
-    }
-  }
-
   shouldUpdateState(params: Record<string, any>): boolean {
     const {changeFlags} = params;
     // if (this._viewportChanged()) {
@@ -201,12 +191,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     }
     if (changeFlags.dataChanged) {
       this._updateDataProvider();
-    }
-
-    if (changeFlags.viewportChanged) {
-      if (highlightedObject) {
-        this._updateHighlight(undefined, undefined);
-      }
     }
 
     if (changeFlags.viewportChanged || changeFlags.propsOrDataChanged) {
@@ -258,17 +242,14 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     };
   }
 
-  private async _onHover(info: Record<string, any>): Promise<void> {
+  private async _getFlowLayerPickingInfo(
+    info: Record<string, any>,
+  ): Promise<FlowLayerPickingInfo<L, F> | undefined> {
     const {index, sourceLayer} = info;
     const {dataProvider, accessors} = this.state || {};
     if (!dataProvider || !accessors) {
-      return;
+      return undefined;
     }
-    // TODO: if (lastHoverEventStartTimeRef > startTime) {
-    //   // Skipping, because this is not the latest hover event
-    //   return;
-    // }
-
     const commonInfo = {
       // ...info,
       layer: info.layer,
@@ -277,9 +258,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       y: info.y,
       coordinate: info.coordinate,
     };
-
-    let pickingInfo: FlowLayerPickingInfo<L, F> | undefined = undefined;
-    let highlightedObject: HighlightedObject | undefined = undefined;
     if (
       sourceLayer instanceof FlowLinesLayer ||
       sourceLayer instanceof AnimatedFlowLinesLayer
@@ -287,7 +265,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       const flow =
         index === -1 ? undefined : await dataProvider.getFlowByIndex(index);
       if (flow) {
-        const {lineAttributes} = this.state?.layersData || {};
         const origin = await dataProvider.getLocationById(
           accessors.getFlowOriginId(flow),
         );
@@ -295,7 +272,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
           accessors.getFlowDestId(flow),
         );
         if (origin && dest) {
-          pickingInfo = {
+          return {
             ...commonInfo,
             type: PickingType.FLOW,
             object: flow,
@@ -303,15 +280,6 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
             dest: dest,
             count: accessors.getFlowMagnitude(flow),
           };
-          if (lineAttributes) {
-            highlightedObject = {
-              type: HighlightType.FLOW,
-              lineAttributes: await getFlowLineAttributesByIndex(
-                lineAttributes,
-                info.index,
-              ),
-            };
-          }
         }
       }
     } else if (sourceLayer instanceof FlowCirclesLayer) {
@@ -328,7 +296,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
             circleAttributes,
             info.index,
           );
-          pickingInfo = {
+          return {
             ...commonInfo,
             type: PickingType.LOCATION,
             object: location,
@@ -338,19 +306,40 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
             circleRadius: circleRadius,
             event: undefined,
           };
-          highlightedObject = {
-            type: HighlightType.LOCATION,
-            centroid: accessors.getLocationCentroid(location),
-            radius: circleRadius,
-          };
         }
       }
     }
-    this._updateHighlight(pickingInfo, highlightedObject);
+
+    return undefined;
   }
 
-  handleClick(info: Record<string, any>): void {
-    console.log('_onClick', info);
+  private _getHighlightedObject(
+    info: Record<string, any>,
+  ): HighlightedObject | undefined {
+    const {index, sourceLayer} = info;
+    if (index < 0) return undefined;
+    if (
+      sourceLayer instanceof FlowLinesLayer ||
+      sourceLayer instanceof AnimatedFlowLinesLayer
+    ) {
+      const {lineAttributes} = this.state?.layersData || {};
+      if (lineAttributes) {
+        return {
+          type: HighlightType.FLOW,
+          lineAttributes: getFlowLineAttributesByIndex(lineAttributes, index),
+        };
+      }
+    } else if (sourceLayer instanceof FlowCirclesLayer) {
+      const {circleAttributes} = this.state?.layersData || {};
+      if (circleAttributes) {
+        return {
+          type: HighlightType.LOCATION,
+          centroid: getLocationCentroidByIndex(circleAttributes, index),
+          radius: getOuterCircleRadiusByIndex(circleAttributes, index),
+        };
+      }
+    }
+    return undefined;
   }
 
   renderLayers(): Array<any> {

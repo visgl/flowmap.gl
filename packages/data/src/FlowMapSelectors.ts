@@ -1349,6 +1349,14 @@ export function getOuterCircleRadiusByIndex(
   return Math.max(getInRadius.value[index], getOutRadius.value[index]);
 }
 
+export function getLocationCentroidByIndex(
+  circleAttributes: FlowCirclesLayerAttributes,
+  index: number,
+): [number, number] {
+  const {getPosition} = circleAttributes.attributes;
+  return [getPosition.value[index * 2], getPosition.value[index * 2 + 1]];
+}
+
 export function getFlowLineAttributesByIndex(
   lineAttributes: FlowLinesLayerAttributes,
   index: number,

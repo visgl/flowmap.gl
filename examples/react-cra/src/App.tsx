@@ -42,7 +42,6 @@ function App() {
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<LoadedData>();
   const [tooltip, setTooltip] = useState<TooltipState>();
-
   useEffect(() => {
     (async () => {
       const {locations, flows} = await fetchData();
@@ -57,7 +56,10 @@ function App() {
       setViewState({...viewState, width, height});
     })();
   }, []);
-
+  const handleViewStateChange = ({viewState}: any) => {
+    setViewState(viewState);
+    setTooltip(undefined);
+  };
   const layers = [];
   if (data) {
     layers.push(
@@ -82,13 +84,13 @@ function App() {
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
         onHover: (info) => setTooltip(getTooltipState(info)),
+        onClick: (info) => console.log('clicked', info.type, info.object),
       }),
     );
   }
   if (!viewState) {
     return null;
   }
-
   return (
     <div
       className={`flowmap-container ${config.darkMode ? 'dark' : 'light'}`}
@@ -98,7 +100,7 @@ function App() {
         width="100%"
         height="100%"
         viewState={viewState}
-        onViewStateChange={({viewState}: any) => setViewState(viewState)}
+        onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
