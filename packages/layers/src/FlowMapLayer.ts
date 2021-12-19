@@ -111,25 +111,27 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowMapLayerProps<L, F>) {
     super({
       ...props,
-      onHover: async (info: PickingInfo<any>, event: SourceEvent) => {
+      onHover: (info: PickingInfo<any>, event: SourceEvent) => {
         // TODO: if (lastHoverEventStartTimeRef > startTime) {
         //   // Skipping, because this is not the latest hover event
         //   return;
         // }
-        const highlightedObject = await this._getHighlightedObject(info);
-        this.setState({highlightedObject});
+        this.setState({highlightedObject: this._getHighlightedObject(info)});
         const {onHover} = props;
         if (onHover) {
-          onHover(await this._getFlowLayerPickingInfo(info), event);
+          this._getFlowLayerPickingInfo(info).then((info) =>
+            onHover(info, event),
+          );
         }
       },
-      onClick: async (info: PickingInfo<any>, event: SourceEvent) => {
+      onClick: (info: PickingInfo<any>, event: SourceEvent) => {
         const {onClick} = props;
         if (onClick) {
-          const _info = await this._getFlowLayerPickingInfo(info);
-          if (_info) {
-            onClick(_info, event);
-          }
+          this._getFlowLayerPickingInfo(info).then((info) => {
+            if (info) {
+              onClick(info, event);
+            }
+          });
         }
       },
     });
