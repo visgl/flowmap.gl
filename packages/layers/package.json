@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/layers",
-  "version": "8.0.0-alpha.0",
+  "version": "8.0.0-alpha.1",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,5 +16,9 @@
     "@deck.gl/layers": "^8.6.5",
     "@luma.gl/constants": "^8.5.10",
     "@luma.gl/core": "^8.5.10"
+  },
+  "gitHead": "8c4a80ee8a48c4db963c38ae1836bd6d5f4116dc",
+  "publishConfig": {
+    "access": "public"
   }
 }
