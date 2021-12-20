@@ -1066,6 +1066,13 @@ export default class FlowMapSelectors<L, F> {
   prepareLayersData(state: FlowMapState, props: FlowMapData<L, F>): LayersData {
     const locations = this.getLocationsForFlowMapLayer(state, props) || [];
     const flows = this.getFlowsForFlowMapLayer(state, props) || [];
+    const {
+      getFlowOriginId,
+      getFlowDestId,
+      getFlowMagnitude,
+      getLocationId,
+      getLocationCentroid,
+    } = this.accessors;
 
     const flowMapColors = this.getFlowMapColorsRGBA(state, props);
     const {settingsState} = state;
@@ -1073,7 +1080,7 @@ export default class FlowMapSelectors<L, F> {
     const locationsById = this.getLocationsForFlowMapLayerById(state, props);
     const getCentroid = (id: string) => {
       const loc = locationsById?.get(id);
-      return loc ? this.accessors.getLocationCentroid(loc) : [0, 0];
+      return loc ? getLocationCentroid(loc) : [0, 0];
     };
 
     const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
@@ -1082,9 +1089,10 @@ export default class FlowMapSelectors<L, F> {
 
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
 
-    const flowMagnitudeExtent = extent(flows, (f) =>
-      this.accessors.getFlowMagnitude(f),
-    ) as [number, number];
+    const flowMagnitudeExtent = extent(flows, (f) => getFlowMagnitude(f)) as [
+      number,
+      number,
+    ];
     const flowColorScale = getFlowColorScale(
       flowMapColors,
       flowMagnitudeExtent,
@@ -1092,7 +1100,7 @@ export default class FlowMapSelectors<L, F> {
     );
 
     const circlePositions = new Float32Array(
-      flatMap(locations, this.accessors.getLocationCentroid),
+      flatMap(locations, getLocationCentroid),
     );
 
     // TODO: diff mode
@@ -1103,38 +1111,32 @@ export default class FlowMapSelectors<L, F> {
     const circleColors = new Uint8Array(flatMap(locations, (d) => circleColor));
     const inCircleRadii = new Float32Array(
       locations.map((loc) => {
-        const id = this.accessors.getLocationId(loc);
+        const id = getLocationId(loc);
         return locationIdsInViewport?.has(id) ? getInCircleSize(id) : 1.0;
       }),
     );
     const outCircleRadii = new Float32Array(
       locations.map((loc) => {
-        const id = this.accessors.getLocationId(loc);
+        const id = getLocationId(loc);
         return locationIdsInViewport?.has(id) ? getOutCircleSize(id) : 1.0;
       }),
     );
 
     const sourcePositions = new Float32Array(
-      flatMap(flows, (d: F | AggregateFlow) =>
-        getCentroid(this.accessors.getFlowOriginId(d)),
-      ),
+      flatMap(flows, (d: F | AggregateFlow) => getCentroid(getFlowOriginId(d))),
     );
     const targetPositions = new Float32Array(
-      flatMap(flows, (d: F | AggregateFlow) =>
-        getCentroid(this.accessors.getFlowDestId(d)),
-      ),
+      flatMap(flows, (d: F | AggregateFlow) => getCentroid(getFlowDestId(d))),
     );
     const thicknesses = new Float32Array(
       flows.map((d: F | AggregateFlow) =>
-        flowThicknessScale
-          ? flowThicknessScale(this.accessors.getFlowMagnitude(d)) || 0
-          : 0,
+        flowThicknessScale ? flowThicknessScale(getFlowMagnitude(d)) || 0 : 0,
       ),
     );
     const endpointOffsets = new Float32Array(
       flatMap(flows, (d: F | AggregateFlow) => {
-        const originId = this.accessors.getFlowOriginId(d);
-        const destId = this.accessors.getFlowDestId(d);
+        const originId = getFlowOriginId(d);
+        const destId = getFlowDestId(d);
         return [
           Math.max(getInCircleSize(originId), getOutCircleSize(originId)),
           Math.max(getInCircleSize(destId), getOutCircleSize(destId)),
@@ -1143,7 +1145,7 @@ export default class FlowMapSelectors<L, F> {
     );
     const flowLineColors = new Uint8Array(
       flatMap(flows, (f: F | AggregateFlow) =>
-        flowColorScale(this.accessors.getFlowMagnitude(f)),
+        flowColorScale(getFlowMagnitude(f)),
       ),
     );
 
@@ -1151,7 +1153,7 @@ export default class FlowMapSelectors<L, F> {
       ? new Float32Array(
           flows.map((f: F | AggregateFlow) =>
             // @ts-ignore
-            new alea(`${this.getFlowOriginId(f)}-${this.getFlowDestId(f)}`)(),
+            new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)(),
           ),
         )
       : undefined;
