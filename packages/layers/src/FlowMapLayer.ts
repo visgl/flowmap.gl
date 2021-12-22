@@ -194,10 +194,14 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     if (changeFlags.dataChanged) {
       this._updateDataProvider();
     }
+    if (changeFlags.viewportChanged || changeFlags.dataChanged) {
+      this.setState({
+        highlightedObject: undefined,
+      });
+    }
 
     if (changeFlags.viewportChanged || changeFlags.propsOrDataChanged) {
       dataProvider.setFlowMapState(this._getFlowMapState());
-
       (async () => {
         const layersData = await dataProvider.getLayersData();
         this.setState({layersData});
@@ -357,6 +361,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
         const commonLineLayerProps = {
           data: lineAttributes,
           parameters: {
+            ...this.props.parameters,
             // prevent z-fighting at non-zero bearing/pitch
             depthTest: false,
           },
