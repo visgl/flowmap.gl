@@ -1,27 +1,23 @@
 import {useEffect, useRef, useState} from 'react';
-import GUI, {Controller} from 'lil-gui';
+import GUI from 'lil-gui';
 
 export default function useUI<T extends Record<string, any>>(
   initialState: T,
-  uiParams?: Record<string, Array<any> | ((c: Controller, gui: GUI) => void)>,
-  // onInit?: (gui: GUI) => void,
+  uiConfig: (gui: GUI) => void,
 ) {
   const [state, setState] = useState(initialState);
   const lilGuiRef = useRef<GUI>();
   useEffect(() => {
     const gui = new GUI();
+    uiConfig(gui);
+
+    const controllers = gui.controllersRecursive();
     for (const key in initialState) {
       if (initialState.hasOwnProperty(key)) {
-        const pp = uiParams?.[key];
-        let args = [initialState, key];
-        if (Array.isArray(pp)) {
-          args = [...args, ...pp];
-        }
+        if (controllers.find((c) => c._name === key)) continue;
+        const args = [initialState, key];
         // @ts-ignore
-        const controller = gui.add.apply(gui, args);
-        if (typeof pp === 'function') {
-          pp(controller, gui);
-        }
+        gui.add.apply(gui, args);
       }
     }
 
@@ -32,15 +28,11 @@ export default function useUI<T extends Record<string, any>>(
       }));
     });
 
-    // if (onInit) {
-    //   onInit(gui);
-    // }
-
     lilGuiRef.current = gui;
     return () => {
       gui.destroy();
     };
-  }, [initialState, uiParams]);
+  }, [initialState, uiConfig]);
 
   return state;
 }

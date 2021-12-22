@@ -104,7 +104,7 @@ function App() {
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
-        style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
+        // style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
         <StaticMap
           mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}

@@ -1,10 +1,11 @@
-import GUI, {Controller} from 'lil-gui';
+import GUI from 'lil-gui';
 import {FlowMapLayer} from '@flowmap.gl/layers';
 import {COLOR_SCHEMES} from '@flowmap.gl/data';
 
 export const UI_INITIAL = {
   darkMode: true,
   colorScheme: 'Teal',
+  highlightColor: '#ff9b29',
   fadeEnabled: FlowMapLayer.defaultProps.fadeEnabled,
   fadeAmount: FlowMapLayer.defaultProps.fadeAmount,
   clusteringEnabled: FlowMapLayer.defaultProps.clusteringEnabled,
@@ -13,32 +14,43 @@ export const UI_INITIAL = {
   animationEnabled: FlowMapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowMapLayer.defaultProps.adaptiveScalesEnabled,
   locationTotalsEnabled: FlowMapLayer.defaultProps.locationTotalsEnabled,
-  highlightColor: '#ff9b29',
 };
 
-export const UI_CONFIG = {
-  fadeEnabled: (c: Controller, gui: GUI) =>
-    c.onChange((v: boolean) => {
-      gui.controllers.find((c) => c._name === 'fadeAmount')?.enable(v);
-    }),
-  fadeAmount: (c: Controller) =>
-    c.min(0).max(100).enable(FlowMapLayer.defaultProps.fadeEnabled),
-  clusteringEnabled: (c: Controller, gui: GUI) =>
-    c.onChange((v: boolean) => {
-      gui.controllers.find((c) => c._name === 'clusteringAuto')?.enable(v);
-      gui.controllers.find((c) => c._name === 'clusteringLevel')?.enable(v);
-    }),
-  clusteringAuto: (c: Controller, gui: GUI) =>
-    c
-      .enable(FlowMapLayer.defaultProps.clusteringEnabled)
-      .onChange((v: boolean) => {
-        gui.controllers.find((c) => c._name === 'clusteringLevel')?.enable(!v);
-      }),
-  clusteringLevel: (c: Controller) =>
-    c.min(0).max(20).step(1).enable(!FlowMapLayer.defaultProps.clusteringAuto),
-  colorScheme: [Object.keys(COLOR_SCHEMES)],
-  highlightColor: (c: Controller, gui: GUI) => {
-    c.destroy();
-    gui.addColor(UI_INITIAL, 'highlightColor');
-  },
+export const UI_CONFIG = (gui: GUI) => {
+  const colors = gui.addFolder('Colors');
+  colors.add(UI_INITIAL, 'darkMode');
+  colors.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
+  colors.addColor(UI_INITIAL, 'highlightColor');
+  const fadeEnabled = colors.add(UI_INITIAL, 'fadeEnabled');
+  const fadeAmount = colors
+    .add(UI_INITIAL, 'fadeAmount')
+    .min(0)
+    .max(100)
+    .enable(FlowMapLayer.defaultProps.fadeEnabled);
+  fadeEnabled.onChange((v: boolean) => {
+    fadeAmount.enable(v);
+  });
+  const clustering = gui.addFolder('Clustering');
+  const clusteringEnabled = clustering.add(UI_INITIAL, 'clusteringEnabled');
+  const clusteringAuto = clustering.add(UI_INITIAL, 'clusteringAuto');
+  const clusteringLevel = clustering
+    .add(UI_INITIAL, 'clusteringLevel')
+    .min(0)
+    .max(20)
+    .step(1)
+    .enable(!FlowMapLayer.defaultProps.clusteringAuto);
+  clusteringEnabled.onChange((v: boolean) => {
+    clusteringAuto.enable(v);
+    clusteringLevel.enable(v);
+  });
+  clusteringAuto
+    .enable(FlowMapLayer.defaultProps.clusteringEnabled)
+    .onChange((v: boolean) => {
+      clusteringLevel.enable(!v);
+    });
+
+  const other = gui.addFolder('Other');
+  other.add(UI_INITIAL, 'animationEnabled');
+  other.add(UI_INITIAL, 'adaptiveScalesEnabled');
+  other.add(UI_INITIAL, 'locationTotalsEnabled');
 };
