@@ -1,5 +1,10 @@
 # Change log
 
+## [8.0.0-alpha.3] - 2021-12-22
+### Added
+- Added fadeOpacityEnabled prop to FlowMapLayer
+
+
 ## [8.0.0-alpha.2] - 2021-12-22
 ### Fixed
 - Sublayer props applied to highlight layers too
