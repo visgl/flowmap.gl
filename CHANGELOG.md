@@ -1,5 +1,12 @@
 # Change log
 
+## [8.0.0-alpha.1] - 2021-12-22
+### Fixed
+- Prevent unnecessary calls to prepareLayerData
+- Clear highlight on viewport change
+- FlowMapLayer.parameters when passing to sublayers
+
+
 ## [8.0.0-alpha.0] - 2021-12-20
 ### Changed
 The library was significantly refactored:
