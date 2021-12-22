@@ -405,28 +405,34 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
             case HighlightType.LOCATION:
               layers.push(
                 new ScatterplotLayer({
-                  id: 'location-highlight',
-                  data: [highlightedObject],
-                  stroked: true,
-                  filled: false,
-                  lineWidthUnits: 'pixels',
-                  getLineWidth: 2,
-                  radiusUnits: 'pixels',
-                  getRadius: (d: HighlightedLocationObject) => d.radius,
-                  getLineColor: (d: HighlightedLocationObject) =>
-                    colorAsRgba('orange'),
-                  getPosition: (d: HighlightedLocationObject) => d.centroid,
+                  ...this.getSubLayerProps({
+                    id: 'location-highlight',
+                    data: [highlightedObject],
+                    pickable: false,
+                    stroked: true,
+                    filled: false,
+                    lineWidthUnits: 'pixels',
+                    getLineWidth: 2,
+                    radiusUnits: 'pixels',
+                    getRadius: (d: HighlightedLocationObject) => d.radius,
+                    getLineColor: (d: HighlightedLocationObject) =>
+                      colorAsRgba('orange'),
+                    getPosition: (d: HighlightedLocationObject) => d.centroid,
+                  }),
                 }),
               );
               break;
             case HighlightType.FLOW:
               layers.push(
                 new FlowLinesLayer({
-                  id: 'flow-highlight',
-                  data: highlightedObject.lineAttributes,
-                  drawOutline: true,
-                  outlineColor: colorAsRgba('orange'),
-                  outlineThickness: 1,
+                  ...this.getSubLayerProps({
+                    id: 'flow-highlight',
+                    data: highlightedObject.lineAttributes,
+                    drawOutline: true,
+                    pickable: false,
+                    outlineColor: colorAsRgba('orange'),
+                    outlineThickness: 1,
+                  }),
                 }),
               );
               break;
