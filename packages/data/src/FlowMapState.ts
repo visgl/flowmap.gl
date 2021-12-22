@@ -9,6 +9,7 @@ export interface FilterState {
 export interface SettingsState {
   animationEnabled: boolean;
   fadeEnabled: boolean;
+  fadeOpacityEnabled: boolean;
   locationTotalsEnabled: boolean;
   adaptiveScalesEnabled: boolean;
   clusteringEnabled: boolean;

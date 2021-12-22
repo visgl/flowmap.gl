@@ -54,6 +54,7 @@ export type FlowMapLayerProps<L, F> = {
   clusteringEnabled?: boolean;
   clusteringLevel?: number;
   fadeEnabled?: boolean;
+  fadeOpacityEnabled?: boolean;
   clusteringAuto?: boolean;
   darkMode?: boolean;
   fadeAmount?: number;
@@ -102,6 +103,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     animationEnabled: false,
     clusteringEnabled: true,
     fadeEnabled: true,
+    fadeOpacityEnabled: false,
     clusteringAuto: true,
     clusteringLevel: undefined,
     adaptiveScalesEnabled: true,
@@ -219,6 +221,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       clusteringEnabled,
       clusteringLevel,
       fadeEnabled,
+      fadeOpacityEnabled,
       clusteringAuto,
       darkMode,
       fadeAmount,
@@ -231,6 +234,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       clusteringEnabled,
       clusteringLevel,
       fadeEnabled,
+      fadeOpacityEnabled,
       clusteringAuto,
       darkMode,
       fadeAmount,

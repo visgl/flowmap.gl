@@ -126,6 +126,11 @@ export default class FlowMapSelectors<L, F> {
     props: FlowMapData<L, F>,
   ) => state.settingsState.fadeEnabled;
 
+  getFadeOpacityEnabled: Selector<L, F, boolean> = (
+    state: FlowMapState,
+    props: FlowMapData<L, F>,
+  ) => state.settingsState.fadeOpacityEnabled;
+
   getFadeAmount: Selector<L, F, number> = (
     state: FlowMapState,
     props: FlowMapData<L, F>,
@@ -487,6 +492,7 @@ export default class FlowMapSelectors<L, F> {
     this.getColorSchemeKey,
     this.getDarkMode,
     this.getFadeEnabled,
+    this.getFadeOpacityEnabled,
     this.getFadeAmount,
     this.getAnimate,
     getColors,

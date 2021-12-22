@@ -26,8 +26,8 @@ import {
 } from 'd3-scale-chromatic';
 import {range} from 'd3-array';
 import {scalePow, scaleSequential, scaleSequentialPow} from 'd3-scale';
-import {interpolateRgbBasis} from 'd3-interpolate';
-import {color as d3color, hcl} from 'd3-color';
+import {interpolateBasis, interpolateRgbBasis} from 'd3-interpolate';
+import {color as d3color, hcl, rgb as colorRgb} from 'd3-color';
 import {SettingsState} from './FlowMapState';
 
 const DEFAULT_OUTLINE_COLOR = '#fff';
@@ -338,6 +338,7 @@ export function getFlowMapColors(
     settingsState.colorScheme,
     settingsState.darkMode,
     settingsState.fadeEnabled,
+    settingsState.fadeOpacityEnabled,
     settingsState.fadeAmount,
     settingsState.animationEnabled,
   );
@@ -348,6 +349,7 @@ export function getColors(
   schemeKey: string | undefined,
   darkMode: boolean,
   fadeEnabled: boolean,
+  fadeOpacityEnabled: boolean,
   fadeAmount: number,
   animate: boolean,
 ): Colors | DiffColors {
@@ -390,13 +392,14 @@ export function getColors(
       scheme = indices.map(
         (c, i) => {
           const color = colorScale(i);
-          const alpha = amount(i);
-          if (color == null || alpha == null) return '#000';
+          const a = amount(i);
+          if (color == null || a == null) return '#000';
           const col = hcl(color);
-          col.l = darkMode
-            ? col.l - col.l * alpha
-            : col.l + (100 - col.l) * alpha;
-          col.c = col.c - col.c * (alpha / 4);
+          col.l = darkMode ? col.l - col.l * a : col.l + (100 - col.l) * a;
+          col.c = col.c - col.c * (a / 4);
+          if (fadeOpacityEnabled) {
+            col.opacity = col.opacity * (1.0 - a);
+          }
           return col.toString();
         },
         // interpolateRgbBasis([colorScale(i), darkMode ? '#000' : '#fff'])(amount(i))
@@ -417,15 +420,46 @@ export function getColors(
   };
 }
 
+function interpolateRgbaBasis(colors: string[]) {
+  const spline = interpolateBasis;
+  const n = colors.length;
+  let r: any = new Array(n),
+    g: any = new Array(n),
+    b: any = new Array(n),
+    opacity: any = new Array(n),
+    i,
+    color: any;
+  for (i = 0; i < n; ++i) {
+    color = colorRgb(colors[i]);
+    r[i] = color.r || 0;
+    g[i] = color.g || 0;
+    b[i] = color.b || 0;
+    opacity[i] = color.opacity || 0;
+  }
+  r = spline(r);
+  g = spline(g);
+  b = spline(b);
+  opacity = spline(opacity);
+  // color.opacity = 1;
+  return function (t: number) {
+    color.r = r(t);
+    color.g = g(t);
+    color.b = b(t);
+    color.opacity = opacity(t);
+    return color + '';
+  };
+}
+
 export function createFlowColorScale(
   domain: [number, number],
   scheme: string[],
   animate: boolean | undefined,
 ): ColorScale {
-  const scale = scaleSequentialPow(interpolateRgbBasis(scheme))
+  const scale = scaleSequentialPow(interpolateRgbaBasis(scheme))
     // @ts-ignore
     .exponent(animate ? 1 / 2 : 1 / 3)
     .domain(domain);
+
   return (value: number) => colorAsRgba(scale(value));
 }
 

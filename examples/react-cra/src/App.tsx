@@ -71,6 +71,7 @@ function App() {
         colorScheme: config.colorScheme,
         fadeAmount: config.fadeAmount,
         fadeEnabled: config.fadeEnabled,
+        fadeOpacityEnabled: config.fadeOpacityEnabled,
         locationTotalsEnabled: config.locationTotalsEnabled,
         animationEnabled: config.animationEnabled,
         clusteringEnabled: config.clusteringEnabled,

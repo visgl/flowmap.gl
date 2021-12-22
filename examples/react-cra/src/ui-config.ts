@@ -7,6 +7,7 @@ export const UI_INITIAL = {
   colorScheme: 'Teal',
   highlightColor: '#ff9b29',
   fadeEnabled: FlowMapLayer.defaultProps.fadeEnabled,
+  fadeOpacityEnabled: FlowMapLayer.defaultProps.fadeOpacityEnabled,
   fadeAmount: FlowMapLayer.defaultProps.fadeAmount,
   clusteringEnabled: FlowMapLayer.defaultProps.clusteringEnabled,
   clusteringAuto: FlowMapLayer.defaultProps.clusteringAuto,
@@ -17,18 +18,26 @@ export const UI_INITIAL = {
 };
 
 export const UI_CONFIG = (gui: GUI) => {
-  const colors = gui.addFolder('Colors');
-  colors.add(UI_INITIAL, 'darkMode');
-  colors.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
-  colors.addColor(UI_INITIAL, 'highlightColor');
-  const fadeEnabled = colors.add(UI_INITIAL, 'fadeEnabled');
-  const fadeAmount = colors
+  gui.add(UI_INITIAL, 'darkMode');
+  gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
+  gui.addColor(UI_INITIAL, 'highlightColor');
+  gui.add(UI_INITIAL, 'animationEnabled');
+  gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
+  gui.add(UI_INITIAL, 'locationTotalsEnabled');
+
+  const fading = gui.addFolder('Fading');
+  const fadeEnabled = fading.add(UI_INITIAL, 'fadeEnabled');
+  const fadeOpacityEnabled = fading
+    .add(UI_INITIAL, 'fadeOpacityEnabled')
+    .enable(FlowMapLayer.defaultProps.fadeEnabled);
+  const fadeAmount = fading
     .add(UI_INITIAL, 'fadeAmount')
     .min(0)
     .max(100)
     .enable(FlowMapLayer.defaultProps.fadeEnabled);
   fadeEnabled.onChange((v: boolean) => {
     fadeAmount.enable(v);
+    fadeOpacityEnabled.enable(v);
   });
   const clustering = gui.addFolder('Clustering');
   const clusteringEnabled = clustering.add(UI_INITIAL, 'clusteringEnabled');
@@ -48,9 +57,4 @@ export const UI_CONFIG = (gui: GUI) => {
     .onChange((v: boolean) => {
       clusteringLevel.enable(!v);
     });
-
-  const other = gui.addFolder('Other');
-  other.add(UI_INITIAL, 'animationEnabled');
-  other.add(UI_INITIAL, 'adaptiveScalesEnabled');
-  other.add(UI_INITIAL, 'locationTotalsEnabled');
 };
