@@ -19,7 +19,7 @@
 import {bounds} from '@mapbox/geo-viewport';
 import {ascending, descending, extent, min} from 'd3-array';
 import {nest} from 'd3-collection';
-import {scaleLinear, scaleSqrt} from 'd3-scale';
+import {ScaleLinear, scaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
 import {
   createSelector,
@@ -36,6 +36,8 @@ import {
   makeLocationWeightGetter,
 } from './cluster/ClusterIndex';
 import getColors, {
+  ColorsRGBA,
+  DiffColorsRGBA,
   getColorsRGBA,
   getDiffColorsRGBA,
   getFlowColorScale,
@@ -560,7 +562,7 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  _getFlowMagnitudeExtent: Selector<L, F, [number, number] | undefined> =
+  getFlowMagnitudeExtent: Selector<L, F, [number, number] | undefined> =
     createSelector(
       this.getSortedAggregatedFilteredFlows,
       this.getSelectedLocationsSet,
@@ -775,10 +777,9 @@ export default class FlowMapSelectors<L, F> {
     );
 
   getLocationIdsInViewport: Selector<L, F, Set<string> | undefined> =
-    // @ts-ignore
-    createSelectorCreator<Set<string> | undefined>(
-      // @ts-ignore
+    createSelectorCreator(
       defaultMemoize,
+      // @ts-ignore
       (
         s1: Set<string> | undefined,
         s2: Set<string> | undefined,
@@ -899,10 +900,10 @@ export default class FlowMapSelectors<L, F> {
       },
     );
 
-  getFlowMagnitudeExtent(
+  _getFlowMagnitudeExtent = (
     state: FlowMapState,
     props: FlowMapData<L, F>,
-  ): [number, number] | undefined {
+  ): [number, number] | undefined => {
     if (state.settingsState.adaptiveScalesEnabled) {
       const flows = this.getFlowsForFlowMapLayer(state, props);
       if (flows) {
@@ -912,9 +913,9 @@ export default class FlowMapSelectors<L, F> {
         return undefined;
       }
     } else {
-      return this._getFlowMagnitudeExtent(state, props);
+      return this.getFlowMagnitudeExtent(state, props);
     }
-  }
+  };
 
   getLocationMaxAbsTotalGetter = createSelector(
     this.getLocationTotals,
@@ -930,41 +931,46 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  getFlowThicknessScale = (state: FlowMapState, props: FlowMapData<L, F>) => {
-    const magnitudeExtent = this.getFlowMagnitudeExtent(state, props);
-    if (!magnitudeExtent) return undefined;
-    return scaleLinear()
-      .range([0.025, 0.5])
-      .domain([
-        0,
-        // should support diff mode too
-        Math.max.apply(
-          null,
-          magnitudeExtent.map((x: number | undefined) => Math.abs(x || 0)),
-        ),
-      ]);
-  };
+  getFlowThicknessScale = createSelector(
+    this.getFlowMagnitudeExtent,
+    (magnitudeExtent) => {
+      if (!magnitudeExtent) return undefined;
+      return scaleLinear()
+        .range([0.025, 0.5])
+        .domain([
+          0,
+          // should support diff mode too
+          Math.max.apply(
+            null,
+            magnitudeExtent.map((x: number | undefined) => Math.abs(x || 0)),
+          ),
+        ]);
+    },
+  );
 
-  getCircleSizeScale = (state: FlowMapState, props: FlowMapData<L, F>) => {
-    const maxLocationCircleSize = this.getMaxLocationCircleSize(state, props);
-    const {locationTotalsEnabled} = state.settingsState;
-    if (!locationTotalsEnabled) {
-      return () => maxLocationCircleSize;
-    }
-
-    const locationTotalsExtent = this.getLocationTotalsExtent(state, props);
-    if (!locationTotalsExtent) return undefined;
-    return scaleSqrt()
-      .range([0, maxLocationCircleSize])
-      .domain([
-        0,
-        // should support diff mode too
-        Math.max.apply(
-          null,
-          locationTotalsExtent.map((x: number | undefined) => Math.abs(x || 0)),
-        ),
-      ]);
-  };
+  getCircleSizeScale = createSelector(
+    this.getMaxLocationCircleSize,
+    this.getLocationTotalsEnabled,
+    this.getLocationTotalsExtent,
+    (maxLocationCircleSize, locationTotalsEnabled, locationTotalsExtent) => {
+      if (!locationTotalsEnabled) {
+        return () => maxLocationCircleSize;
+      }
+      if (!locationTotalsExtent) return undefined;
+      return scaleSqrt()
+        .range([0, maxLocationCircleSize])
+        .domain([
+          0,
+          // should support diff mode too
+          Math.max.apply(
+            null,
+            locationTotalsExtent.map((x: number | undefined) =>
+              Math.abs(x || 0),
+            ),
+          ),
+        ]);
+    },
+  );
 
   getInCircleSizeGetter = createSelector(
     this.getCircleSizeScale,
@@ -1063,9 +1069,76 @@ export default class FlowMapSelectors<L, F> {
     );
   });
 
+  getLayersData: Selector<L, F, LayersData> = createSelector(
+    this.getLocationsForFlowMapLayer,
+    this.getFlowsForFlowMapLayer,
+    this.getFlowMapColorsRGBA,
+    this.getLocationsForFlowMapLayerById,
+    this.getLocationIdsInViewport,
+    this.getInCircleSizeGetter,
+    this.getOutCircleSizeGetter,
+    this.getFlowThicknessScale,
+    this.getAnimate,
+    (
+      locations,
+      flows,
+      flowMapColors,
+      locationsById,
+      locationIdsInViewport,
+      getInCircleSize,
+      getOutCircleSize,
+      flowThicknessScale,
+      animationEnabled,
+    ) => {
+      return this._prepareLayersData(
+        locations,
+        flows,
+        flowMapColors,
+        locationsById,
+        locationIdsInViewport,
+        getInCircleSize,
+        getOutCircleSize,
+        flowThicknessScale,
+        animationEnabled,
+      );
+    },
+  );
+
   prepareLayersData(state: FlowMapState, props: FlowMapData<L, F>): LayersData {
     const locations = this.getLocationsForFlowMapLayer(state, props) || [];
     const flows = this.getFlowsForFlowMapLayer(state, props) || [];
+    const flowMapColors = this.getFlowMapColorsRGBA(state, props);
+    const locationsById = this.getLocationsForFlowMapLayerById(state, props);
+    const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
+    const getInCircleSize = this.getInCircleSizeGetter(state, props);
+    const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
+    const flowThicknessScale = this.getFlowThicknessScale(state, props);
+    return this._prepareLayersData(
+      locations,
+      flows,
+      flowMapColors,
+      locationsById,
+      locationIdsInViewport,
+      getInCircleSize,
+      getOutCircleSize,
+      flowThicknessScale,
+      state.settingsState.animationEnabled,
+    );
+  }
+
+  _prepareLayersData(
+    locations: (L | ClusterNode)[] | undefined,
+    flows: (F | AggregateFlow)[] | undefined,
+    flowMapColors: DiffColorsRGBA | ColorsRGBA,
+    locationsById: Map<string, L | ClusterNode> | undefined,
+    locationIdsInViewport: Set<string> | undefined,
+    getInCircleSize: (locationId: string) => number,
+    getOutCircleSize: (locationId: string) => number,
+    flowThicknessScale: ScaleLinear<number, number, never> | undefined,
+    animationEnabled: boolean,
+  ): LayersData {
+    if (!locations) locations = [];
+    if (!flows) flows = [];
     const {
       getFlowOriginId,
       getFlowDestId,
@@ -1074,20 +1147,10 @@ export default class FlowMapSelectors<L, F> {
       getLocationCentroid,
     } = this.accessors;
 
-    const flowMapColors = this.getFlowMapColorsRGBA(state, props);
-    const {settingsState} = state;
-
-    const locationsById = this.getLocationsForFlowMapLayerById(state, props);
     const getCentroid = (id: string) => {
       const loc = locationsById?.get(id);
       return loc ? getLocationCentroid(loc) : [0, 0];
     };
-
-    const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
-    const getInCircleSize = this.getInCircleSizeGetter(state, props);
-    const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
-
-    const flowThicknessScale = this.getFlowThicknessScale(state, props);
 
     const flowMagnitudeExtent = extent(flows, (f) => getFlowMagnitude(f)) as [
       number,
@@ -1149,7 +1212,7 @@ export default class FlowMapSelectors<L, F> {
       ),
     );
 
-    const staggeringValues = settingsState.animationEnabled
+    const staggeringValues = animationEnabled
       ? new Float32Array(
           flows.map((f: F | AggregateFlow) =>
             // @ts-ignore

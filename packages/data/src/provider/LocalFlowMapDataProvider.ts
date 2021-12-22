@@ -66,10 +66,7 @@ export default class LocalFlowMapDataProvider<L, F>
     if (!this.flowMapState || !this.flowMapData) {
       return undefined;
     }
-    return this.selectors.prepareLayersData(
-      this.flowMapState,
-      this.flowMapData,
-    );
+    return this.selectors.getLayersData(this.flowMapState, this.flowMapData);
   }
 
   async getLocationById(id: string): Promise<L | Cluster | undefined> {
