@@ -13,6 +13,7 @@ export const UI_INITIAL = {
   animationEnabled: FlowMapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowMapLayer.defaultProps.adaptiveScalesEnabled,
   locationTotalsEnabled: FlowMapLayer.defaultProps.locationTotalsEnabled,
+  highlightColor: '#ff9b29',
 };
 
 export const UI_CONFIG = {
@@ -36,4 +37,8 @@ export const UI_CONFIG = {
   clusteringLevel: (c: Controller) =>
     c.min(0).max(20).step(1).enable(!FlowMapLayer.defaultProps.clusteringAuto),
   colorScheme: [Object.keys(COLOR_SCHEMES)],
+  highlightColor: (c: Controller, gui: GUI) => {
+    c.destroy();
+    gui.addColor(UI_INITIAL, 'highlightColor');
+  },
 };

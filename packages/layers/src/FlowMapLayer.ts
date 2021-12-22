@@ -58,6 +58,7 @@ export type FlowMapLayerProps<L, F> = {
   darkMode?: boolean;
   fadeAmount?: number;
   colorScheme?: string;
+  highlightColor?: string;
   onHover?: (
     info: FlowLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
@@ -105,6 +106,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     clusteringLevel: undefined,
     adaptiveScalesEnabled: true,
     colorScheme: 'Teal',
+    highlightColor: 'orange',
   };
   state: State<L, F> | undefined;
 
@@ -415,8 +417,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
                     getLineWidth: 2,
                     radiusUnits: 'pixels',
                     getRadius: (d: HighlightedLocationObject) => d.radius,
-                    getLineColor: (d: HighlightedLocationObject) =>
-                      colorAsRgba('orange'),
+                    getLineColor: colorAsRgba(this.props.highlightColor),
                     getPosition: (d: HighlightedLocationObject) => d.centroid,
                   }),
                 }),
@@ -430,7 +431,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
                     data: highlightedObject.lineAttributes,
                     drawOutline: true,
                     pickable: false,
-                    outlineColor: colorAsRgba('orange'),
+                    outlineColor: colorAsRgba(this.props.highlightColor),
                     outlineThickness: 1,
                   }),
                 }),

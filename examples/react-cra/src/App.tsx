@@ -77,6 +77,7 @@ function App() {
         clusteringAuto: config.clusteringAuto,
         clusteringLevel: config.clusteringLevel,
         adaptiveScalesEnabled: config.adaptiveScalesEnabled,
+        highlightColor: config.highlightColor,
         getLocationId: (loc) => loc.id,
         getLocationCentroid: (loc) => [loc.lon, loc.lat],
         getFlowOriginId: (flow) => flow.origin,
