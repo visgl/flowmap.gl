@@ -68,7 +68,6 @@ import {
   LocationFilterMode,
   LocationTotals,
 } from './types';
-import {flatMap} from './util';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
 const NUMBER_OF_FLOWS_TO_DISPLAY = 5000;
@@ -1168,8 +1167,14 @@ export default class FlowMapSelectors<L, F> {
       false,
     );
 
-    const circlePositions = new Float32Array(
-      flatMap(locations, getLocationCentroid),
+    // Using yield here helps to avoid creating intermediary arrays
+    const circlePositions = Float32Array.from(
+      (function* () {
+        for (const location of locations) {
+          // yield* effectively does same as flatMap here
+          yield* getLocationCentroid(location);
+        }
+      })(),
     );
 
     // TODO: diff mode
@@ -1177,53 +1182,80 @@ export default class FlowMapSelectors<L, F> {
       ? flowMapColors.positive.locationCircles.inner
       : flowMapColors.locationCircles.inner;
 
-    const circleColors = new Uint8Array(flatMap(locations, (d) => circleColor));
-    const inCircleRadii = new Float32Array(
-      locations.map((loc) => {
-        const id = getLocationId(loc);
-        return locationIdsInViewport?.has(id) ? getInCircleSize(id) : 1.0;
-      }),
-    );
-    const outCircleRadii = new Float32Array(
-      locations.map((loc) => {
-        const id = getLocationId(loc);
-        return locationIdsInViewport?.has(id) ? getOutCircleSize(id) : 1.0;
-      }),
+    const circleColors = Uint8Array.from(
+      (function* () {
+        for (const location of locations) {
+          yield* circleColor;
+        }
+      })(),
     );
 
-    const sourcePositions = new Float32Array(
-      flatMap(flows, (d: F | AggregateFlow) => getCentroid(getFlowOriginId(d))),
+    const inCircleRadii = Float32Array.from(
+      (function* () {
+        for (const location of locations) {
+          const id = getLocationId(location);
+          yield locationIdsInViewport?.has(id) ? getInCircleSize(id) : 1.0;
+        }
+      })(),
     );
-    const targetPositions = new Float32Array(
-      flatMap(flows, (d: F | AggregateFlow) => getCentroid(getFlowDestId(d))),
+    const outCircleRadii = Float32Array.from(
+      (function* () {
+        for (const location of locations) {
+          const id = getLocationId(location);
+          yield locationIdsInViewport?.has(id) ? getOutCircleSize(id) : 1.0;
+        }
+      })(),
     );
-    const thicknesses = new Float32Array(
-      flows.map((d: F | AggregateFlow) =>
-        flowThicknessScale ? flowThicknessScale(getFlowMagnitude(d)) || 0 : 0,
-      ),
+
+    const sourcePositions = Float32Array.from(
+      (function* () {
+        for (const flow of flows) {
+          yield* getCentroid(getFlowOriginId(flow));
+        }
+      })(),
     );
-    const endpointOffsets = new Float32Array(
-      flatMap(flows, (d: F | AggregateFlow) => {
-        const originId = getFlowOriginId(d);
-        const destId = getFlowDestId(d);
-        return [
-          Math.max(getInCircleSize(originId), getOutCircleSize(originId)),
-          Math.max(getInCircleSize(destId), getOutCircleSize(destId)),
-        ];
-      }),
+    const targetPositions = Float32Array.from(
+      (function* () {
+        for (const flow of flows) {
+          yield* getCentroid(getFlowDestId(flow));
+        }
+      })(),
     );
-    const flowLineColors = new Uint8Array(
-      flatMap(flows, (f: F | AggregateFlow) =>
-        flowColorScale(getFlowMagnitude(f)),
-      ),
+    const thicknesses = Float32Array.from(
+      (function* () {
+        for (const flow of flows) {
+          yield flowThicknessScale
+            ? flowThicknessScale(getFlowMagnitude(flow)) || 0
+            : 0;
+        }
+      })(),
+    );
+    const endpointOffsets = Float32Array.from(
+      (function* () {
+        for (const flow of flows) {
+          const originId = getFlowOriginId(flow);
+          const destId = getFlowDestId(flow);
+          yield Math.max(getInCircleSize(originId), getOutCircleSize(originId));
+          yield Math.max(getInCircleSize(destId), getOutCircleSize(destId));
+        }
+      })(),
+    );
+    const flowLineColors = Uint8Array.from(
+      (function* () {
+        for (const flow of flows) {
+          yield* flowColorScale(getFlowMagnitude(flow));
+        }
+      })(),
     );
 
     const staggeringValues = animationEnabled
-      ? new Float32Array(
-          flows.map((f: F | AggregateFlow) =>
-            // @ts-ignore
-            new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)(),
-          ),
+      ? Float32Array.from(
+          (function* () {
+            for (const flow of flows) {
+              // @ts-ignore
+              yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
+            }
+          })(),
         )
       : undefined;
 
