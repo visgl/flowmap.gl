@@ -336,9 +336,25 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     ) {
       const {lineAttributes} = this.state?.layersData || {};
       if (lineAttributes) {
+        let attrs = getFlowLineAttributesByIndex(lineAttributes, index);
+        if (this.props.fadeOpacityEnabled) {
+          attrs = {
+            ...attrs,
+            attributes: {
+              ...attrs.attributes,
+              getColor: {
+                ...attrs.attributes.getColor,
+                value: new Uint8Array([
+                  ...attrs.attributes.getColor.value.slice(0, 3),
+                  255, // the highlight color should be always opaque
+                ]),
+              },
+            },
+          };
+        }
         return {
           type: HighlightType.FLOW,
-          lineAttributes: getFlowLineAttributesByIndex(lineAttributes, index),
+          lineAttributes: attrs,
         };
       }
     } else if (sourceLayer instanceof FlowCirclesLayer) {

@@ -25,7 +25,7 @@ export const UI_CONFIG = (gui: GUI) => {
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
 
-  const fading = gui.addFolder('Fading');
+  const fading = gui.addFolder('Fade');
   const fadeEnabled = fading.add(UI_INITIAL, 'fadeEnabled');
   const fadeOpacityEnabled = fading
     .add(UI_INITIAL, 'fadeOpacityEnabled')
