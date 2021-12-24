@@ -20,7 +20,7 @@ export interface SettingsState {
   colorScheme: string | undefined;
 }
 
-export interface FlowMapState {
+export interface FlowmapState {
   filterState: FilterState;
   settingsState: SettingsState;
   viewport: ViewportProps;

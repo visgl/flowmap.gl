@@ -2,8 +2,8 @@ import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {
-  FlowLayerPickingInfo,
-  FlowMapLayer,
+  FlowmapLayerPickingInfo,
+  FlowmapLayer,
   PickingType,
 } from '@flowmap.gl/layers';
 import {getViewStateForLocations} from '@flowmap.gl/data';
@@ -54,7 +54,7 @@ function App() {
   const layers = [];
   if (data) {
     layers.push(
-      new FlowMapLayer<LocationDatum, FlowDatum>({
+      new FlowmapLayer<LocationDatum, FlowDatum>({
         id: 'my-flowmap-layer',
         data,
         pickable: true,
@@ -113,7 +113,7 @@ function App() {
 }
 
 function getTooltipState(
-  info: FlowLayerPickingInfo<LocationDatum, FlowDatum> | undefined,
+  info: FlowmapLayerPickingInfo<LocationDatum, FlowDatum> | undefined,
 ): TooltipState | undefined {
   if (!info) return undefined;
   const {x, y, type} = info;

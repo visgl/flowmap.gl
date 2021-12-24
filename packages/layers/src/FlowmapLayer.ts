@@ -19,20 +19,20 @@ import {ScatterplotLayer} from '@deck.gl/layers';
 import {
   colorAsRgba,
   FlowLinesLayerAttributes,
-  FlowMapData,
-  FlowMapDataAccessors,
-  FlowMapDataProvider,
+  FlowmapData,
+  FlowmapDataAccessors,
+  FlowmapDataProvider,
   getFlowLineAttributesByIndex,
-  getFlowMapColors,
+  getFlowmapColors,
   getOuterCircleRadiusByIndex,
   getLocationCentroidByIndex,
-  isFlowMapData,
-  isFlowMapDataProvider,
+  isFlowmapData,
+  isFlowmapDataProvider,
   LayersData,
-  LocalFlowMapDataProvider,
+  LocalFlowmapDataProvider,
   LocationFilterMode,
   ViewportProps,
-  FlowMapAggregateAccessors,
+  FlowmapAggregateAccessors,
   ClusterNode,
   AggregateFlow,
 } from '@flowmap.gl/data';
@@ -40,14 +40,14 @@ import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import FlowLinesLayer from './FlowLinesLayer';
 import {
-  FlowLayerPickingInfo,
+  FlowmapLayerPickingInfo,
   LayerProps,
   PickingInfo,
   PickingType,
 } from './types';
 
-export type FlowMapLayerProps<L, F> = {
-  data: FlowMapData<L, F> | FlowMapDataProvider<L, F>;
+export type FlowmapLayerProps<L, F> = {
+  data: FlowmapData<L, F> | FlowmapDataProvider<L, F>;
   locationTotalsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
@@ -61,11 +61,11 @@ export type FlowMapLayerProps<L, F> = {
   colorScheme?: string;
   highlightColor?: string;
   onHover?: (
-    info: FlowLayerPickingInfo<L, F> | undefined,
+    info: FlowmapLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
   ) => void;
-  onClick?: (info: FlowLayerPickingInfo<L, F>, event: SourceEvent) => void;
-} & Partial<FlowMapDataAccessors<L, F>> &
+  onClick?: (info: FlowmapLayerPickingInfo<L, F>, event: SourceEvent) => void;
+} & Partial<FlowmapDataAccessors<L, F>> &
   LayerProps;
 
 enum HighlightType {
@@ -87,15 +87,15 @@ type HighlightedFlowObject = {
 type HighlightedObject = HighlightedLocationObject | HighlightedFlowObject;
 
 type State<L, F> = {
-  accessors: FlowMapAggregateAccessors<L, F>;
-  dataProvider: FlowMapDataProvider<L, F>;
+  accessors: FlowmapAggregateAccessors<L, F>;
+  dataProvider: FlowmapDataProvider<L, F>;
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
 };
 
 export type SourceEvent = {srcEvent: MouseEvent};
 
-export default class FlowMapLayer<L, F> extends CompositeLayer {
+export default class FlowmapLayer<L, F> extends CompositeLayer {
   static defaultProps = {
     darkMode: true,
     fadeAmount: 50,
@@ -112,7 +112,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
   };
   state: State<L, F> | undefined;
 
-  public constructor(props: FlowMapLayerProps<L, F>) {
+  public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
       onHover: (info: PickingInfo<any>, event: SourceEvent) => {
@@ -123,7 +123,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
         this.setState({highlightedObject: this._getHighlightedObject(info)});
         const {onHover} = props;
         if (onHover) {
-          this._getFlowLayerPickingInfo(info).then((info) =>
+          this._getFlowmapLayerPickingInfo(info).then((info) =>
             onHover(info, event),
           );
         }
@@ -131,7 +131,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       onClick: (info: PickingInfo<any>, event: SourceEvent) => {
         const {onClick} = props;
         if (onClick) {
-          this._getFlowLayerPickingInfo(info).then((info) => {
+          this._getFlowmapLayerPickingInfo(info).then((info) => {
             if (info) {
               onClick(info, event);
             }
@@ -143,7 +143,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
 
   initializeState() {
     this.state = {
-      accessors: new FlowMapAggregateAccessors<L, F>(this.props),
+      accessors: new FlowmapAggregateAccessors<L, F>(this.props),
       dataProvider: this._makeDataProvider(),
       layersData: undefined,
       highlightedObject: undefined,
@@ -152,20 +152,20 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
 
   private _updateAccessors() {
     this.state?.dataProvider?.setAccessors(this.props);
-    this.setState({accessors: new FlowMapAggregateAccessors(this.props)});
+    this.setState({accessors: new FlowmapAggregateAccessors(this.props)});
   }
 
   private _makeDataProvider() {
     const {data} = this.props;
-    if (isFlowMapDataProvider<L, F>(data)) {
+    if (isFlowmapDataProvider<L, F>(data)) {
       return data;
-    } else if (isFlowMapData<L, F>(data)) {
-      const dataProvider = new LocalFlowMapDataProvider<L, F>(this.props);
-      dataProvider.setFlowMapData(data);
+    } else if (isFlowmapData<L, F>(data)) {
+      const dataProvider = new LocalFlowmapDataProvider<L, F>(this.props);
+      dataProvider.setFlowmapData(data);
       return dataProvider;
     }
     throw new Error(
-      'FlowMapLayer: data must be a FlowMapDataProvider or FlowMapData',
+      'FlowmapLayer: data must be a FlowmapDataProvider or FlowmapData',
     );
   }
 
@@ -205,7 +205,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     }
 
     if (changeFlags.viewportChanged || changeFlags.propsOrDataChanged) {
-      dataProvider.setFlowMapState(this._getFlowMapState());
+      dataProvider.setFlowmapState(this._getFlowmapState());
       (async () => {
         const layersData = await dataProvider.getLayersData();
         this.setState({layersData});
@@ -242,7 +242,7 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     };
   }
 
-  private _getFlowMapState() {
+  private _getFlowmapState() {
     return {
       viewport: asViewState(this.context.viewport),
       filterState: {
@@ -254,9 +254,9 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
     };
   }
 
-  private async _getFlowLayerPickingInfo(
+  private async _getFlowmapLayerPickingInfo(
     info: Record<string, any>,
-  ): Promise<FlowLayerPickingInfo<L, F> | undefined> {
+  ): Promise<FlowmapLayerPickingInfo<L, F> | undefined> {
     const {index, sourceLayer} = info;
     const {dataProvider, accessors} = this.state || {};
     if (!dataProvider || !accessors) {
@@ -376,9 +376,9 @@ export default class FlowMapLayer<L, F> extends CompositeLayer {
       const {layersData, highlightedObject} = this.state;
       const {circleAttributes, lineAttributes} = layersData || {};
       if (circleAttributes && lineAttributes) {
-        const flowMapColors = getFlowMapColors(this._getSettingsState());
+        const flowmapColors = getFlowmapColors(this._getSettingsState());
         const outlineColor = colorAsRgba(
-          flowMapColors.outlineColor || (this.props.darkMode ? '#000' : '#fff'),
+          flowmapColors.outlineColor || (this.props.darkMode ? '#000' : '#fff'),
         );
         const commonLineLayerProps = {
           data: lineAttributes,

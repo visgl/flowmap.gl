@@ -1,4 +1,4 @@
-export type FlowMapData<L, F> = {
+export type FlowmapData<L, F> = {
   locations: L[] | undefined;
   flows: F[] | undefined;
 };
@@ -33,7 +33,7 @@ export interface LocationAccessors<L> {
   // getLocationTotalInternal?: LocationAccessor<number>;
 }
 
-export type FlowMapDataAccessors<L, F> = LocationAccessors<L> &
+export type FlowmapDataAccessors<L, F> = LocationAccessors<L> &
   FlowAccessors<F>;
 
 export interface LocationTotals {

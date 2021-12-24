@@ -45,7 +45,7 @@ export interface FlowPickingInfo<L, F> extends PickingInfo<F | AggregateFlow> {
 //   object: FlowLocation;
 // }
 
-export type FlowLayerPickingInfo<L, F> =
+export type FlowmapLayerPickingInfo<L, F> =
   | LocationPickingInfo<L>
   // | LocationAreaPickingInfo
   | FlowPickingInfo<L, F>;

@@ -1,23 +1,23 @@
 import {
   AggregateFlow,
   ClusterNode,
-  FlowMapDataAccessors,
+  FlowmapDataAccessors,
   isAggregateFlow,
   isCluster,
   isLocationClusterNode,
 } from './types';
 
-export default class FlowMapAggregateAccessors<L, F> {
-  private accessors: FlowMapDataAccessors<L, F>;
-  constructor(accessors: FlowMapDataAccessors<L, F>) {
+export default class FlowmapAggregateAccessors<L, F> {
+  private accessors: FlowmapDataAccessors<L, F>;
+  constructor(accessors: FlowmapDataAccessors<L, F>) {
     this.accessors = accessors;
   }
 
-  setAccessors(accessors: FlowMapDataAccessors<L, F>) {
+  setAccessors(accessors: FlowmapDataAccessors<L, F>) {
     this.accessors = accessors;
   }
 
-  getFlowMapDataAccessors() {
+  getFlowmapDataAccessors() {
     return this.accessors;
   }
 

@@ -1,17 +1,17 @@
 import {AggregateFlow, Cluster, LocationAccessors, LocationTotals} from '..';
-import {FlowMapState} from '../FlowMapState';
+import {FlowmapState} from '../FlowmapState';
 import {
   ClusterNode,
-  FlowMapData,
-  FlowMapDataAccessors,
+  FlowmapData,
+  FlowmapDataAccessors,
   LayersData,
   ViewportProps,
 } from '../types';
 
-export default interface FlowMapDataProvider<L, F> {
-  setAccessors(accessors: FlowMapDataAccessors<L, F>): void;
+export default interface FlowmapDataProvider<L, F> {
+  setAccessors(accessors: FlowmapDataAccessors<L, F>): void;
 
-  setFlowMapState(flowMapState: FlowMapState): Promise<void>;
+  setFlowmapState(flowmapState: FlowmapState): Promise<void>;
 
   // clearData(): void;
 
@@ -36,9 +36,9 @@ export default interface FlowMapDataProvider<L, F> {
   getLayersData(): Promise<LayersData | undefined>;
 }
 
-export function isFlowMapData<L, F>(
+export function isFlowmapData<L, F>(
   data: Record<string, any>,
-): data is FlowMapData<L, F> {
+): data is FlowmapData<L, F> {
   return (
     data &&
     data.locations &&
@@ -48,12 +48,12 @@ export function isFlowMapData<L, F>(
   );
 }
 
-export function isFlowMapDataProvider<L, F>(
+export function isFlowmapDataProvider<L, F>(
   dataProvider: Record<string, any>,
-): dataProvider is FlowMapDataProvider<L, F> {
+): dataProvider is FlowmapDataProvider<L, F> {
   return (
     dataProvider &&
-    typeof dataProvider.setFlowMapState === 'function' &&
+    typeof dataProvider.setFlowmapState === 'function' &&
     typeof dataProvider.getViewportForLocations === 'function' &&
     typeof dataProvider.getFlowByIndex === 'function' &&
     typeof dataProvider.getLocationById === 'function' &&

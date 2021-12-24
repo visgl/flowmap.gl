@@ -1,6 +1,6 @@
 import {Deck} from '@deck.gl/core';
 import mapboxgl from 'mapbox-gl';
-import {FlowMapLayer} from '@flowmap.gl/layers';
+import {FlowmapLayer} from '@flowmap.gl/layers';
 import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
@@ -64,7 +64,7 @@ fetchData().then((data) => {
   function updateDeck() {
     deck.setProps({
       layers: [
-        new FlowMapLayer({
+        new FlowmapLayer({
           id: 'my-flowmap-layer',
           data,
           pickable: true,

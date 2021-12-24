@@ -44,8 +44,8 @@ import getColors, {
   isDiffColors,
   isDiffColorsRGBA,
 } from './colors';
-import FlowMapAggregateAccessors from './FlowMapAggregateAccessors';
-import {FlowMapState} from './FlowMapState';
+import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
+import {FlowmapState} from './FlowmapState';
 import {
   getTimeGranularityByKey,
   getTimeGranularityByOrder,
@@ -60,8 +60,8 @@ import {
   FlowAccessors,
   FlowCirclesLayerAttributes,
   FlowLinesLayerAttributes,
-  FlowMapData,
-  FlowMapDataAccessors,
+  FlowmapData,
+  FlowmapDataAccessors,
   isCluster,
   isLocationClusterNode,
   LayersData,
@@ -74,70 +74,70 @@ const NUMBER_OF_FLOWS_TO_DISPLAY = 5000;
 type KDBushTree = any;
 
 export type Selector<L, F, T> = ParametricSelector<
-  FlowMapState,
-  FlowMapData<L, F>,
+  FlowmapState,
+  FlowmapData<L, F>,
   T
 >;
 
-export default class FlowMapSelectors<L, F> {
-  accessors: FlowMapAggregateAccessors<L, F>;
+export default class FlowmapSelectors<L, F> {
+  accessors: FlowmapAggregateAccessors<L, F>;
 
-  constructor(accessors: FlowMapDataAccessors<L, F>) {
-    this.accessors = new FlowMapAggregateAccessors(accessors);
+  constructor(accessors: FlowmapDataAccessors<L, F>) {
+    this.accessors = new FlowmapAggregateAccessors(accessors);
     this.setAccessors(accessors);
   }
 
-  setAccessors(accessors: FlowMapDataAccessors<L, F>) {
-    this.accessors = new FlowMapAggregateAccessors(accessors);
+  setAccessors(accessors: FlowmapDataAccessors<L, F>) {
+    this.accessors = new FlowmapAggregateAccessors(accessors);
   }
 
-  getFetchedFlows = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getFetchedFlows = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.flows;
-  getFetchedLocations = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getFetchedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.locations;
-  getSelectedLocations = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filterState.selectedLocations;
-  getLocationFilterMode = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filterState.locationFilterMode;
-  getClusteringEnabled = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getClusteringEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settingsState.clusteringEnabled;
-  getLocationTotalsEnabled = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getLocationTotalsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settingsState.locationTotalsEnabled;
-  getZoom = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getZoom = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport.zoom;
-  getViewport = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport;
-  getSelectedTimeRange = (state: FlowMapState, props: FlowMapData<L, F>) =>
+  getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filterState.selectedTimeRange;
 
   getColorSchemeKey: Selector<L, F, string | undefined> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.colorScheme;
 
   getDarkMode: Selector<L, F, boolean> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.darkMode;
 
   getFadeEnabled: Selector<L, F, boolean> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.fadeEnabled;
 
   getFadeOpacityEnabled: Selector<L, F, boolean> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.fadeOpacityEnabled;
 
   getFadeAmount: Selector<L, F, number> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.fadeAmount;
 
   getAnimate: Selector<L, F, boolean> = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ) => state.settingsState.animationEnabled;
 
   getInvalidLocationIds: Selector<L, F, string[] | undefined> = createSelector(
@@ -308,11 +308,11 @@ export default class FlowMapSelectors<L, F> {
 
       const getLocationWeight = makeLocationWeightGetter(
         flows,
-        this.accessors.getFlowMapDataAccessors(),
+        this.accessors.getFlowmapDataAccessors(),
       );
       const clusterLevels = clusterLocations(
         locations,
-        this.accessors.getFlowMapDataAccessors(),
+        this.accessors.getFlowmapDataAccessors(),
         getLocationWeight,
         {
           maxZoom: MAX_CLUSTER_ZOOM_LEVEL,
@@ -320,7 +320,7 @@ export default class FlowMapSelectors<L, F> {
       );
       const clusterIndex = buildIndex<F>(clusterLevels);
       const {getLocationName, getLocationClusterName} =
-        this.accessors.getFlowMapDataAccessors();
+        this.accessors.getFlowmapDataAccessors();
 
       // Adding meaningful names
       const getName = (id: string) => {
@@ -415,7 +415,7 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  getClusterZoom = (state: FlowMapState, props: FlowMapData<L, F>) => {
+  getClusterZoom = (state: FlowmapState, props: FlowmapData<L, F>) => {
     const {settingsState} = state;
     if (!settingsState.clusteringEnabled) return undefined;
     if (settingsState.clusteringAuto || settingsState.clusteringLevel == null) {
@@ -486,7 +486,7 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  _getFlowMapColors = createSelector(
+  _getFlowmapColors = createSelector(
     this.getDiffMode,
     this.getColorSchemeKey,
     this.getDarkMode,
@@ -497,12 +497,12 @@ export default class FlowMapSelectors<L, F> {
     getColors,
   );
 
-  getFlowMapColorsRGBA = createSelector(
-    this._getFlowMapColors,
-    (flowMapColors) => {
-      return isDiffColors(flowMapColors)
-        ? getDiffColorsRGBA(flowMapColors)
-        : getColorsRGBA(flowMapColors);
+  getFlowmapColorsRGBA = createSelector(
+    this._getFlowmapColors,
+    (flowmapColors) => {
+      return isDiffColors(flowmapColors)
+        ? getDiffColorsRGBA(flowmapColors)
+        : getColorsRGBA(flowmapColors);
     },
   );
 
@@ -549,12 +549,12 @@ export default class FlowMapSelectors<L, F> {
           //   : flows,
           flows,
           clusterZoom,
-          this.accessors.getFlowMapDataAccessors(),
+          this.accessors.getFlowmapDataAccessors(),
         );
       } else {
         aggregated = aggregateFlows(
           flows,
-          this.accessors.getFlowMapDataAccessors(),
+          this.accessors.getFlowmapDataAccessors(),
         );
       }
       aggregated.sort((a, b) =>
@@ -850,8 +850,8 @@ export default class FlowMapSelectors<L, F> {
   );
 
   getLocationTotalsExtent = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
     if (state.settingsState.adaptiveScalesEnabled) {
       return this._getLocationTotalsForViewportExtent(state, props);
@@ -860,7 +860,7 @@ export default class FlowMapSelectors<L, F> {
     }
   };
 
-  getFlowsForFlowMapLayer: Selector<L, F, (F | AggregateFlow)[] | undefined> =
+  getFlowsForFlowmapLayer: Selector<L, F, (F | AggregateFlow)[] | undefined> =
     createSelector(
       this.getSortedAggregatedFilteredFlows,
       this.getLocationIdsInViewport,
@@ -906,11 +906,11 @@ export default class FlowMapSelectors<L, F> {
     );
 
   _getFlowMagnitudeExtent = (
-    state: FlowMapState,
-    props: FlowMapData<L, F>,
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
     if (state.settingsState.adaptiveScalesEnabled) {
-      const flows = this.getFlowsForFlowMapLayer(state, props);
+      const flows = this.getFlowsForFlowmapLayer(state, props);
       if (flows) {
         const rv = extent(flows, this.accessors.getFlowMagnitude);
         return rv[0] !== undefined && rv[1] !== undefined ? rv : undefined;
@@ -1032,7 +1032,7 @@ export default class FlowMapSelectors<L, F> {
       },
     );
 
-  getLocationsForFlowMapLayer: Selector<
+  getLocationsForFlowmapLayer: Selector<
     L,
     F,
     Array<L | ClusterNode> | undefined
@@ -1062,11 +1062,11 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  getLocationsForFlowMapLayerById: Selector<
+  getLocationsForFlowmapLayerById: Selector<
     L,
     F,
     Map<string, L | ClusterNode> | undefined
-  > = createSelector(this.getLocationsForFlowMapLayer, (locations) => {
+  > = createSelector(this.getLocationsForFlowmapLayer, (locations) => {
     if (!locations) return undefined;
     return locations.reduce(
       (m, d) => (m.set(this.accessors.getLocationId(d), d), m),
@@ -1075,10 +1075,10 @@ export default class FlowMapSelectors<L, F> {
   });
 
   getLayersData: Selector<L, F, LayersData> = createSelector(
-    this.getLocationsForFlowMapLayer,
-    this.getFlowsForFlowMapLayer,
-    this.getFlowMapColorsRGBA,
-    this.getLocationsForFlowMapLayerById,
+    this.getLocationsForFlowmapLayer,
+    this.getFlowsForFlowmapLayer,
+    this.getFlowmapColorsRGBA,
+    this.getLocationsForFlowmapLayerById,
     this.getLocationIdsInViewport,
     this.getInCircleSizeGetter,
     this.getOutCircleSizeGetter,
@@ -1087,7 +1087,7 @@ export default class FlowMapSelectors<L, F> {
     (
       locations,
       flows,
-      flowMapColors,
+      flowmapColors,
       locationsById,
       locationIdsInViewport,
       getInCircleSize,
@@ -1098,7 +1098,7 @@ export default class FlowMapSelectors<L, F> {
       return this._prepareLayersData(
         locations,
         flows,
-        flowMapColors,
+        flowmapColors,
         locationsById,
         locationIdsInViewport,
         getInCircleSize,
@@ -1109,11 +1109,11 @@ export default class FlowMapSelectors<L, F> {
     },
   );
 
-  prepareLayersData(state: FlowMapState, props: FlowMapData<L, F>): LayersData {
-    const locations = this.getLocationsForFlowMapLayer(state, props) || [];
-    const flows = this.getFlowsForFlowMapLayer(state, props) || [];
-    const flowMapColors = this.getFlowMapColorsRGBA(state, props);
-    const locationsById = this.getLocationsForFlowMapLayerById(state, props);
+  prepareLayersData(state: FlowmapState, props: FlowmapData<L, F>): LayersData {
+    const locations = this.getLocationsForFlowmapLayer(state, props) || [];
+    const flows = this.getFlowsForFlowmapLayer(state, props) || [];
+    const flowmapColors = this.getFlowmapColorsRGBA(state, props);
+    const locationsById = this.getLocationsForFlowmapLayerById(state, props);
     const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
@@ -1121,7 +1121,7 @@ export default class FlowMapSelectors<L, F> {
     return this._prepareLayersData(
       locations,
       flows,
-      flowMapColors,
+      flowmapColors,
       locationsById,
       locationIdsInViewport,
       getInCircleSize,
@@ -1134,7 +1134,7 @@ export default class FlowMapSelectors<L, F> {
   _prepareLayersData(
     locations: (L | ClusterNode)[] | undefined,
     flows: (F | AggregateFlow)[] | undefined,
-    flowMapColors: DiffColorsRGBA | ColorsRGBA,
+    flowmapColors: DiffColorsRGBA | ColorsRGBA,
     locationsById: Map<string, L | ClusterNode> | undefined,
     locationIdsInViewport: Set<string> | undefined,
     getInCircleSize: (locationId: string) => number,
@@ -1162,7 +1162,7 @@ export default class FlowMapSelectors<L, F> {
       number,
     ];
     const flowColorScale = getFlowColorScale(
-      flowMapColors,
+      flowmapColors,
       flowMagnitudeExtent,
       false,
     );
@@ -1178,9 +1178,9 @@ export default class FlowMapSelectors<L, F> {
     );
 
     // TODO: diff mode
-    const circleColor = isDiffColorsRGBA(flowMapColors)
-      ? flowMapColors.positive.locationCircles.inner
-      : flowMapColors.locationCircles.inner;
+    const circleColor = isDiffColorsRGBA(flowmapColors)
+      ? flowmapColors.positive.locationCircles.inner
+      : flowmapColors.locationCircles.inner;
 
     const circleColors = Uint8Array.from(
       (function* () {

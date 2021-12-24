@@ -1,10 +1,10 @@
 export * from './types';
 export * from './colors';
-export * from './FlowMapState';
-export * from './FlowMapSelectors';
+export * from './FlowmapState';
+export * from './FlowmapSelectors';
 export * from './time';
 export * from './getViewStateForLocations';
-export * from './provider/FlowMapDataProvider';
-export {default as FlowMapAggregateAccessors} from './FlowMapAggregateAccessors';
-export type {default as FlowMapDataProvider} from './provider/FlowMapDataProvider';
-export {default as LocalFlowMapDataProvider} from './provider/LocalFlowMapDataProvider';
+export * from './provider/FlowmapDataProvider';
+export {default as FlowmapAggregateAccessors} from './FlowmapAggregateAccessors';
+export type {default as FlowmapDataProvider} from './provider/FlowmapDataProvider';
+export {default as LocalFlowmapDataProvider} from './provider/LocalFlowmapDataProvider';

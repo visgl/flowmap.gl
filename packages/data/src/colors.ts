@@ -28,7 +28,7 @@ import {range} from 'd3-array';
 import {scalePow, scaleSequential, scaleSequentialPow} from 'd3-scale';
 import {interpolateBasis, interpolateRgbBasis} from 'd3-interpolate';
 import {color as d3color, hcl, rgb as colorRgb} from 'd3-color';
-import {SettingsState} from './FlowMapState';
+import {SettingsState} from './FlowmapState';
 
 const DEFAULT_OUTLINE_COLOR = '#fff';
 const DEFAULT_DIMMED_OPACITY = 0.4;
@@ -330,7 +330,7 @@ const diffColors: DiffColors = {
   outlineColor: 'rgb(230,233,237)',
 };
 
-export function getFlowMapColors(
+export function getFlowmapColors(
   settingsState: SettingsState,
 ): Colors | DiffColors {
   return getColors(
