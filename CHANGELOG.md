@@ -1,5 +1,13 @@
 # Change log
 
+## [8.0.0-alpha.5] - 2021-12-23
+### Added
+- maxTopFlowsDisplayNum prop
+- Added Pure-js example
+
+### Changed
+- Renamed FlowMapLayer -> FlowmapLayer 
+
 ## [8.0.0-alpha.4] - 2021-12-23
 ### Perf
 - Improving perf of prepareLayersData: replace flatMap with generators to avoid unnecessary intermediary arrays creation
