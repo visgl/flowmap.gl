@@ -2,8 +2,6 @@
 
 This example shows a minimal app configuration to use Flowmap.gl in a React web app.
 
-[Try to run and edit the code live on StackBlitz](https://stackblitz.com/github/FlowmapBlue/flowmap.gl/tree/main/examples/react-app)
-
 
 ## Usage
 
