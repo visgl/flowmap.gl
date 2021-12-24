@@ -1251,7 +1251,7 @@ export default class FlowMapSelectors<L, F> {
     const staggeringValues = animationEnabled
       ? Float32Array.from(
           (function* () {
-            for (const flow of flows) {
+            for (const f of flows) {
               // @ts-ignore
               yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
             }
