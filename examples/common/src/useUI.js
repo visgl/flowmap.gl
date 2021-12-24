@@ -1,19 +1,16 @@
 import {useEffect, useRef, useState} from 'react';
 import GUI from 'lil-gui';
 
-export default function useUI<T extends Record<string, any>>(
-  initialState: T,
-  uiConfig: (gui: GUI) => void,
-) {
+export default function useUI(initialState, initUi) {
   const [state, setState] = useState(initialState);
-  const lilGuiRef = useRef<GUI>();
+  const lilGuiRef = useRef();
   useEffect(() => {
     const gui = new GUI();
-    uiConfig(gui);
+    initUi(gui);
 
     const controllers = gui.controllersRecursive();
     for (const key in initialState) {
-      if (initialState.hasOwnProperty(key)) {
+      if (initialState[key]) {
         if (controllers.find((c) => c._name === key)) continue;
         const args = [initialState, key];
         // @ts-ignore
@@ -32,7 +29,7 @@ export default function useUI<T extends Record<string, any>>(
     return () => {
       gui.destroy();
     };
-  }, [initialState, uiConfig]);
+  }, [initialState, initUi]);
 
   return state;
 }

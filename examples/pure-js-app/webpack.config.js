@@ -20,13 +20,13 @@ module.exports = {
       {
         // Compile ES2015 using babel
         test: /\.js$/,
-        exclude: [/node_modules/],
+        // exclude: [/node_modules/],
         use: [
           {
             loader: 'babel-loader',
-            options: {
-              presets: ['@babel/env', '@babel/react'],
-            },
+            // options: {
+            //   presets: ['@babel/env'],
+            // },
           },
         ],
       },
@@ -34,8 +34,7 @@ module.exports = {
   },
 
   plugins: [
-    new HtmlWebpackPlugin({title: 'flowmap.gl example'}),
-    new webpack.EnvironmentPlugin(['MapboxAccessToken']),
+    new HtmlWebpackPlugin({template: './index.html'}),
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true, // load .env.example (defaults to "false" which does not use dotenv-safe)

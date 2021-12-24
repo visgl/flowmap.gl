@@ -1,4 +1,3 @@
-import GUI from 'lil-gui';
 import {FlowMapLayer} from '@flowmap.gl/layers';
 import {COLOR_SCHEMES} from '@flowmap.gl/data';
 
@@ -17,7 +16,7 @@ export const UI_INITIAL = {
   locationTotalsEnabled: FlowMapLayer.defaultProps.locationTotalsEnabled,
 };
 
-export const UI_CONFIG = (gui: GUI) => {
+export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'darkMode');
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
@@ -35,7 +34,7 @@ export const UI_CONFIG = (gui: GUI) => {
     .min(0)
     .max(100)
     .enable(FlowMapLayer.defaultProps.fadeEnabled);
-  fadeEnabled.onChange((v: boolean) => {
+  fadeEnabled.onChange((v) => {
     fadeAmount.enable(v);
     fadeOpacityEnabled.enable(v);
   });
@@ -48,13 +47,13 @@ export const UI_CONFIG = (gui: GUI) => {
     .max(20)
     .step(1)
     .enable(!FlowMapLayer.defaultProps.clusteringAuto);
-  clusteringEnabled.onChange((v: boolean) => {
+  clusteringEnabled.onChange((v) => {
     clusteringAuto.enable(v);
     clusteringLevel.enable(v);
   });
   clusteringAuto
     .enable(FlowMapLayer.defaultProps.clusteringEnabled)
-    .onChange((v: boolean) => {
+    .onChange((v) => {
       clusteringLevel.enable(!v);
     });
 };

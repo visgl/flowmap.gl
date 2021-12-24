@@ -1,5 +1,5 @@
 {
-  "name": "@flowmap.gl/react-cra-example",
+  "name": "@flowmap.gl/react-app-example",
   "version": "8.0.0-alpha.4",
   "homepage": "https://flowmapblue.github.io/flowmap.gl/",
   "private": true,
@@ -7,6 +7,8 @@
     "@deck.gl/core": "^8.1.1",
     "@deck.gl/layers": "^8.6.4",
     "@deck.gl/react": "^8.6.4",
+    "@flowmap.gl/data": "next",
+    "@flowmap.gl/layers": "next",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "@testing-library/jest-dom": "^5.11.4",
