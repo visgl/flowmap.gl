@@ -1167,11 +1167,11 @@ export default class FlowMapSelectors<L, F> {
       false,
     );
 
-    // Using yield here helps to avoid creating intermediary arrays
+    // Using a generator here helps to avoid creating intermediary arrays
     const circlePositions = Float32Array.from(
       (function* () {
         for (const location of locations) {
-          // yield* effectively does same as flatMap here
+          // yield* effectively works as flatMap here
           yield* getLocationCentroid(location);
         }
       })(),
@@ -1251,7 +1251,7 @@ export default class FlowMapSelectors<L, F> {
     const staggeringValues = animationEnabled
       ? Float32Array.from(
           (function* () {
-            for (const flow of flows) {
+            for (const f of flows) {
               // @ts-ignore
               yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
             }

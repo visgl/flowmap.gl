@@ -8,37 +8,28 @@ import {
 } from '@flowmap.gl/layers';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
-import fetchData from './fetchData';
-import useUI from './useUI';
-import {UI_CONFIG, UI_INITIAL} from './ui-config';
+import {
+  fetchData,
+  FlowDatum,
+  LoadedData,
+  LocationDatum,
+  initLilGui,
+  UI_INITIAL,
+  useUI,
+} from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
 const MAPBOX_STYLE_DARK = MAPBOX_STYLE_LIGHT;
 
-type LocationDatum = {
-  id: string;
-  name: string;
-  lon: number;
-  lat: number;
-};
-type FlowDatum = {
-  origin: string;
-  dest: string;
-  count: number;
-};
-type LoadedData = {
-  locations: LocationDatum[];
-  flows: FlowDatum[];
-};
 type TooltipState = {
   position: {left: number; top: number};
   content: ReactNode;
 };
 
 function App() {
-  const config = useUI(UI_INITIAL, UI_CONFIG);
+  const config = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<LoadedData>();
   const [tooltip, setTooltip] = useState<TooltipState>();
@@ -49,7 +40,7 @@ function App() {
       const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
       const viewState = getViewStateForLocations(
         locations,
-        (loc) => [loc.lon, loc.lat],
+        (loc: LocationDatum) => [loc.lon, loc.lat],
         [width, height],
         {pad: 0.3},
       );
