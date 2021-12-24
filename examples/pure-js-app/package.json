@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@deck.gl/core": "^8.6.5",
-    "@flowmap.gl/data": "next",
-    "@flowmap.gl/layers": "next",
+    "@flowmap.gl/data": "^8.0.0-alpha.4",
+    "@flowmap.gl/layers": "^8.0.0-alpha.4",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "d3-fetch": "^3.0.1",

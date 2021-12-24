@@ -1133,30 +1133,6 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@flowmap.gl/data@next":
-  version "8.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@flowmap.gl/data/-/data-8.0.0-alpha.4.tgz#c5906d0388544f4f2f22a4e745fff6765d0e4627"
-  integrity sha512-lm4ILrLThrmJhq/Y3FTxFXhZmDT03FJuerPW1EcsDLc65lRbrFMgq+Fn1Ns1Yzaa5ZJhnqokIG0q/55OwbuPag==
-  dependencies:
-    "@mapbox/geo-viewport" "^0.5.0"
-    d3-array "^3.0.2"
-    d3-collection "^1.0.7"
-    d3-color "^3.0.1"
-    d3-geo "^3.0.1"
-    d3-interpolate "^3.0.1"
-    d3-scale "^4.0.0"
-    d3-scale-chromatic "^3.0.0"
-    d3-time "^3.0.0"
-    d3-time-format "^4.0.0"
-    kdbush "^3.0.0"
-    reselect "^4.0.0"
-    seedrandom "^3.0.5"
-
-"@flowmap.gl/layers@next":
-  version "8.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@flowmap.gl/layers/-/layers-8.0.0-alpha.4.tgz#66047a30c07dec395c13cff90feefbd75040aa6b"
-  integrity sha512-LsEfHfHz5/EBqoVj+sU00NvTeMP+rif+RNzWsj/7/kgox5Bzd2Oex/9awtlV0tKZAaVKHZQFsToEeHuHOWRfuA==
-
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.5.0.tgz#1407967d4c6eecd7388f83acf1eaf4d0c6e58ef9"

@@ -37,27 +37,37 @@ fetchData().then((data) => {
     pitch: INITIAL_VIEW_STATE.pitch,
   });
 
+  const deck = new Deck({
+    canvas: 'deck-canvas',
+    width: '100%',
+    height: '100%',
+    initialViewState: INITIAL_VIEW_STATE,
+    controller: true,
+    map: true,
+    onViewStateChange: ({viewState}) => {
+      map.jumpTo({
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom,
+        bearing: viewState.bearing,
+        pitch: viewState.pitch,
+      });
+    },
+    layers: [],
+  });
+
+  updateDeck();
+  gui.onChange(({property, value}) => {
+    config[property] = value;
+    updateDeck();
+  });
+
   function updateDeck() {
-    new Deck({
-      canvas: 'deck-canvas',
-      width: '100%',
-      height: '100%',
-      initialViewState: INITIAL_VIEW_STATE,
-      controller: true,
-      map: true,
-      onViewStateChange: ({viewState}) => {
-        map.jumpTo({
-          center: [viewState.longitude, viewState.latitude],
-          zoom: viewState.zoom,
-          bearing: viewState.bearing,
-          pitch: viewState.pitch,
-        });
-      },
+    deck.setProps({
       layers: [
         new FlowMapLayer({
           id: 'my-flowmap-layer',
           data,
-          pickable: false,
+          pickable: true,
           darkMode: config.darkMode,
           colorScheme: config.colorScheme,
           fadeAmount: config.fadeAmount,
@@ -82,10 +92,4 @@ fetchData().then((data) => {
       ],
     });
   }
-
-  updateDeck();
-  gui.onChange(({property, value}) => {
-    config[property] = value;
-    updateDeck();
-  });
 });
