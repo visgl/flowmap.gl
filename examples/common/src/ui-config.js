@@ -14,6 +14,7 @@ export const UI_INITIAL = {
   animationEnabled: FlowmapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
+  maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
 };
 
 export const initLilGui = (gui) => {
@@ -23,6 +24,12 @@ export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'animationEnabled');
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
+
+  gui
+    .add(UI_INITIAL, 'maxTopFlowsDisplayNum')
+    .min(0)
+    .max(10000)
+    .enable(FlowmapLayer.defaultProps.maxTopFlowsDisplayNum);
 
   const fading = gui.addFolder('Fade');
   const fadeEnabled = fading.add(UI_INITIAL, 'fadeEnabled');

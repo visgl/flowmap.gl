@@ -18,6 +18,8 @@ export interface SettingsState {
   darkMode: boolean;
   fadeAmount: number;
   colorScheme: string | undefined;
+  highlightColor: string;
+  maxTopFlowsDisplayNum: number;
 }
 
 export interface FlowmapState {

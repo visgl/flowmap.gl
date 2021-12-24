@@ -70,7 +70,6 @@ import {
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
-const NUMBER_OF_FLOWS_TO_DISPLAY = 5000;
 type KDBushTree = any;
 
 export type Selector<L, F, T> = ParametricSelector<
@@ -95,6 +94,8 @@ export default class FlowmapSelectors<L, F> {
     props.flows;
   getFetchedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.locations;
+  getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
+    state.settingsState.maxTopFlowsDisplayNum;
   getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filterState.selectedLocations;
   getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -866,11 +867,13 @@ export default class FlowmapSelectors<L, F> {
       this.getLocationIdsInViewport,
       this.getSelectedLocationsSet,
       this.getLocationFilterMode,
+      this.getMaxTopFlowsDisplayNum,
       (
         flows,
         locationIdsInViewport,
         selectedLocationsSet,
         locationFilterMode,
+        maxTopFlowsDisplayNum,
       ) => {
         if (!flows || !locationIdsInViewport) return undefined;
         const picked: (F | AggregateFlow)[] = [];
@@ -897,7 +900,7 @@ export default class FlowmapSelectors<L, F> {
             }
           }
           // Only keep top
-          if (pickedCount > NUMBER_OF_FLOWS_TO_DISPLAY) break;
+          if (pickedCount > maxTopFlowsDisplayNum) break;
         }
         // assuming they are sorted in descending order,
         // we need ascending for rendering

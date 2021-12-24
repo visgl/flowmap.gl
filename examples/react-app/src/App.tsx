@@ -70,6 +70,7 @@ function App() {
         clusteringLevel: config.clusteringLevel,
         adaptiveScalesEnabled: config.adaptiveScalesEnabled,
         highlightColor: config.highlightColor,
+        maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
         getLocationId: (loc) => loc.id,
         getLocationCentroid: (loc) => [loc.lon, loc.lat],
         getFlowOriginId: (flow) => flow.origin,

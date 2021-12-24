@@ -33,8 +33,6 @@ import {
   LocationFilterMode,
   ViewportProps,
   FlowmapAggregateAccessors,
-  ClusterNode,
-  AggregateFlow,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -60,6 +58,7 @@ export type FlowmapLayerProps<L, F> = {
   fadeAmount?: number;
   colorScheme?: string;
   highlightColor?: string;
+  maxTopFlowsDisplayNum?: number;
   onHover?: (
     info: FlowmapLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
@@ -109,6 +108,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     adaptiveScalesEnabled: true,
     colorScheme: 'Teal',
     highlightColor: 'orange',
+    maxTopFlowsDisplayNum: 5000,
   };
   state: State<L, F> | undefined;
 
@@ -226,6 +226,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       darkMode,
       fadeAmount,
       colorScheme,
+      highlightColor,
+      maxTopFlowsDisplayNum,
     } = this.props;
     return {
       locationTotalsEnabled,
@@ -239,6 +241,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       darkMode,
       fadeAmount,
       colorScheme,
+      highlightColor,
+      maxTopFlowsDisplayNum,
     };
   }
 
