@@ -31,7 +31,7 @@ export interface Props extends LayerProps {
   opacity?: number;
   pickable?: boolean;
   emptyColor?: RGBA;
-  emptyOutlineColor?: RGBA;
+  outlineEmptyMix?: number;
   getColor?: (d: FlowCirclesDatum) => RGBA;
   getPosition?: (d: FlowCirclesDatum) => [number, number];
   getInRadius?: (d: FlowCirclesDatum) => number;
@@ -42,7 +42,7 @@ export interface Props extends LayerProps {
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
 const DEFAULT_EMPTY_COLOR = [255, 255, 255, 255];
-const DEFAULT_EMPTY_OUTLINE_COLOR = [180, 180, 180, 255];
+const DEFAULT_OUTLINE_EMPTY_MIX = 0.4;
 
 class FlowCirclesLayer extends Layer {
   static layerName = 'FlowCirclesLayer';
@@ -50,7 +50,7 @@ class FlowCirclesLayer extends Layer {
   static defaultProps = {
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
     emptyColor: {type: 'accessor', value: DEFAULT_EMPTY_COLOR},
-    emptyOutlineColor: {type: 'accessor', value: DEFAULT_EMPTY_OUTLINE_COLOR},
+    outlineEmptyMix: {type: 'accessor', value: DEFAULT_OUTLINE_EMPTY_MIX},
     getPosition: {type: 'accessor', value: (d: FlowCirclesDatum) => d.position},
     getInRadius: {type: 'accessor', value: 1},
     getOutRadius: {type: 'accessor', value: 1},
@@ -116,12 +116,12 @@ class FlowCirclesLayer extends Layer {
   }
 
   draw({uniforms}: any) {
-    const {emptyColor, emptyOutlineColor} = this.props;
+    const {emptyColor, outlineEmptyMix} = this.props;
     this.state.model
       .setUniforms({
         ...uniforms,
         emptyColor,
-        emptyOutlineColor,
+        outlineEmptyMix,
       })
       .draw();
   }

@@ -30,7 +30,7 @@ attribute vec3 instancePickingColors;
 
 uniform float opacity;
 uniform vec4 emptyColor;
-uniform vec4 emptyOutlineColor;
+uniform float outlineEmptyMix;
 
 varying vec4 vColor;
 varying vec2 unitPosition;

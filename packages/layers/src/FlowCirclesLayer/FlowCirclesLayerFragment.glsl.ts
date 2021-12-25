@@ -22,7 +22,7 @@ export default `\
 precision highp float;
 
 uniform vec4 emptyColor;
-uniform vec4 emptyOutlineColor;
+uniform float outlineEmptyMix;
 
 varying vec4 vColor;
 varying vec2 unitPosition;
@@ -46,7 +46,8 @@ void main(void) {
     when_gt(unitInRadius, unitOutRadius)
   );
   vec4 outlineColor = mix(
-    emptyOutlineColor / 255., vColor,
+    mix(vColor, emptyColor / 255., outlineEmptyMix),
+    vColor,
     when_gt(unitInRadius, unitOutRadius)
   );
   

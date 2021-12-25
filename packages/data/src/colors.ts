@@ -100,7 +100,7 @@ const getColorSteps = (interpolate: (x: number) => string) =>
     .reverse();
 
 const FLOW_MIN_COLOR = 'rgba(240,240,240,0.5)';
-export const BLUES_PALE = [FLOW_MIN_COLOR, ColorScheme.primary];
+export const GRAYISH = [FLOW_MIN_COLOR, ColorScheme.primary];
 const schemeBluYl = [
   '#f7feae',
   '#b7e6a5',
@@ -134,7 +134,6 @@ export const schemeTeal = [
 export const DEFAULT_COLOR_SCHEME = schemeTeal;
 export const COLOR_SCHEMES: {[key: string]: string[]} = {
   Blues: asScheme(schemeBlues),
-  BluesPale: BLUES_PALE,
   BluGrn: [
     '#c4e6c3',
     '#96d2a4',
@@ -186,6 +185,7 @@ export const COLOR_SCHEMES: {[key: string]: string[]} = {
   ],
   Emrld: schemeEmrld,
   GnBu: asScheme(schemeGnBu),
+  Grayish: GRAYISH,
   Greens: asScheme(schemeGreens),
   Greys: asScheme(schemeGreys),
   Inferno: getColorSteps(interpolateInferno),
@@ -550,7 +550,7 @@ export interface LocationCircleColors {
   incoming?: string;
   highlighted?: string;
   empty?: string;
-  emptyOutline?: string;
+  outlineEmptyMix?: number;
 }
 
 export interface LocationAreaColors {
@@ -597,7 +597,7 @@ export interface LocationCircleColorsRGBA {
   incoming: RGBA;
   highlighted: RGBA;
   empty: RGBA;
-  emptyOutline: RGBA;
+  outlineEmptyMix: number;
 }
 
 export interface LocationAreaColorsRGBA {
@@ -682,7 +682,7 @@ function getFlowAndCircleColors(
         flowColorHighlighted,
       ),
       empty: emptyColor,
-      emptyOutline: mixColorsRGBA(innerColor, emptyColor, 0.4),
+      outlineEmptyMix: inputColors?.locationCircles?.outlineEmptyMix ?? 0.4,
     },
   };
 }

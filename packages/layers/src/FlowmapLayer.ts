@@ -421,8 +421,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
             this.getSubLayerProps({
               id: 'circles',
               data: circleAttributes,
-              emptyColor: [0, 0, 0, 255],
-              emptyOutlineColor: [0, 0, 0, 255],
+              emptyColor: this.props.darkMode
+                ? [0, 0, 0, 255]
+                : [255, 255, 255, 255],
+              outlineEmptyMix: 0.4,
             }),
           ),
         );
