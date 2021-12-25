@@ -17,7 +17,7 @@
  */
 export default `\
 #define SHADER_NAME flow-circles-layer-fragment-shader
-#define SOFT_OUTLINE 0.1
+#define SOFT_OUTLINE 0.05
 #define EPS 0.05
 precision highp float;
 
@@ -54,19 +54,21 @@ void main(void) {
   float innerR = min(unitInRadius, unitOutRadius) * (1.0 - SOFT_OUTLINE);
   
   // Inner circle
-  float step2 = innerR - EPS; 
-  float step3 = innerR;
+  float step2 = innerR - 2.0 * EPS; 
+  float step3 = innerR - EPS;
   
   // Ring
-  float step4 = innerR + EPS;
-  float step5 = 1.0 - SOFT_OUTLINE - EPS*2.0;
-  float step6 = 1.0 - SOFT_OUTLINE;
+  float step4 = innerR;
+  // float step5 = 1.0 - SOFT_OUTLINE - EPS;
+  // float step6 = 1.0 - SOFT_OUTLINE;
+  float step5 = 1.0 - 5.0 * EPS;
+  float step6 = 1.0;
   
   gl_FragColor = vColor;
   gl_FragColor = mix(gl_FragColor, emptyColor / 255., smoothstep(step2, step3, distToCenter));
   gl_FragColor = mix(gl_FragColor, ringColor, smoothstep(step3, step4, distToCenter));
   gl_FragColor = mix(gl_FragColor, outlineColor, smoothstep(step5, step6, distToCenter));
-  gl_FragColor = mix(gl_FragColor, emptyColor / 255., smoothstep(step6, 1.0, distToCenter));
+  // gl_FragColor = mix(gl_FragColor, emptyColor / 255., smoothstep(step6, 1.0, distToCenter));
   gl_FragColor.a *= smoothstep(0.0, SOFT_OUTLINE, 1.0 - distToCenter);
   DECKGL_FILTER_COLOR(gl_FragColor, geometry);
 }
