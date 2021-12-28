@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.6] - 2021-12-28
+### Added
+- Added WorkerFlowmapDataProvider
+
 ## [8.0.0-alpha.5] - 2021-12-23
 ### Added
 - maxTopFlowsDisplayNum prop
