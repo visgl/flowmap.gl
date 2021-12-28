@@ -1,0 +1,59 @@
+{
+  "name": "@flowmap.gl/react-worker-app-example",
+  "version": "8.0.0-alpha.5",
+  "homepage": "https://flowmapblue.github.io/flowmap.gl/",
+  "private": true,
+  "dependencies": {
+    "@deck.gl/core": "^8.1.1",
+    "@deck.gl/layers": "^8.6.4",
+    "@deck.gl/react": "^8.6.4",
+    "@flowmap.gl/data": "^8.0.0-alpha.5",
+    "@flowmap.gl/layers": "^8.0.0-alpha.5",
+    "@loaders.gl/core": "^3.1.4",
+    "@loaders.gl/csv": "^3.1.4",
+    "@luma.gl/constants": "^8.1.0",
+    "@luma.gl/core": "^8.1.0",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^12.0.0",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "d3-fetch": "^3.0.1",
+    "lil-gui": "^0.15.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-map-gl": "^6.1.17",
+    "react-scripts": "^5.0.0-next.58",
+    "typescript": "^4.1.2",
+    "web-vitals": "^1.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      "defaults",
+      "not ie 11"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/d3-fetch": "^3.0.1",
+    "eslint-config-react-app": "^7.0.0-next.102"
+  }
+}

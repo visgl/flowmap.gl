@@ -15,7 +15,9 @@ export default interface FlowmapDataProvider<L, F> {
 
   // clearData(): void;
 
-  getViewportForLocations(dims: [number, number]): Promise<ViewportProps>;
+  getViewportForLocations(
+    dims: [number, number],
+  ): Promise<ViewportProps | undefined>;
 
   // getFlowTotals(): Promise<FlowTotals>;
 

@@ -8,3 +8,6 @@ export * from './provider/FlowmapDataProvider';
 export {default as FlowmapAggregateAccessors} from './FlowmapAggregateAccessors';
 export type {default as FlowmapDataProvider} from './provider/FlowmapDataProvider';
 export {default as LocalFlowmapDataProvider} from './provider/LocalFlowmapDataProvider';
+export {default as createWorkerDataProvider} from './provider/createWorkerDataProvider';
+export {default as WorkerFlowmapDataProvider} from './provider/WorkerFlowmapDataProvider';
+export * from './provider/WorkerFlowmapDataProvider';

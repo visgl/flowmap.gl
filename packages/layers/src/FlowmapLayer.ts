@@ -45,7 +45,8 @@ import {
 } from './types';
 
 export type FlowmapLayerProps<L, F> = {
-  data: FlowmapData<L, F> | FlowmapDataProvider<L, F>;
+  data?: FlowmapData<L, F>;
+  dataProvider?: FlowmapDataProvider<L, F>;
   locationTotalsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
@@ -115,6 +116,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
+      dataProvider: {
+        // To avoid deck.gl props diffing on comlink worker proxy causing an exception
+        dataProvider: props.dataProvider,
+      },
       onHover: (info: PickingInfo<any>, event: SourceEvent) => {
         // TODO: if (lastHoverEventStartTimeRef > startTime) {
         //   // Skipping, because this is not the latest hover event
@@ -144,7 +149,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   initializeState() {
     this.state = {
       accessors: new FlowmapAggregateAccessors<L, F>(this.props),
-      dataProvider: this._makeDataProvider(),
+      dataProvider: this._getOrMakeDataProvider(),
       layersData: undefined,
       highlightedObject: undefined,
     };
@@ -155,10 +160,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     this.setState({accessors: new FlowmapAggregateAccessors(this.props)});
   }
 
-  private _makeDataProvider() {
-    const {data} = this.props;
-    if (isFlowmapDataProvider<L, F>(data)) {
-      return data;
+  private _getOrMakeDataProvider() {
+    const {data, dataProvider} = this.props;
+    if (isFlowmapDataProvider<L, F>(dataProvider?.dataProvider)) {
+      return dataProvider.dataProvider;
     } else if (isFlowmapData<L, F>(data)) {
       const dataProvider = new LocalFlowmapDataProvider<L, F>(this.props);
       dataProvider.setFlowmapData(data);
@@ -170,7 +175,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   }
 
   private _updateDataProvider() {
-    this.setState({dataProvider: this._makeDataProvider()});
+    this.setState({dataProvider: this._getOrMakeDataProvider()});
   }
 
   shouldUpdateState(params: Record<string, any>): boolean {
@@ -193,7 +198,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     }
 
     if (changeFlags.propsChanged) {
-      this._updateAccessors();
+      // this._updateAccessors();
     }
     if (changeFlags.dataChanged) {
       this._updateDataProvider();
@@ -204,7 +209,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       });
     }
 
-    if (changeFlags.viewportChanged || changeFlags.propsOrDataChanged) {
+    if (
+      changeFlags.viewportChanged ||
+      changeFlags.propsOrDataChanged // TODO can we ignore accessor props changes?
+    ) {
       dataProvider.setFlowmapState(this._getFlowmapState());
       (async () => {
         const layersData = await dataProvider.getLayersData();
@@ -248,7 +256,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
 
   private _getFlowmapState() {
     return {
-      viewport: asViewState(this.context.viewport),
+      viewport: pickViewportProps(this.context.viewport),
       filterState: {
         selectedLocations: undefined,
         locationFilterMode: LocationFilterMode.ALL,
@@ -472,7 +480,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   }
 }
 
-function asViewState(viewport: Record<string, any>): ViewportProps {
+function pickViewportProps(viewport: Record<string, any>): ViewportProps {
   const {width, height, longitude, latitude, zoom, pitch, bearing} = viewport;
   return {
     width,

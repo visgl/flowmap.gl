@@ -1,18 +1,20 @@
-import FlowmapDataProvider from './FlowmapDataProvider';
-import {
+import type FlowmapDataProvider from './FlowmapDataProvider';
+import type {
   Cluster,
   ClusterNode,
-  FlowAccessors,
   FlowmapData,
   FlowmapDataAccessors,
   LayersData,
-  LocationAccessors,
   LocationTotals,
   ViewportProps,
+  AggregateFlow,
 } from '../types';
 import {FlowmapState} from '../FlowmapState';
 import FlowmapSelectors from '../FlowmapSelectors';
-import {AggregateFlow} from '..';
+import {
+  GetViewStateOptions,
+  getViewStateForLocations,
+} from '../getViewStateForLocations';
 
 export default class LocalFlowmapDataProvider<L, F>
   implements FlowmapDataProvider<L, F>
@@ -99,7 +101,19 @@ export default class LocalFlowmapDataProvider<L, F>
       ?.get(id);
   }
 
-  getViewportForLocations(dims: [number, number]): Promise<ViewportProps> {
-    return Promise.resolve({} as ViewportProps);
+  async getViewportForLocations(
+    dims: [number, number],
+    opts?: GetViewStateOptions,
+  ): Promise<ViewportProps | undefined> {
+    if (!this.flowmapData?.locations) {
+      return undefined;
+    }
+    // @ts-ignore
+    return getViewStateForLocations(
+      this.flowmapData.locations,
+      this.selectors.accessors.getLocationCentroid,
+      dims,
+      opts,
+    );
   }
 }

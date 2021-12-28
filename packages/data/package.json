@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.5.0",
+    "comlink": "^4.3.1",
     "d3-array": "^3.0.2",
     "d3-collection": "^1.0.7",
     "d3-color": "^3.0.1",
@@ -45,5 +46,9 @@
   "gitHead": "8c4a80ee8a48c4db963c38ae1836bd6d5f4116dc",
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@loaders.gl/core": "^3.1.4",
+    "@loaders.gl/csv": "^3.1.4"
   }
 }
