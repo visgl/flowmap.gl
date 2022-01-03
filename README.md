@@ -11,5 +11,7 @@ Run the [LIVE EXAMPLE](https://flowmapblue.github.io/flowmap.gl/) or
 check the source code of the following examples:
 
  - [React example](./examples/react-app)
+ - [React worker example](./examples/react-worker-app)
  - [Pure JS example](./examples/pure-js-app)
+ - [Svelte example](./examples/svelte-app)
 
