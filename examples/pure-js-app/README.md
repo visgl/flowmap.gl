@@ -1,6 +1,6 @@
 # Flowmap.gl example
 
-This example shows a minimal app configuration to use Flowmap.gl in a Pure JS app built with Webpack.
+This example shows how Flowmap.gl can be used in a JS app built with Webpack.
 
 
 ## Usage
