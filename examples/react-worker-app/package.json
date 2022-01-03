@@ -1,5 +1,5 @@
 {
-  "name": "@flowmap.gl/react-worker-app-example",
+  "name": "@flowmap.gl/react-worker-app",
   "version": "8.0.0-alpha.6",
   "homepage": "https://flowmapblue.github.io/flowmap.gl/",
   "private": true,

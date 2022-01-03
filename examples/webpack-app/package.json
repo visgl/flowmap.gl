@@ -1,5 +1,5 @@
 {
-  "name": "@flowmap.gl/react-webpack-example",
+  "name": "@flowmap.gl/webpack-app",
   "version": "8.0.0-alpha.6",
   "private": true,
   "scripts": {

@@ -12,6 +12,6 @@ check the source code of the following examples:
 
  - [React example](./examples/react-app)
  - [React worker example](./examples/react-worker-app)
- - [Pure JS example](./examples/pure-js-app)
+ - [Webpack pure JS example](./examples/webpack-app)
  - [Svelte example](./examples/svelte-app)
 

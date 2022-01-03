@@ -3,9 +3,9 @@ import {csv} from 'd3-fetch';
 const base = 'https://gist.githubusercontent.com/ilyabo/';
 const path =
   // Migrations in Switzerland
-  `${base}/a7b9701424257146b571149d92a14926/raw/2e9e1e9bcf64cf0090781b451037229ccb78e1b1`;
-// BIXI rides
-// `${base}/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
+  // `${base}/a7b9701424257146b571149d92a14926/raw/2e9e1e9bcf64cf0090781b451037229ccb78e1b1`;
+  // BIXI rides
+  `${base}/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
 
 export default function fetchData() {
   return Promise.all([
