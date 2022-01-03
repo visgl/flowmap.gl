@@ -29,6 +29,7 @@ export const initLilGui = (gui) => {
     .add(UI_INITIAL, 'maxTopFlowsDisplayNum')
     .min(0)
     .max(10000)
+    .step(10)
     .enable(FlowmapLayer.defaultProps.maxTopFlowsDisplayNum);
 
   const fading = gui.addFolder('Fade');
