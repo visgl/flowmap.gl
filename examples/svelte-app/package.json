@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/svelte-app",
-  "version": "1.0.0",
+  "version": "8.0.0-alpha.7",
   "private": true,
   "scripts": {
     "build": "rollup -c",
@@ -11,8 +11,8 @@
     "@deck.gl/core": "^8.1.1",
     "@deck.gl/layers": "^8.6.4",
     "@deck.gl/react": "^8.6.4",
-    "@flowmap.gl/data": "^8.0.0-alpha.6",
-    "@flowmap.gl/layers": "^8.0.0-alpha.6",
+    "@flowmap.gl/data": "^8.0.0-alpha.7",
+    "@flowmap.gl/layers": "^8.0.0-alpha.7",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "@rollup/plugin-commonjs": "^17.0.0",
