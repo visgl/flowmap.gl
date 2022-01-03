@@ -1,0 +1,32 @@
+html, body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	background: #000;
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+	'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+	sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.flowmap-container {
+	width: 100vw;
+	height: 100vh;
+}
+.light .mapboxgl-map {
+	filter: grayscale(0.85);
+	opacity: 0.5;
+}
+.dark {
+	background: #000;
+}
+.dark .mapboxgl-map {
+	filter: grayscale(0.1) invert(1) hue-rotate(-180deg) saturate(0.5)
+	contrast(0.9);
+	opacity: 0.3;
+}

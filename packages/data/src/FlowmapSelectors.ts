@@ -16,7 +16,7 @@
  *
  */
 
-import {bounds} from '@mapbox/geo-viewport';
+import {WebMercatorViewport} from '@math.gl/web-mercator';
 import {ascending, descending, extent, min} from 'd3-array';
 import {nest} from 'd3-collection';
 import {ScaleLinear, scaleLinear, scaleSqrt} from 'd3-scale';
@@ -676,12 +676,12 @@ export default class FlowmapSelectors<L, F> {
       this.getMaxLocationCircleSize,
       (viewport, maxLocationCircleSize) => {
         const pad = maxLocationCircleSize;
-        return bounds(
-          [viewport.longitude, viewport.latitude],
-          viewport.zoom,
-          [viewport.width + pad * 2, viewport.height + pad * 2],
-          512,
-        );
+        const bounds = new WebMercatorViewport({
+          ...viewport,
+          width: viewport.width + pad * 2,
+          height: viewport.height + pad * 2,
+        }).getBounds();
+        return [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]];
       },
     );
 

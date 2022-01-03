@@ -1,18 +1,19 @@
-import {BoundingBox, viewport} from '@mapbox/geo-viewport';
 import {geoBounds} from 'd3-geo';
+import {fitBounds} from '@math.gl/web-mercator';
 import type {
   FeatureCollection,
   GeometryCollection,
   GeometryObject,
 } from 'geojson';
-import type {ViewportProps, ViewState} from './types';
+import type {ViewState} from './types';
 
 export type LocationProperties = any;
 
 export type GetViewStateOptions = {
-  pad?: number;
+  pad?: number; // size ratio
+  padding?: {top: number; bottom: number; left: number; right: number};
   tileSize?: number;
-  minZoom?: number;
+  // minZoom?: number;  // not supported by fitBounds
   maxZoom?: number;
 };
 
@@ -23,28 +24,27 @@ export function getViewStateForFeatures(
   size: [number, number],
   opts?: GetViewStateOptions,
 ): ViewState & {width: number; height: number} {
-  const {pad = 0.05, tileSize = 512, minZoom = 0, maxZoom = 100} = opts || {};
-  const [[x1, y1], [x2, y2]] = geoBounds(featureCollection as any);
-  const bounds: BoundingBox = [
-    x1 - pad * (x2 - x1),
-    y1 - pad * (y2 - y1),
-    x2 + pad * (x2 - x1),
-    y2 + pad * (y2 - y1),
-  ];
+  const {pad = 0.05, maxZoom = 100} = opts || {};
+  const bounds = geoBounds(featureCollection as any);
+  const [[x1, y1], [x2, y2]] = bounds;
+  const paddedBounds: [[number, number], [number, number]] = pad
+    ? [
+        [x1 - pad * (x2 - x1), y1 - pad * (y2 - y1)],
+        [x2 + pad * (x2 - x1), y2 + pad * (y2 - y1)],
+      ]
+    : bounds;
   const [width, height] = size;
-  const {
-    center: [longitude, latitude],
-    zoom,
-  } = viewport(bounds, size, undefined, undefined, tileSize, true);
-
   return {
+    ...fitBounds({
+      width,
+      height,
+      bounds: paddedBounds,
+      padding: opts?.padding,
+      // minZoom,
+      maxZoom,
+    }),
     width,
     height,
-    longitude,
-    latitude,
-    zoom: Math.max(Math.min(maxZoom, zoom), minZoom),
-    bearing: 0,
-    pitch: 0,
   };
 }
 
