@@ -1,13 +1,17 @@
 {
   "files": {
     "main.css": "/flowmap.gl/static/css/main.10ae7607.css",
-    "main.js": "/flowmap.gl/static/js/main.66a77110.js",
+    "main.js": "/flowmap.gl/static/js/main.c2fca359.js",
+    "static/js/735.50145261.chunk.js": "/flowmap.gl/static/js/735.50145261.chunk.js",
+    "static/js/65.ba1f78bd.chunk.js": "/flowmap.gl/static/js/65.ba1f78bd.chunk.js",
     "index.html": "/flowmap.gl/index.html",
     "main.10ae7607.css.map": "/flowmap.gl/static/css/main.10ae7607.css.map",
-    "main.66a77110.js.map": "/flowmap.gl/static/js/main.66a77110.js.map"
+    "main.c2fca359.js.map": "/flowmap.gl/static/js/main.c2fca359.js.map",
+    "735.50145261.chunk.js.map": "/flowmap.gl/static/js/735.50145261.chunk.js.map",
+    "65.ba1f78bd.chunk.js.map": "/flowmap.gl/static/js/65.ba1f78bd.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.10ae7607.css",
-    "static/js/main.66a77110.js"
+    "static/js/main.c2fca359.js"
   ]
 }
