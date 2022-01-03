@@ -8,7 +8,7 @@
     "start": "sirv public --no-clear"
   },
   "devDependencies": {
-    "@deck.gl/core": "^8.1.1",
+    "@deck.gl/core": "^8.6.4",
     "@deck.gl/layers": "^8.6.4",
     "@deck.gl/react": "^8.6.4",
     "@flowmap.gl/data": "^8.0.0-alpha.7",
