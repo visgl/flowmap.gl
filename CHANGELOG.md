@@ -1,5 +1,13 @@
 # Change log
 
+## [8.0.0-alpha.7] - 2022-01-03
+### Changed
+- Enforcing antialiasing for location circle highlight
+- Removed dependency on @mapbox/geo-viewport
+
+### Added
+- Added Svelte example
+
 ## [8.0.0-alpha.6] - 2021-12-28
 ### Added
 - Added WorkerFlowmapDataProvider
