@@ -1,6 +1,6 @@
-# Flowmap.gl example with Create React App using worker
+# Flowmap.gl example using React and WorkerFlowmapDataProvider
 
-This example shows a minimal app configuration to use Flowmap.gl in a React web app.
+This example is an example of using Flowmap.gl's `WorkerFlowmapDataProvider` in a React web app.
 
 
 ## Usage
