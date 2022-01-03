@@ -445,6 +445,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
                     id: 'location-highlight',
                     data: [highlightedObject],
                     pickable: false,
+                    antialiasing: true,
                     stroked: true,
                     filled: false,
                     lineWidthUnits: 'pixels',
