@@ -57,8 +57,8 @@ export type FlowmapLayerProps<L, F> = {
   clusteringAuto?: boolean;
   darkMode?: boolean;
   fadeAmount?: number;
-  colorScheme?: string;
-  highlightColor?: string;
+  colorScheme?: string | string[];
+  highlightColor?: string | number[];
   maxTopFlowsDisplayNum?: number;
   onHover?: (
     info: FlowmapLayerPickingInfo<L, F> | undefined,

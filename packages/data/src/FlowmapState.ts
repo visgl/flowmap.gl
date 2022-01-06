@@ -17,7 +17,7 @@ export interface SettingsState {
   clusteringLevel?: number;
   darkMode: boolean;
   fadeAmount: number;
-  colorScheme: string | undefined;
+  colorScheme: string | string[] | undefined;
   highlightColor: string;
   maxTopFlowsDisplayNum: number;
 }

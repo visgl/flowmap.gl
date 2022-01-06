@@ -111,7 +111,7 @@ export default class FlowmapSelectors<L, F> {
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filterState.selectedTimeRange;
 
-  getColorSchemeKey: Selector<L, F, string | undefined> = (
+  getColorScheme: Selector<L, F, string | string[] | undefined> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ) => state.settingsState.colorScheme;
@@ -489,7 +489,7 @@ export default class FlowmapSelectors<L, F> {
 
   _getFlowmapColors = createSelector(
     this.getDiffMode,
-    this.getColorSchemeKey,
+    this.getColorScheme,
     this.getDarkMode,
     this.getFadeEnabled,
     this.getFadeOpacityEnabled,
