@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/webpack-app",
-  "version": "8.0.0-alpha.7",
+  "version": "8.0.0-alpha.8",
   "private": true,
   "scripts": {
     "start": "webpack-dev-server --progress --hot",
@@ -9,8 +9,8 @@
   "dependencies": {
     "@deck.gl/core": "^8.6.5",
     "@deck.gl/layers": "^8.6.5",
-    "@flowmap.gl/data": "^8.0.0-alpha.7",
-    "@flowmap.gl/layers": "^8.0.0-alpha.7",
+    "@flowmap.gl/data": "^8.0.0-alpha.8",
+    "@flowmap.gl/layers": "^8.0.0-alpha.8",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "d3-fetch": "^3.0.1",
