@@ -26,7 +26,8 @@ export interface FlowAccessors<F> {
 export interface LocationAccessors<L> {
   getLocationId: LocationAccessor<L, string>;
   getLocationName?: LocationAccessor<L, string>;
-  getLocationCentroid: LocationAccessor<L, [number, number]>;
+  getLocationLat: LocationAccessor<L, number>;
+  getLocationLon: LocationAccessor<L, number>;
   getLocationClusterName?: (locationIds: string[]) => string;
   // getLocationTotalIn?: LocationAccessor<number>;
   // getLocationTotalOut?: LocationAccessor<number>;
@@ -75,7 +76,8 @@ export interface ViewportProps {
 export interface ClusterNode {
   id: string;
   zoom: number;
-  centroid: [number, number];
+  lat: number;
+  lon: number;
 }
 
 export interface ClusterLevel {

@@ -148,10 +148,8 @@ export default class FlowmapSelectors<L, F> {
       const invalid = [];
       for (const location of locations) {
         const id = this.accessors.getLocationId(location);
-        const [lon, lat] = this.accessors.getLocationCentroid(location) || [
-          NaN,
-          NaN,
-        ];
+        const lon = this.accessors.getLocationLon(location);
+        const lat = this.accessors.getLocationLat(location);
         if (!(-90 <= lat && lat <= 90) || !(-180 <= lon && lon <= 180)) {
           invalid.push(id);
         }
@@ -725,17 +723,9 @@ export default class FlowmapSelectors<L, F> {
         // @ts-ignore
         locations,
         (location: L | ClusterNode) =>
-          lngX(
-            isLocationClusterNode(location)
-              ? location.centroid[0]
-              : this.accessors.getLocationCentroid(location)[0],
-          ),
+          lngX(this.accessors.getLocationLon(location)),
         (location: L | ClusterNode) =>
-          latY(
-            isLocationClusterNode(location)
-              ? location.centroid[1]
-              : this.accessors.getLocationCentroid(location)[1],
-          ),
+          latY(this.accessors.getLocationLat(location)),
       );
     },
   );
@@ -1156,13 +1146,9 @@ export default class FlowmapSelectors<L, F> {
       getFlowDestId,
       getFlowMagnitude,
       getLocationId,
-      getLocationCentroid,
+      getLocationLon,
+      getLocationLat,
     } = this.accessors;
-
-    const getCentroid = (id: string) => {
-      const loc = locationsById?.get(id);
-      return loc ? getLocationCentroid(loc) : [0, 0];
-    };
 
     const flowMagnitudeExtent = extent(flows, (f) => getFlowMagnitude(f)) as [
       number,
@@ -1178,8 +1164,8 @@ export default class FlowmapSelectors<L, F> {
     const circlePositions = Float32Array.from(
       (function* () {
         for (const location of locations) {
-          // yield* effectively works as flatMap here
-          yield* getLocationCentroid(location);
+          yield getLocationLon(location);
+          yield getLocationLat(location);
         }
       })(),
     );
@@ -1217,14 +1203,18 @@ export default class FlowmapSelectors<L, F> {
     const sourcePositions = Float32Array.from(
       (function* () {
         for (const flow of flows) {
-          yield* getCentroid(getFlowOriginId(flow));
+          const loc = locationsById?.get(getFlowOriginId(flow));
+          yield loc ? getLocationLon(loc) : 0;
+          yield loc ? getLocationLat(loc) : 0;
         }
       })(),
     );
     const targetPositions = Float32Array.from(
       (function* () {
         for (const flow of flows) {
-          yield* getCentroid(getFlowDestId(flow));
+          const loc = locationsById?.get(getFlowDestId(flow));
+          yield loc ? getLocationLon(loc) : 0;
+          yield loc ? getLocationLat(loc) : 0;
         }
       })(),
     );
@@ -1459,7 +1449,7 @@ export function getOuterCircleRadiusByIndex(
   return Math.max(getInRadius.value[index], getOutRadius.value[index]);
 }
 
-export function getLocationCentroidByIndex(
+export function getLocationCoordsByIndex(
   circleAttributes: FlowCirclesLayerAttributes,
   index: number,
 ): [number, number] {

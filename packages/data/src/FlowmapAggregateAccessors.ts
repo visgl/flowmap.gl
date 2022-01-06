@@ -35,10 +35,15 @@ export default class FlowmapAggregateAccessors<L, F> {
   // ? this.accessors.getLocationName(location)
   // : this.getLocationId(location);
 
-  getLocationCentroid = (location: L | ClusterNode): [number, number] =>
+  getLocationLat = (location: L | ClusterNode): number =>
     isLocationClusterNode(location)
-      ? location.centroid
-      : this.accessors.getLocationCentroid(location);
+      ? location.lat
+      : this.accessors.getLocationLat(location);
+
+  getLocationLon = (location: L | ClusterNode): number =>
+    isLocationClusterNode(location)
+      ? location.lon
+      : this.accessors.getLocationLon(location);
 
   getFlowOriginId = (f: F | AggregateFlow) => {
     return isAggregateFlow(f) ? f.origin : this.accessors.getFlowOriginId(f);

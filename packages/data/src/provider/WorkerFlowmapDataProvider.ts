@@ -53,10 +53,10 @@ export default class WorkerFlowmapDataProvider
       getFlowDestId: (flow) => flow[props.flows.columns.destId] as string,
       getFlowMagnitude: (flow) => flow[props.flows.columns.count] as number,
       // getFlowTime: (flow) => flow.time,
-      getLocationCentroid: (location) => [
-        location[props.locations.columns.lon] as number,
+      getLocationLat: (location) =>
         location[props.locations.columns.lat] as number,
-      ],
+      getLocationLon: (location) =>
+        location[props.locations.columns.lon] as number,
       getLocationName: (location) =>
         location[props.locations.columns.name] as string,
       getLocationId: (location) =>

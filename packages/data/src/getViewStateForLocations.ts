@@ -50,7 +50,7 @@ export function getViewStateForFeatures(
 
 export function getViewStateForLocations(
   locations: any[],
-  getLocationCentroid: (location: any) => [number, number],
+  getLocationCoords: (location: any) => [number, number],
   size: [number, number],
   opts?: GetViewStateOptions,
 ): ViewState & {width: number; height: number} {
@@ -59,7 +59,7 @@ export function getViewStateForLocations(
       type: 'GeometryCollection',
       geometries: locations.map((location) => ({
         type: 'Point',
-        coordinates: getLocationCentroid(location),
+        coordinates: getLocationCoords(location),
       })),
     } as any,
     size,

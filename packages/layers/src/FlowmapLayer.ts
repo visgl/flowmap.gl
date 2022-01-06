@@ -25,7 +25,7 @@ import {
   getFlowLineAttributesByIndex,
   getFlowmapColors,
   getOuterCircleRadiusByIndex,
-  getLocationCentroidByIndex,
+  getLocationCoordsByIndex,
   isFlowmapData,
   isFlowmapDataProvider,
   LayersData,
@@ -75,7 +75,7 @@ enum HighlightType {
 
 type HighlightedLocationObject = {
   type: HighlightType.LOCATION;
-  centroid: [number, number];
+  coords: [number, number];
   radius: number;
 };
 
@@ -374,7 +374,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       if (circleAttributes) {
         return {
           type: HighlightType.LOCATION,
-          centroid: getLocationCentroidByIndex(circleAttributes, index),
+          coords: getLocationCoordsByIndex(circleAttributes, index),
           radius: getOuterCircleRadiusByIndex(circleAttributes, index),
         };
       }
@@ -453,7 +453,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
                     radiusUnits: 'pixels',
                     getRadius: (d: HighlightedLocationObject) => d.radius,
                     getLineColor: colorAsRgba(this.props.highlightColor),
-                    getPosition: (d: HighlightedLocationObject) => d.centroid,
+                    getPosition: (d: HighlightedLocationObject) => d.coords,
                   }),
                 }),
               );

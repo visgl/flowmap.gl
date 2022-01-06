@@ -111,7 +111,10 @@ export default class LocalFlowmapDataProvider<L, F>
     // @ts-ignore
     return getViewStateForLocations(
       this.flowmapData.locations,
-      this.selectors.accessors.getLocationCentroid,
+      (loc) => [
+        this.selectors.accessors.getLocationLon(loc),
+        this.selectors.accessors.getLocationLat(loc),
+      ],
       dims,
       opts,
     );

@@ -98,7 +98,7 @@ export function clusterLocations<L>(
   getLocationWeight: LocationWeightGetter,
   options?: Partial<Options>,
 ): ClusterLevel[] {
-  const {getLocationCentroid, getLocationId} = locationAccessors;
+  const {getLocationLon, getLocationLat, getLocationId} = locationAccessors;
   const opts = {
     ...defaultOptions,
     ...options,
@@ -110,7 +110,8 @@ export function clusterLocations<L>(
   // generate a cluster object for each point and index input points into a KD-tree
   let clusters = new Array<Point>();
   for (let i = 0; i < locations.length; i++) {
-    const [x, y] = getLocationCentroid(locations[i]);
+    const x = getLocationLon(locations[i]);
+    const y = getLocationLat(locations[i]);
     clusters.push({
       x: lngX(x), // projected point coordinates
       y: latY(y),
@@ -165,7 +166,8 @@ export function clusterLocations<L>(
         nodes.push({
           id: getLocationId(location),
           zoom,
-          centroid: getLocationCentroid(location),
+          lat: getLocationLat(location),
+          lon: getLocationLon(location),
         });
       } else if (isClusterPoint(point)) {
         const {id} = point;
@@ -177,7 +179,8 @@ export function clusterLocations<L>(
           id: makeClusterId(id),
           name: makeClusterName(id, numPoints),
           zoom,
-          centroid: [xLng(x), yLat(y)] as [number, number],
+          lat: yLat(y),
+          lon: xLng(x),
           children,
         } as Cluster);
       }
