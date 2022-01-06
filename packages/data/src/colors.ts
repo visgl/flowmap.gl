@@ -58,7 +58,10 @@ export function opacifyHex(hexCode: string, opacity: number): string {
   return `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
 }
 
-export function colorAsRgba(color: string): RGBA {
+export function colorAsRgba(color: string | number[]): RGBA {
+  if (Array.isArray(color)) {
+    return color as RGBA;
+  }
   const col = d3color(color);
   if (!col) {
     console.warn('Invalid color: ', color);
@@ -346,7 +349,7 @@ export function getFlowmapColors(
 
 export function getColors(
   diffMode: boolean,
-  schemeKey: string | undefined,
+  colorScheme: string | string[] | undefined,
   darkMode: boolean,
   fadeEnabled: boolean,
   fadeOpacityEnabled: boolean,
@@ -357,11 +360,18 @@ export function getColors(
     return diffColors;
   }
 
-  let scheme = (schemeKey && COLOR_SCHEMES[schemeKey]) || DEFAULT_COLOR_SCHEME;
+  let scheme;
 
-  if (darkMode) {
-    scheme = scheme.slice().reverse();
+  if (Array.isArray(colorScheme)) {
+    scheme = colorScheme;
+  } else {
+    scheme =
+      (colorScheme && COLOR_SCHEMES[colorScheme]) || DEFAULT_COLOR_SCHEME;
+    if (darkMode) {
+      scheme = scheme.slice().reverse();
+    }
   }
+
   // if (animate)
   // if (fadeAmount > 0)
   {
