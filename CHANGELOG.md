@@ -1,5 +1,10 @@
 # Change log
 
+## [8.0.0-alpha.8] - 2022-01-06
+### Changed
+- `colorScheme` prop can now be an array of colors
+- `highlightColor` prop can now be an RGBA color
+
 ## [8.0.0-alpha.7] - 2022-01-03
 ### Changed
 - Enforcing antialiasing for location circle highlight
