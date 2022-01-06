@@ -568,33 +568,6 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getFlowMagnitudeExtent: Selector<L, F, [number, number] | undefined> =
-    createSelector(
-      this.getSortedAggregatedFilteredFlows,
-      this.getSelectedLocationsSet,
-      this.getLocationFilterMode,
-      (flows, selectedLocationsSet, locationFilterMode) => {
-        if (!flows) return undefined;
-        let rv: [number, number] | undefined = undefined;
-        for (const f of flows) {
-          if (
-            this.accessors.getFlowOriginId(f) !==
-              this.accessors.getFlowDestId(f) &&
-            this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
-          ) {
-            const count = this.accessors.getFlowMagnitude(f);
-            if (rv == null) {
-              rv = [count, count];
-            } else {
-              if (count < rv[0]) rv[0] = count;
-              if (count > rv[1]) rv[1] = count;
-            }
-          }
-        }
-        return rv;
-      },
-    );
-
   getExpandedSelectedLocationsSet: Selector<L, F, Set<string> | undefined> =
     createSelector(
       this.getClusteringEnabled,
@@ -908,20 +881,51 @@ export default class FlowmapSelectors<L, F> {
       },
     );
 
-  _getFlowMagnitudeExtent = (
+  _getFlowMagnitudeExtent: Selector<L, F, [number, number] | undefined> =
+    createSelector(
+      this.getSortedAggregatedFilteredFlows,
+      this.getSelectedLocationsSet,
+      this.getLocationFilterMode,
+      (flows, selectedLocationsSet, locationFilterMode) => {
+        if (!flows) return undefined;
+        let rv: [number, number] | undefined = undefined;
+        for (const f of flows) {
+          if (
+            this.accessors.getFlowOriginId(f) !==
+              this.accessors.getFlowDestId(f) &&
+            this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
+          ) {
+            const count = this.accessors.getFlowMagnitude(f);
+            if (rv == null) {
+              rv = [count, count];
+            } else {
+              if (count < rv[0]) rv[0] = count;
+              if (count > rv[1]) rv[1] = count;
+            }
+          }
+        }
+        return rv;
+      },
+    );
+
+  _getAdaptiveFlowMagnitudeExtent: Selector<
+    L,
+    F,
+    [number, number] | undefined
+  > = createSelector(this.getFlowsForFlowmapLayer, (flows) => {
+    if (!flows) return undefined;
+    const rv = extent(flows, this.accessors.getFlowMagnitude);
+    return rv[0] !== undefined && rv[1] !== undefined ? rv : undefined;
+  });
+
+  getFlowMagnitudeExtent = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
     if (state.settingsState.adaptiveScalesEnabled) {
-      const flows = this.getFlowsForFlowmapLayer(state, props);
-      if (flows) {
-        const rv = extent(flows, this.accessors.getFlowMagnitude);
-        return rv[0] !== undefined && rv[1] !== undefined ? rv : undefined;
-      } else {
-        return undefined;
-      }
+      return this._getAdaptiveFlowMagnitudeExtent(state, props);
     } else {
-      return this.getFlowMagnitudeExtent(state, props);
+      return this._getFlowMagnitudeExtent(state, props);
     }
   };
 
