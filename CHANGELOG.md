@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.9] - 2022-01-08
+### Changed
+- getLocationCentroid -> getLocationLat/Lon
+
 ## [8.0.0-alpha.8] - 2022-01-06
 ### Changed
 - `colorScheme` prop can now be an array of colors
