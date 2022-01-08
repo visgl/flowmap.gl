@@ -3,7 +3,7 @@
   "version": "8.0.0-alpha.8",
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server --progress --hot",
+    "start": "webpack serve",
     "build": "webpack --progress -p"
   },
   "dependencies": {
@@ -25,8 +25,9 @@
     "@babel/runtime": "^7.16.5",
     "babel-loader": "8.1.0",
     "dotenv-webpack": "^7.0.3",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.3"
+    "html-webpack-plugin": "^5.5.0",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.2"
   }
 }

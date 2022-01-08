@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires,no-undef
 const webpack = require('webpack');
 // eslint-disable-next-line @typescript-eslint/no-var-requires,no-undef
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 // eslint-disable-next-line @typescript-eslint/no-var-requires,no-undef
 const Dotenv = require('dotenv-webpack');
 
@@ -13,7 +13,11 @@ module.exports = {
     app: './src/app.js',
   },
 
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
+
+  devServer: {
+    static: './dist',
+  },
 
   // module: {
   //   rules: [
@@ -34,7 +38,7 @@ module.exports = {
   // },
 
   plugins: [
-    // new HtmlWebpackPlugin({template: './index.html'}),
+    new HtmlWebpackPlugin({template: './index.html'}),
     new Dotenv({
       path: './.env', // Path to .env file (this is the default)
       safe: true, // load .env.example (defaults to "false" which does not use dotenv-safe)

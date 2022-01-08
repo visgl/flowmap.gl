@@ -45,6 +45,8 @@ export function getViewStateForFeatures(
     }),
     width,
     height,
+    bearing: 0,
+    pitch: 0,
   };
 }
 
