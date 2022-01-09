@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import {createWorkerDataProvider, LocationFilterMode} from '@flowmap.gl/data';
-import {FlowmapLayer} from '@flowmap.gl/layers';
+// import {createWorkerDataProvider, LocationFilterMode} from '@flowmap.gl/data';
+// import {FlowmapLayer} from '@flowmap.gl/layers';
 
 ReactDOM.render(
   <React.StrictMode>

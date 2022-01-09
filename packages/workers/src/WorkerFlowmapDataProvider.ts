@@ -1,16 +1,16 @@
-import FlowmapDataProvider from './FlowmapDataProvider';
 import {
   Cluster,
   ClusterNode,
   FlowmapData,
   FlowmapDataAccessors,
+  FlowmapDataProvider,
   LayersData,
   LocationTotals,
   ViewportProps,
-} from '../types';
-import {FlowmapState} from '../FlowmapState';
-import {AggregateFlow} from '..';
-import LocalFlowmapDataProvider from './LocalFlowmapDataProvider';
+  FlowmapState,
+  AggregateFlow,
+  LocalFlowmapDataProvider,
+} from '@flowmap.gl/data';
 import {load} from '@loaders.gl/core';
 import {CSVLoader} from '@loaders.gl/csv';
 

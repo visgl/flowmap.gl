@@ -6,13 +6,13 @@ import {
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
+import {ViewState} from '@flowmap.gl/data';
 import {
-  createWorkerDataProvider,
   FlowDatum,
   LocationDatum,
-  ViewState,
+  createWorkerDataProvider,
   WorkerFlowmapDataProvider,
-} from '@flowmap.gl/data';
+} from '@flowmap.gl/workers';
 import {StaticMap} from 'react-map-gl';
 import {initLilGui, UI_INITIAL, useUI} from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
