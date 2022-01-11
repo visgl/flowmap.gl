@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.10] - 2022-01-11
+### Changed
+- Added getPickingInfo to FlowmapLayer for onHover set on DeckGL component to work
+
 ## [8.0.0-alpha.9] - 2022-01-08
 ### Changed
 - getLocationCentroid -> getLocationLat/Lon
