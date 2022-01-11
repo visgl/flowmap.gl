@@ -91,6 +91,7 @@ type State<L, F> = {
   dataProvider: FlowmapDataProvider<L, F>;
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
+  pickingInfo: FlowmapLayerPickingInfo<L, F> | undefined;
 };
 
 export type SourceEvent = {srcEvent: MouseEvent};
@@ -128,15 +129,17 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
         this.setState({highlightedObject: this._getHighlightedObject(info)});
         const {onHover} = props;
         if (onHover) {
-          this._getFlowmapLayerPickingInfo(info).then((info) =>
-            onHover(info, event),
-          );
+          this._getFlowmapLayerPickingInfo(info).then((info) => {
+            this.setState({pickingInfo: info});
+            onHover(info, event);
+          });
         }
       },
       onClick: (info: PickingInfo<any>, event: SourceEvent) => {
         const {onClick} = props;
         if (onClick) {
           this._getFlowmapLayerPickingInfo(info).then((info) => {
+            this.setState({pickingInfo: info});
             if (info) {
               onClick(info, event);
             }
@@ -152,6 +155,15 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       dataProvider: this._getOrMakeDataProvider(),
       layersData: undefined,
       highlightedObject: undefined,
+      pickingInfo: undefined,
+    };
+  }
+
+  getPickingInfo(pickParams: Record<string, any>) {
+    // This is for onHover event handlers set on the <DeckGL> component
+    return {
+      ...pickParams.info,
+      object: this.state?.pickingInfo?.object,
     };
   }
 
