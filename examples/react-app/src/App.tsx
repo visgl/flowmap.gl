@@ -87,7 +87,8 @@ function App() {
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
         onHover: (info) => setTooltip(getTooltipState(info)),
-        onClick: (info) => console.log('clicked', info.type, info.object, info),
+        onClick: (info) =>
+          console.log('clicked', info.object?.type, info.object, info),
       }),
     );
   }
@@ -126,18 +127,18 @@ function getTooltipState(
   info: FlowmapLayerPickingInfo<LocationDatum, FlowDatum> | undefined,
 ): TooltipState | undefined {
   if (!info) return undefined;
-  const {x, y, type} = info;
+  const {x, y, object} = info;
   const position = {left: x, top: y};
-  switch (type) {
+  switch (object?.type) {
     case PickingType.LOCATION:
       return {
         position,
         content: (
           <>
-            <div>{info.name}</div>
-            <div>Incoming trips: {info.totals.incomingCount}</div>
-            <div>Outgoing trips: {info.totals.outgoingCount}</div>
-            <div>Internal or round trips: {info.totals.internalCount}</div>
+            <div>{object.name}</div>
+            <div>Incoming trips: {object.totals.incomingCount}</div>
+            <div>Outgoing trips: {object.totals.outgoingCount}</div>
+            <div>Internal or round trips: {object.totals.internalCount}</div>
           </>
         ),
       };
@@ -147,9 +148,9 @@ function getTooltipState(
         content: (
           <>
             <div>
-              {info.origin.id} → {info.dest.id}
+              {object.origin.id} → {object.dest.id}
             </div>
-            <div>{info.count}</div>
+            <div>{object.count}</div>
           </>
         ),
       };

@@ -23,23 +23,29 @@ export interface PickingInfo<T> {
   x: number;
   y: number;
   coordinate: [number, number];
-}
-
-export interface LocationPickingInfo<L> extends PickingInfo<L | ClusterNode> {
-  type: PickingType.LOCATION;
-  id: string;
-  name: string;
-  totals: LocationTotals;
-  circleRadius: number;
   event: MouseEvent | undefined;
 }
 
-export interface FlowPickingInfo<L, F> extends PickingInfo<F | AggregateFlow> {
+export interface LocationPickingInfoObject<L> {
+  id: string;
+  type: PickingType.LOCATION;
+  location: L | ClusterNode;
+  name: string;
+  totals: LocationTotals;
+  circleRadius: number;
+}
+
+export type LocationPickingInfo<L> = PickingInfo<LocationPickingInfoObject<L>>;
+
+export interface FlowPickingInfoObject<L, F> {
   type: PickingType.FLOW;
+  flow: F | AggregateFlow;
   origin: L | ClusterNode;
   dest: L | ClusterNode;
   count: number;
 }
+
+export type FlowPickingInfo<L, F> = PickingInfo<FlowPickingInfoObject<L, F>>;
 
 // export interface LocationAreaPickingInfo extends PickingInfo<PickingInfoData> {
 //   type: PickingType.LOCATION_AREA;

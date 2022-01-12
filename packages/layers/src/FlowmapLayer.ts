@@ -301,6 +301,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       x: info.x,
       y: info.y,
       coordinate: info.coordinate,
+      event: info.event,
     };
     if (
       sourceLayer instanceof FlowLinesLayer ||
@@ -318,11 +319,13 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
         if (origin && dest) {
           return {
             ...commonInfo,
-            type: PickingType.FLOW,
-            object: flow,
-            origin: origin,
-            dest: dest,
-            count: accessors.getFlowMagnitude(flow),
+            object: {
+              type: PickingType.FLOW,
+              flow,
+              origin: origin,
+              dest: dest,
+              count: accessors.getFlowMagnitude(flow),
+            },
           };
         }
       }
@@ -342,13 +345,14 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
           );
           return {
             ...commonInfo,
-            type: PickingType.LOCATION,
-            object: location,
-            id,
-            name,
-            totals,
-            circleRadius: circleRadius,
-            event: undefined,
+            object: {
+              type: PickingType.LOCATION,
+              location,
+              id,
+              name,
+              totals,
+              circleRadius: circleRadius,
+            },
           };
         }
       }
