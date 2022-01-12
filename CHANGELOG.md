@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.12] - 2022-01-12
+### Changed
+- Hover info object changed
+
 ## [8.0.0-alpha.11] - 2022-01-12
 ### Changed
 - Hover info will include picked prop
