@@ -1,14 +1,14 @@
 {
   "name": "@flowmap.gl/react-app",
-  "version": "8.0.0-alpha.11",
+  "version": "8.0.0-alpha.12",
   "homepage": "https://flowmapblue.github.io/flowmap.gl/",
   "private": true,
   "dependencies": {
     "@deck.gl/core": "^8.6.4",
     "@deck.gl/layers": "^8.6.4",
     "@deck.gl/react": "^8.6.4",
-    "@flowmap.gl/data": "^8.0.0-alpha.11",
-    "@flowmap.gl/layers": "^8.0.0-alpha.11",
+    "@flowmap.gl/data": "^8.0.0-alpha.12",
+    "@flowmap.gl/layers": "^8.0.0-alpha.12",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "@testing-library/jest-dom": "^5.11.4",
