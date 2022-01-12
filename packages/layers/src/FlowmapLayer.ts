@@ -159,12 +159,19 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     };
   }
 
-  getPickingInfo(pickParams: Record<string, any>) {
+  getPickingInfo({info}: Record<string, any>) {
     // This is for onHover event handlers set on the <DeckGL> component
-    return {
-      ...pickParams.info,
-      object: this.state?.pickingInfo?.object,
-    };
+    if (!info.object) {
+      const object = this.state?.pickingInfo?.object;
+      if (object) {
+        return {
+          ...info,
+          object,
+          picked: true,
+        };
+      }
+    }
+    return info;
   }
 
   private _updateAccessors() {
@@ -287,7 +294,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       return undefined;
     }
     const commonInfo = {
-      // ...info,
+      ...info,
+      picked: info.picked,
       layer: info.layer,
       index: info.index,
       x: info.x,

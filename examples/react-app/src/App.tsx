@@ -87,7 +87,7 @@ function App() {
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
         onHover: (info) => setTooltip(getTooltipState(info)),
-        onClick: (info) => console.log('clicked', info.type, info.object),
+        onClick: (info) => console.log('clicked', info.type, info.object, info),
       }),
     );
   }

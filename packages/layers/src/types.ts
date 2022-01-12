@@ -18,6 +18,7 @@ export type DeckGLLayer = Record<string, any>;
 export interface PickingInfo<T> {
   layer: DeckGLLayer;
   index: number;
+  picked: boolean;
   object: T | undefined;
   x: number;
   y: number;
