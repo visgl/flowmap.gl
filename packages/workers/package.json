@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/workers",
-  "version": "8.0.0-alpha.12",
-  "main": "dist/index.js",
+  "version": "8.0.0-alpha.13",
+  "main": "dist-es5/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
@@ -13,7 +13,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.0-alpha.12",
+    "@flowmap.gl/data": "^8.0.0-alpha.13",
     "comlink": "^4.3.1"
   },
   "gitHead": "8c4a80ee8a48c4db963c38ae1836bd6d5f4116dc",

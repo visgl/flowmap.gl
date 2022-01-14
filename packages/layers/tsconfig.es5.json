@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "outDir": "dist-es5",
+    "lib": [
+      "es2015", "dom"
+    ]
+  }
+}
