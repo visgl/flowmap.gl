@@ -53,6 +53,7 @@ export default class LocalFlowmapDataProvider<L, F>
     return flows?.[idx];
   }
 
+  // TODO: this is unreliable, should replace by unqiue ID
   async getLocationByIndex(idx: number): Promise<L | ClusterNode | undefined> {
     if (!this.flowmapState || !this.flowmapData) {
       return undefined;
