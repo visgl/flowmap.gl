@@ -1,6 +1,6 @@
 # Change log
 
-## [8.0.0-alpha.14] - 2022-01-18
+## [8.0.0-alpha.15] - 2022-01-18
 ### Changed
 - FlowmapLayer accepts locations and flows as Iterables
 
