@@ -42,11 +42,10 @@ export function isFlowmapData<L, F>(
   data: Record<string, any>,
 ): data is FlowmapData<L, F> {
   return (
-    data &&
-    data.locations &&
-    data.flows &&
-    Array.isArray(data.locations) &&
-    Array.isArray(data.flows)
+    data && data.locations && data.flows
+    // TODO: test that they are iterable
+    // Array.isArray(data.locations) &&
+    // Array.isArray(data.flows)
   );
 }
 
