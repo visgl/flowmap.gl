@@ -50,19 +50,29 @@ export function getViewStateForFeatures(
   };
 }
 
-export function getViewStateForLocations(
-  locations: any[],
-  getLocationCoords: (location: any) => [number, number],
+export function getViewStateForLocations<L>(
+  locations: Iterable<L>,
+  getLocationCoords: (location: L) => [number, number],
   size: [number, number],
   opts?: GetViewStateOptions,
 ): ViewState & {width: number; height: number} {
+  const asGeometry = (location: L) => ({
+    type: 'Point',
+    coordinates: getLocationCoords(location),
+  });
+  let geometries;
+  if (Array.isArray(locations)) {
+    geometries = locations.map(asGeometry);
+  } else {
+    geometries = [];
+    for (const location of locations) {
+      geometries.push(asGeometry(location));
+    }
+  }
   return getViewStateForFeatures(
     {
       type: 'GeometryCollection',
-      geometries: locations.map((location) => ({
-        type: 'Point',
-        coordinates: getLocationCoords(location),
-      })),
+      geometries,
     } as any,
     size,
     opts,

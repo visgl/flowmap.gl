@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.14] - 2022-01-18
+### Changed
+- FlowmapLayer accepts locations and flows as Iterables
+
 ## [8.0.0-alpha.12] - 2022-01-12
 ### Changed
 - Hover info object changed

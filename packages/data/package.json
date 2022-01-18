@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/data",
-  "version": "8.0.0-alpha.12",
+  "version": "8.0.0-y.14",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.0-alpha.12",
+    "@flowmap.gl/data": "^8.0.0-y.14",
     "d3-array": "^3.0.2",
     "d3-collection": "^1.0.7",
     "d3-color": "^3.0.1",
@@ -42,7 +42,7 @@
     "@types/mapbox__geo-viewport": "^0.4.1",
     "@types/seedrandom": "^3.0.1"
   },
-  "gitHead": "8c4a80ee8a48c4db963c38ae1836bd6d5f4116dc",
+  "gitHead": "66e2235c27734094d45099c1746e0d334be4972d",
   "publishConfig": {
     "access": "public"
   }

@@ -1,6 +1,6 @@
 export type FlowmapData<L, F> = {
-  locations: L[] | undefined;
-  flows: F[] | undefined;
+  locations: Iterable<L> | undefined;
+  flows: Iterable<F> | undefined;
 };
 
 export interface ViewState {

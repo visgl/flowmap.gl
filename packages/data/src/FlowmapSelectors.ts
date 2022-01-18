@@ -158,25 +158,34 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getLocations: Selector<L, F, L[] | undefined> = createSelector(
+  getLocations: Selector<L, F, Iterable<L> | undefined> = createSelector(
     this.getFetchedLocations,
     this.getInvalidLocationIds,
     (locations, invalidIds) => {
       if (!locations) return undefined;
       if (!invalidIds || invalidIds.length === 0) return locations;
       const invalid = new Set(invalidIds);
-      return locations.filter(
-        (location: L) => !invalid.has(this.accessors.getLocationId(location)),
-      );
+      const filtered: L[] = [];
+      for (const location of locations) {
+        const id = this.accessors.getLocationId(location);
+        if (!invalid.has(id)) {
+          filtered.push(location);
+        }
+      }
+      return filtered;
     },
   );
 
   getLocationIds: Selector<L, F, Set<string> | undefined> = createSelector(
     this.getLocations,
-    (locations) =>
-      locations
-        ? new Set(locations.map(this.accessors.getLocationId))
-        : undefined,
+    (locations) => {
+      if (!locations) return undefined;
+      const ids = new Set<string>();
+      for (const id of locations) {
+        ids.add(this.accessors.getLocationId(id));
+      }
+      return ids;
+    },
   );
 
   getSelectedLocationsSet: Selector<L, F, Set<string> | undefined> =
@@ -187,18 +196,20 @@ export default class FlowmapSelectors<L, F> {
   getSortedFlowsForKnownLocations: Selector<L, F, F[] | undefined> =
     createSelector(this.getFetchedFlows, this.getLocationIds, (flows, ids) => {
       if (!ids || !flows) return undefined;
-      return flows
-        .filter(
-          (flow: F) =>
-            ids.has(this.accessors.getFlowOriginId(flow)) &&
-            ids.has(this.accessors.getFlowDestId(flow)),
-        )
-        .sort((a: F, b: F) =>
-          descending(
-            Math.abs(this.accessors.getFlowMagnitude(a)),
-            Math.abs(this.accessors.getFlowMagnitude(b)),
-          ),
-        );
+      const filtered = [];
+      for (const flow of flows) {
+        const srcId = this.accessors.getFlowOriginId(flow);
+        const dstId = this.accessors.getFlowDestId(flow);
+        if (ids.has(srcId) && ids.has(dstId)) {
+          filtered.push(flow);
+        }
+      }
+      return filtered.sort((a: F, b: F) =>
+        descending(
+          Math.abs(this.accessors.getFlowMagnitude(a)),
+          Math.abs(this.accessors.getFlowMagnitude(b)),
+        ),
+      );
     });
 
   getActualTimeExtent: Selector<L, F, [Date, Date] | undefined> =
@@ -271,30 +282,36 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getLocationsHavingFlows: Selector<L, F, L[] | undefined> = createSelector(
-    this.getSortedFlowsForKnownLocations,
-    this.getLocations,
-    (flows, locations) => {
-      if (!locations || !flows) return locations;
-      const withFlows = new Set();
-      for (const flow of flows) {
-        withFlows.add(this.accessors.getFlowOriginId(flow));
-        withFlows.add(this.accessors.getFlowDestId(flow));
-      }
-      return locations.filter((location: L) =>
-        withFlows.has(this.accessors.getLocationId(location)),
-      );
-    },
-  );
+  getLocationsHavingFlows: Selector<L, F, Iterable<L> | undefined> =
+    createSelector(
+      this.getSortedFlowsForKnownLocations,
+      this.getLocations,
+      (flows, locations) => {
+        if (!locations || !flows) return locations;
+        const withFlows = new Set();
+        for (const flow of flows) {
+          withFlows.add(this.accessors.getFlowOriginId(flow));
+          withFlows.add(this.accessors.getFlowDestId(flow));
+        }
+        const filtered = [];
+        for (const location of locations) {
+          if (withFlows.has(this.accessors.getLocationId(location))) {
+            filtered.push(location);
+          }
+        }
+        return filtered;
+      },
+    );
 
   getLocationsById: Selector<L, F, Map<string, L> | undefined> = createSelector(
     this.getLocationsHavingFlows,
     (locations) => {
       if (!locations) return undefined;
-      return nest<L, L>()
-        .key((d: L) => this.accessors.getLocationId(d))
-        .rollup(([d]) => d)
-        .map(locations) as any as Map<string, L>;
+      const locationsById = new Map<string, L>();
+      for (const location of locations) {
+        locationsById.set(this.accessors.getLocationId(location), location);
+      }
+      return locationsById;
     },
   );
 
@@ -438,7 +455,7 @@ export default class FlowmapSelectors<L, F> {
         clusterIndex,
       ) => {
         if (!locations) return undefined;
-        let result: (L | Cluster)[] = locations;
+        let result: (L | Cluster)[] = Array.from(locations);
         // if (clusteringEnabled) {
         //   if (clusterIndex) {
         //     const zoomItems = clusterIndex.getClusterNodesFor(clusterZoom);
@@ -448,7 +465,7 @@ export default class FlowmapSelectors<L, F> {
         //   }
         // }
 
-        if (result && clusterIndex && selectedLocations) {
+        if (clusterIndex && selectedLocations) {
           const toAppend = [];
           for (const id of selectedLocations) {
             const cluster = clusterIndex.getClusterById(id);
@@ -475,11 +492,12 @@ export default class FlowmapSelectors<L, F> {
   getDiffMode: Selector<L, F, boolean> = createSelector(
     this.getFetchedFlows,
     (flows) => {
-      if (
-        flows &&
-        flows.find((f: F) => this.accessors.getFlowMagnitude(f) < 0)
-      ) {
-        return true;
+      if (flows) {
+        for (const f of flows) {
+          if (this.accessors.getFlowMagnitude(f) < 0) {
+            return true;
+          }
+        }
       }
       return false;
     },
@@ -512,8 +530,8 @@ export default class FlowmapSelectors<L, F> {
     (ids, flows, flowsForKnownLocations) => {
       if (!ids || !flows) return undefined;
       if (
-        flowsForKnownLocations &&
-        flows.length === flowsForKnownLocations.length
+        flowsForKnownLocations
+        // && flows.length === flowsForKnownLocations.length
       )
         return undefined;
       const missing = new Set<string>();
@@ -656,7 +674,7 @@ export default class FlowmapSelectors<L, F> {
       },
     );
 
-  getLocationsForZoom: Selector<L, F, L[] | ClusterNode[] | undefined> =
+  getLocationsForZoom: Selector<L, F, Iterable<L> | ClusterNode[] | undefined> =
     createSelector(
       this.getClusteringEnabled,
       this.getLocationsHavingFlows,

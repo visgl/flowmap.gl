@@ -69,8 +69,9 @@ interface BasePoint {
   parentId: number; // parent cluster id
 }
 
-interface LeafPoint extends BasePoint {
+interface LeafPoint<L> extends BasePoint {
   index: number; // index of the source feature in the original input array,
+  location: L;
 }
 
 interface ClusterPoint extends BasePoint {
@@ -78,14 +79,14 @@ interface ClusterPoint extends BasePoint {
   numPoints: number;
 }
 
-type Point = LeafPoint | ClusterPoint;
+type Point<L> = LeafPoint<L> | ClusterPoint;
 
-export function isLeafPoint(p: Point): p is LeafPoint {
-  const {index} = p as LeafPoint;
+export function isLeafPoint<L>(p: Point<L>): p is LeafPoint<L> {
+  const {index} = p as LeafPoint<L>;
   return index != null;
 }
 
-export function isClusterPoint(p: Point): p is ClusterPoint {
+export function isClusterPoint<L>(p: Point<L>): p is ClusterPoint {
   const {id} = p as ClusterPoint;
   return id != null;
 }
@@ -93,7 +94,7 @@ export function isClusterPoint(p: Point): p is ClusterPoint {
 type ZoomLevelKDBush = any;
 
 export function clusterLocations<L>(
-  locations: L[],
+  locations: Iterable<L>,
   locationAccessors: LocationAccessors<L>,
   getLocationWeight: LocationWeightGetter,
   options?: Partial<Options>,
@@ -108,18 +109,21 @@ export function clusterLocations<L>(
   const trees = new Array<ZoomLevelKDBush>(maxZoom + 1);
 
   // generate a cluster object for each point and index input points into a KD-tree
-  let clusters = new Array<Point>();
-  for (let i = 0; i < locations.length; i++) {
-    const x = getLocationLon(locations[i]);
-    const y = getLocationLat(locations[i]);
+  let clusters = new Array<Point<L>>();
+  let i = 0;
+  for (const location of locations) {
+    const x = getLocationLon(location);
+    const y = getLocationLat(location);
     clusters.push({
       x: lngX(x), // projected point coordinates
       y: latY(y),
-      weight: getLocationWeight(getLocationId(locations[i])),
+      weight: getLocationWeight(getLocationId(location)),
       zoom: Infinity, // the last zoom the point was processed at
       index: i, // index of the source feature in the original input array,
       parentId: -1, // parent cluster id
+      location,
     });
+    i++;
   }
   trees[maxZoom + 1] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
 
@@ -148,11 +152,11 @@ export function clusterLocations<L>(
     let childrenByParent: Map<number, string[]> | undefined;
     const tree = trees[zoom];
     if (zoom < maxAvailZoom) {
-      childrenByParent = rollup<Point, string[], number>(
+      childrenByParent = rollup<Point<L>, string[], number>(
         trees[zoom + 1].points,
         (points: any[]) =>
           points.map((p: any) =>
-            p.id ? makeClusterId(p.id) : getLocationId(locations[p.index]),
+            p.id ? makeClusterId(p.id) : getLocationId(p.location),
           ),
         (point: any) => point.parentId,
       );
@@ -160,9 +164,8 @@ export function clusterLocations<L>(
 
     const nodes: ClusterNode[] = [];
     for (const point of tree.points) {
-      const {x, y, numPoints} = point;
+      const {x, y, numPoints, location} = point;
       if (isLeafPoint(point)) {
-        const location = locations[point.index];
         nodes.push({
           id: getLocationId(location),
           zoom,
@@ -211,13 +214,13 @@ function createCluster(
   };
 }
 
-function cluster(
-  points: Point[],
+function cluster<L>(
+  points: Point<L>[],
   zoom: number,
   tree: ZoomLevelKDBush,
   options: Options,
 ) {
-  const clusters: Point[] = [];
+  const clusters: Point<L>[] = [];
   const {radius, extent} = options;
   const r = radius / (extent * Math.pow(2, zoom));
 
@@ -293,10 +296,10 @@ function latY(lat: number) {
   return y < 0 ? 0 : y > 1 ? 1 : y;
 }
 
-function getX(p: Point) {
+function getX<L>(p: Point<L>) {
   return p.x;
 }
 
-function getY(p: Point) {
+function getY<L>(p: Point<L>) {
   return p.y;
 }
