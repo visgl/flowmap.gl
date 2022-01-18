@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.13] - 2022-01-14
+### Changed
+- Added es5 build target
+
 ## [8.0.0-alpha.12] - 2022-01-12
 ### Changed
 - Hover info object changed
