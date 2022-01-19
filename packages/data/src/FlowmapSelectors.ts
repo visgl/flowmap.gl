@@ -17,8 +17,7 @@
  */
 
 import {WebMercatorViewport} from '@math.gl/web-mercator';
-import {ascending, descending, extent, min} from 'd3-array';
-import {nest} from 'd3-collection';
+import {ascending, rollup, descending, extent, min} from 'd3-array';
 import {ScaleLinear, scaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
 import {
@@ -1421,10 +1420,9 @@ function aggregateFlows<F>(
   flowAccessors: FlowAccessors<F>,
 ): AggregateFlow[] {
   // Sum up flows with same origin, dest
-  const byOriginDest = nest<F, AggregateFlow>()
-    .key(flowAccessors.getFlowOriginId)
-    .key(flowAccessors.getFlowDestId)
-    .rollup((ff: F[]) => {
+  const byOriginDest = rollup(
+    flows,
+    (ff: F[]) => {
       const origin = flowAccessors.getFlowOriginId(ff[0]);
       const dest = flowAccessors.getFlowDestId(ff[0]);
       // const color = ff[0].color;
@@ -1443,11 +1441,14 @@ function aggregateFlows<F>(
       };
       // if (color) rv.color = color;
       return rv;
-    })
-    .entries(flows);
+    },
+    flowAccessors.getFlowOriginId,
+    flowAccessors.getFlowDestId,
+  );
+
   const rv: AggregateFlow[] = [];
-  for (const {values} of byOriginDest) {
-    for (const {value} of values) {
+  for (const values of byOriginDest.values()) {
+    for (const value of values.values()) {
       rv.push(value);
     }
   }
