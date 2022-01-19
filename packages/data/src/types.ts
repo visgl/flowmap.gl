@@ -115,9 +115,9 @@ export function isAggregateFlow(
 ): flow is AggregateFlow {
   return (
     flow &&
-    flow.origin !== undefined &&
-    flow.dest !== undefined &&
-    flow.count !== undefined &&
+    // flow.origin !== undefined &&
+    // flow.dest !== undefined &&
+    // flow.count !== undefined &&
     (flow.aggregate ? true : false)
   );
 }
