@@ -1,5 +1,10 @@
 # Change log
 
+## [8.0.0-alpha.16] - 2022-01-19
+### Changed
+- Added ES5 build
+- Relaxed D3 dependency versions (so that older pre-ESM versions of D3 still work)
+
 ## [8.0.0-alpha.15] - 2022-01-18
 ### Changed
 - FlowmapLayer accepts locations and flows as Iterables
