@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/data",
   "version": "8.0.0-alpha.15",
-  "main": "dist/index.js",
+  "main": "dist-es5/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
@@ -9,7 +9,9 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rm -rf dist && tsc",
+    "build:esm": "rm -rf dist && tsc",
+    "build:es5": "rm -rf dist-es5 && tsc --project tsconfig.es5.json",
+    "build": "yarn build:es5 && yarn build:esm",
     "prepare": "yarn build"
   },
   "dependencies": {
