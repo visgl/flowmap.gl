@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/data",
-  "version": "8.0.0-alpha.16",
+  "version": "8.0.0-alpha.17",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.0-alpha.16",
+    "@flowmap.gl/data": "^8.0.0-alpha.17",
     "d3-array": "2 - 3",
     "d3-color": "2 - 3",
     "d3-geo": "2 - 3",
