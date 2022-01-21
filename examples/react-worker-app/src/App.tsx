@@ -12,7 +12,7 @@ import {
   LocationDatum,
   createWorkerDataProvider,
   WorkerFlowmapDataProvider,
-} from '@flowmap.gl/workers';
+} from './worker';
 import {StaticMap} from 'react-map-gl';
 import {initLilGui, UI_INITIAL, useUI} from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -29,6 +29,28 @@ type TooltipState = {
 const DATA_BASE_URL = 'https://gist.githubusercontent.com/ilyabo/';
 const DATA_PATH = `${DATA_BASE_URL}/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
 
+async function createDataProvider() {
+  return await createWorkerDataProvider({
+    flows: {
+      url: `${DATA_PATH}/flows.csv`,
+      columns: {
+        originId: 'origin',
+        destId: 'dest',
+        count: 'count',
+      },
+    },
+    locations: {
+      url: `${DATA_PATH}/locations.csv`,
+      columns: {
+        id: 'id',
+        name: 'name',
+        lat: 'lat',
+        lon: 'lon',
+      },
+    },
+  });
+}
+
 function App() {
   const config = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewState>();
@@ -36,7 +58,7 @@ function App() {
   const [tooltip, setTooltip] = useState<TooltipState>();
   useEffect(() => {
     (async () => {
-      const dataProvider = await makeDataProvider();
+      const dataProvider = await createDataProvider();
       setData({dataProvider});
       const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
       const viewState = await dataProvider.getViewportForLocations([
@@ -107,28 +129,6 @@ function App() {
       )}
     </div>
   );
-}
-
-async function makeDataProvider() {
-  return await createWorkerDataProvider({
-    flows: {
-      url: `${DATA_PATH}/flows.csv`,
-      columns: {
-        originId: 'origin',
-        destId: 'dest',
-        count: 'count',
-      },
-    },
-    locations: {
-      url: `${DATA_PATH}/locations.csv`,
-      columns: {
-        id: 'id',
-        name: 'name',
-        lat: 'lat',
-        lon: 'lon',
-      },
-    },
-  });
 }
 
 function getTooltipState(

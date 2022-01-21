@@ -20,6 +20,7 @@
     "@types/node": "^12.0.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "comlink": "^4.3.1",
     "d3-fetch": "^3.0.1",
     "lil-gui": "^0.15.0",
     "react": "^17.0.2",
