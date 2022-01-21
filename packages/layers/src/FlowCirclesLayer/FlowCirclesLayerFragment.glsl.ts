@@ -69,6 +69,7 @@ void main(void) {
   gl_FragColor = mix(gl_FragColor, ringColor, smoothstep(step3, step4, distToCenter));
   gl_FragColor = mix(gl_FragColor, outlineColor, smoothstep(step5, step6, distToCenter));
   // gl_FragColor = mix(gl_FragColor, emptyColor / 255., smoothstep(step6, 1.0, distToCenter));
+  gl_FragColor.a = vColor.a;
   gl_FragColor.a *= smoothstep(0.0, SOFT_OUTLINE, 1.0 - distToCenter);
   DECKGL_FILTER_COLOR(gl_FragColor, geometry);
 }

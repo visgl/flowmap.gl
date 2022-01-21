@@ -1,5 +1,12 @@
 # Change log
 
+## [8.0.0-alpha.17] - 2022-01-21
+### Changed
+- Removed ES5 build
+- Removed workers package, moved the code to react-worker-app example
+- Fixed arrow drawing issue (one of the triangles was being drawn twice)
+- Fixed circle outline opacity issue
+
 ## [8.0.0-alpha.16] - 2022-01-19
 ### Changed
 - Added ES5 build

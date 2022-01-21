@@ -91,11 +91,13 @@ void main(void) {
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
   
   vec4 fillColor = vec4(instanceColors.rgb, instanceColors.a * opacity) / 255.;
-  if (instancePickable <= 0.5) {
-    vColor = mix(fillColor, vec4(outlineColor.xyz, instanceThickness), normals.z);
-  } else {
-    vColor = mix(fillColor, vec4(outlineColor.xyz, outlineColor.w * fillColor.w), normals.z);
-  }
+  // if (instancePickable <= 0.5) {
+  //   vColor = mix(fillColor, vec4(outlineColor.xyz, instanceThickness), normals.z);
+  // } else {
+  //   vColor = mix(fillColor, vec4(outlineColor.xyz, outlineColor.w * fillColor.w), normals.z);
+  // }
+  // vColor = mix(fillColor, vec4(outlineColor.xyz, outlineColor.w * fillColor.w), normals.z);
+  vColor = mix(fillColor, outlineColor, normals.z);
   DECKGL_FILTER_COLOR(vColor, geometry);
 }
 `;

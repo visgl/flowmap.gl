@@ -65,6 +65,7 @@ function App() {
       new FlowmapLayer<LocationDatum, FlowDatum>({
         id: 'my-flowmap-layer',
         data,
+        opacity: 1.0,
         pickable: true,
         darkMode: config.darkMode,
         colorScheme: config.colorScheme,
