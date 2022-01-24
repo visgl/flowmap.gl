@@ -68,6 +68,7 @@ fetchData().then((data) => {
           id: 'my-flowmap-layer',
           data,
           pickable: true,
+          opacity: config.opacity,
           darkMode: config.darkMode,
           colorScheme: config.colorScheme,
           fadeAmount: config.fadeAmount,

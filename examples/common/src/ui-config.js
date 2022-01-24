@@ -5,6 +5,7 @@ export const UI_INITIAL = {
   darkMode: true,
   colorScheme: 'Teal',
   highlightColor: '#ff9b29',
+  opacity: 1.0,
   fadeEnabled: FlowmapLayer.defaultProps.fadeEnabled,
   fadeOpacityEnabled: FlowmapLayer.defaultProps.fadeOpacityEnabled,
   fadeAmount: FlowmapLayer.defaultProps.fadeAmount,
@@ -31,6 +32,8 @@ export const initLilGui = (gui) => {
     .max(10000)
     .step(10)
     .enable(FlowmapLayer.defaultProps.maxTopFlowsDisplayNum);
+
+  gui.add(UI_INITIAL, 'opacity', 0.0, 1.0);
 
   const fading = gui.addFolder('Fade');
   const fadeEnabled = fading.add(UI_INITIAL, 'fadeEnabled');

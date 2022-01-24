@@ -68,6 +68,7 @@
           data: flowmapData,
           pickable: true,
           // TODO: add svelte-knobby
+          // opacity: config.opacity,
           // darkMode: config.darkMode,
           // colorScheme: config.colorScheme,
           // fadeAmount: config.fadeAmount,
