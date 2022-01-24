@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.0-alpha.18] - 2022-01-24
+### Changed
+- Fixed: opacity didn't apply to arrow outline
+
 ## [8.0.0-alpha.17] - 2022-01-21
 ### Changed
 - Removed ES5 build
