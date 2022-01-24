@@ -1,14 +1,14 @@
 {
   "name": "@flowmap.gl/examples-common",
-  "version": "8.0.0-alpha.17",
+  "version": "8.0.0-alpha.18",
   "private": true,
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "module": "src/index.js",
   "license": "MIT",
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.0-alpha.17",
-    "@flowmap.gl/layers": "^8.0.0-alpha.17",
+    "@flowmap.gl/data": "^8.0.0-alpha.18",
+    "@flowmap.gl/layers": "^8.0.0-alpha.18",
     "d3-fetch": "^3.0.1",
     "lil-gui": "^0.15.0"
   },
