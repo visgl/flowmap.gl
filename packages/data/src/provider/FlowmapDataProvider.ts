@@ -7,6 +7,7 @@ import {
   LayersData,
   ViewportProps,
 } from '../types';
+import {FlowmapLayer} from '@flowmap.gl/layers';
 
 export default interface FlowmapDataProvider<L, F> {
   setAccessors(accessors: FlowmapDataAccessors<L, F>): void;
@@ -36,6 +37,11 @@ export default interface FlowmapDataProvider<L, F> {
   // getLocationsForSearchBox(): Promise<(FlowLocation | ClusterNode)[] | undefined>;
 
   getLayersData(): Promise<LayersData | undefined>;
+
+  updateLayersData(
+    layer: FlowmapLayer<L, F>,
+    changeFlags: Record<string, boolean>,
+  ): Promise<void>;
 }
 
 export function isFlowmapData<L, F>(

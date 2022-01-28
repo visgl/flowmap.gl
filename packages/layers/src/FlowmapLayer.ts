@@ -174,10 +174,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     return info;
   }
 
-  private _updateAccessors() {
-    this.state?.dataProvider?.setAccessors(this.props);
-    this.setState({accessors: new FlowmapAggregateAccessors(this.props)});
-  }
+  // private _updateAccessors() {
+  //   this.state?.dataProvider?.setAccessors(this.props);
+  //   this.setState({accessors: new FlowmapAggregateAccessors(this.props)});
+  // }
 
   private _getOrMakeDataProvider() {
     const {data, dataProvider} = this.props;
@@ -233,10 +233,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       changeFlags.propsOrDataChanged // TODO can we ignore accessor props changes?
     ) {
       dataProvider.setFlowmapState(this._getFlowmapState());
-      (async () => {
-        const layersData = await dataProvider.getLayersData();
-        this.setState({layersData});
-      })();
+      dataProvider.updateLayersData(this, changeFlags);
     }
   }
 
