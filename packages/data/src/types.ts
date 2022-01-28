@@ -59,9 +59,9 @@ export interface ViewportProps {
   height: number;
   latitude: number;
   longitude: number;
-  zoom: number;
-  bearing: number;
-  pitch: number;
+  zoom?: number;
+  bearing?: number;
+  pitch?: number;
   altitude?: number;
   maxZoom?: number;
   minZoom?: number;
