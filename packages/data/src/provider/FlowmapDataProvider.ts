@@ -7,7 +7,6 @@ import {
   LayersData,
   ViewportProps,
 } from '../types';
-import {FlowmapLayer} from '@flowmap.gl/layers';
 
 export default interface FlowmapDataProvider<L, F> {
   setAccessors(accessors: FlowmapDataAccessors<L, F>): void;
@@ -39,7 +38,8 @@ export default interface FlowmapDataProvider<L, F> {
   getLayersData(): Promise<LayersData | undefined>;
 
   updateLayersData(
-    layer: FlowmapLayer<L, F>,
+    // TODO: properly type this avoiding circular dependency on @flowmap.gl/layers
+    layer: any,
     changeFlags: Record<string, boolean>,
   ): Promise<void>;
 }
