@@ -15,7 +15,6 @@ import {
   GetViewStateOptions,
   getViewStateForLocations,
 } from '../getViewStateForLocations';
-import {FlowmapLayer} from '@flowmap.gl/layers';
 
 export default class LocalFlowmapDataProvider<L, F>
   implements FlowmapDataProvider<L, F>
@@ -122,7 +121,10 @@ export default class LocalFlowmapDataProvider<L, F>
     );
   }
 
-  async updateLayersData(layer: FlowmapLayer<L, F>) {
+  async updateLayersData(
+    // TODO: properly type this
+    layer: any,
+  ) {
     const layersData = await this.getLayersData();
     // @ts-ignore
     layer.setState({layersData});
