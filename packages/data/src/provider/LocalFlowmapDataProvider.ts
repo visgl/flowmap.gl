@@ -122,11 +122,8 @@ export default class LocalFlowmapDataProvider<L, F>
   }
 
   async updateLayersData(
-    // TODO: properly type this
-    layer: any,
+    setLayersData: (layersData: LayersData | undefined) => void,
   ) {
-    const layersData = await this.getLayersData();
-    // @ts-ignore
-    layer.setState({layersData});
+    setLayersData(await this.getLayersData());
   }
 }

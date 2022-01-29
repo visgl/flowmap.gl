@@ -37,9 +37,12 @@ export default interface FlowmapDataProvider<L, F> {
 
   getLayersData(): Promise<LayersData | undefined>;
 
+  /**
+   * This is to give the data provider control over when/how often layersData
+   * is updated which leads to the flowmap being redrawn.
+   */
   updateLayersData(
-    // TODO: properly type this avoiding circular dependency on @flowmap.gl/layers
-    layer: any,
+    setLayersData: (layersData: LayersData | undefined) => void,
     changeFlags: Record<string, boolean>,
   ): Promise<void>;
 }
