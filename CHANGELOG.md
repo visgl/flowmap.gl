@@ -1,4 +1,9 @@
+
 # Change log
+
+## [8.0.0-alpha.19] - 2022-01-29
+### Changed
+- Introduced dataProvider.updateLayersData to give the data provider control over when/how often layersData is updated which leads to the flowmap being redrawn.
 
 ## [8.0.0-alpha.18] - 2022-01-24
 ### Changed
