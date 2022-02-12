@@ -23,7 +23,7 @@ export interface SettingsState {
 }
 
 export interface FlowmapState {
-  filterState: FilterState;
+  filterState?: FilterState;
   settingsState: SettingsState;
   viewport: ViewportProps;
 }

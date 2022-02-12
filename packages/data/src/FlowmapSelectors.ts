@@ -99,9 +99,9 @@ export default class FlowmapSelectors<L, F> {
   getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settingsState.maxTopFlowsDisplayNum;
   getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.selectedLocations;
+    state.filterState?.selectedLocations;
   getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.locationFilterMode;
+    state.filterState?.locationFilterMode;
   getClusteringEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settingsState.clusteringEnabled;
   getLocationTotalsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -111,7 +111,7 @@ export default class FlowmapSelectors<L, F> {
   getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport;
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.selectedTimeRange;
+    state.filterState?.selectedTimeRange;
 
   getColorScheme: Selector<L, F, string | string[] | undefined> = (
     state: FlowmapState,
@@ -1310,7 +1310,7 @@ export default class FlowmapSelectors<L, F> {
   isFlowInSelection(
     flow: F | AggregateFlow,
     selectedLocationsSet: Set<string> | undefined,
-    locationFilterMode: LocationFilterMode,
+    locationFilterMode?: LocationFilterMode,
   ) {
     const origin = this.accessors.getFlowOriginId(flow);
     const dest = this.accessors.getFlowDestId(flow);
