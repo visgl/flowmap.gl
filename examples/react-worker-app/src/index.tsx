@@ -47,12 +47,12 @@ ReactDOM.render(
 //   if (viewport) {
 //     await dataProvider.setFlowmapState({
 //       viewport,
-//       filterState: {
+//       filter: {
 //         selectedLocations: undefined,
 //         locationFilterMode: LocationFilterMode.ALL,
 //         selectedTimeRange: undefined,
 //       },
-//       settingsState: {
+//       settings: {
 //         ...FlowmapLayer.defaultProps,
 //       },
 //     });

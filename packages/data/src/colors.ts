@@ -333,17 +333,15 @@ const diffColors: DiffColors = {
   outlineColor: 'rgb(230,233,237)',
 };
 
-export function getFlowmapColors(
-  settingsState: SettingsState,
-): Colors | DiffColors {
+export function getFlowmapColors(settings: SettingsState): Colors | DiffColors {
   return getColors(
     false, // TODO: diffMode
-    settingsState.colorScheme,
-    settingsState.darkMode,
-    settingsState.fadeEnabled,
-    settingsState.fadeOpacityEnabled,
-    settingsState.fadeAmount,
-    settingsState.animationEnabled,
+    settings.colorScheme,
+    settings.darkMode,
+    settings.fadeEnabled,
+    settings.fadeOpacityEnabled,
+    settings.fadeAmount,
+    settings.animationEnabled,
   );
 }
 

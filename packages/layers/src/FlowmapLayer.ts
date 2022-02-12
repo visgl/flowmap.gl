@@ -275,13 +275,13 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   private _getFlowmapState() {
     return {
       viewport: pickViewportProps(this.context.viewport),
-      filterState: undefined,
+      filter: undefined,
       //   {
       //   selectedLocations: undefined,
       //   locationFilterMode: LocationFilterMode.ALL,
       //   selectedTimeRange: undefined,
       // },
-      settingsState: this._getSettingsState(),
+      settings: this._getSettingsState(),
     };
   }
 
