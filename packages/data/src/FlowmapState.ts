@@ -1,9 +1,9 @@
 import {LocationFilterMode, ViewportProps} from './types';
 
 export interface FilterState {
-  selectedLocations: string[] | undefined;
-  selectedTimeRange: [Date, Date] | undefined;
-  locationFilterMode: LocationFilterMode;
+  selectedLocations?: string[];
+  locationFilterMode?: LocationFilterMode;
+  selectedTimeRange?: [Date, Date];
 }
 
 export interface SettingsState {
