@@ -30,9 +30,9 @@ import {
   isFlowmapDataProvider,
   LayersData,
   LocalFlowmapDataProvider,
-  LocationFilterMode,
   ViewportProps,
   FlowmapAggregateAccessors,
+  FilterState,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -47,6 +47,7 @@ import {
 export type FlowmapLayerProps<L, F> = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
+  filter?: FilterState;
   locationTotalsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
@@ -275,12 +276,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   private _getFlowmapState() {
     return {
       viewport: pickViewportProps(this.context.viewport),
-      filter: undefined,
-      //   {
-      //   selectedLocations: undefined,
-      //   locationFilterMode: LocationFilterMode.ALL,
-      //   selectedTimeRange: undefined,
-      // },
+      filter: this.props.filter,
       settings: this._getSettingsState(),
     };
   }

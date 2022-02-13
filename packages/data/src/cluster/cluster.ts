@@ -36,7 +36,7 @@
 // TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 // THIS SOFTWARE.
 
-import {rollup} from 'd3-array';
+import {min, rollup} from 'd3-array';
 import KDBush from 'kdbush';
 import {LocationWeightGetter} from './ClusterIndex';
 import {Cluster, ClusterLevel, ClusterNode, LocationAccessors} from '../types';
@@ -110,7 +110,7 @@ export function clusterLocations<L>(
 
   // generate a cluster object for each point and index input points into a KD-tree
   let clusters = new Array<Point<L>>();
-  let i = 0;
+  let locationsCount = 0;
   for (const location of locations) {
     const x = getLocationLon(location);
     const y = getLocationLat(location);
@@ -119,41 +119,65 @@ export function clusterLocations<L>(
       y: latY(y),
       weight: getLocationWeight(getLocationId(location)),
       zoom: Infinity, // the last zoom the point was processed at
-      index: i, // index of the source feature in the original input array,
+      index: locationsCount, // index of the source feature in the original input array,
       parentId: -1, // parent cluster id
       location,
     });
-    i++;
+    locationsCount++;
   }
-  trees[maxZoom + 1] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
 
   // cluster points on max zoom, then cluster the results on previous zoom, etc.;
   // results in a cluster hierarchy across zoom levels
+  trees[maxZoom + 1] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
+  let prevZoom = maxZoom + 1;
+
   for (let z = maxZoom; z >= minZoom; z--) {
     // create a new set of clusters for the zoom and index them with a KD-tree
-    clusters = cluster(clusters, z, trees[z + 1], opts);
-    trees[z] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
+    const _clusters = cluster(clusters, z, trees[prevZoom], opts);
+    if (_clusters.length === clusters.length) {
+      // same number of clusters => move the higher level clusters up
+      // no need to keep the same data on multiple levels
+      trees[z] = trees[prevZoom];
+      trees[prevZoom] = undefined;
+      prevZoom = z;
+      clusters = _clusters;
+    } else {
+      prevZoom = z;
+      clusters = _clusters;
+      trees[z] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
+    }
   }
 
   if (trees.length === 0) {
     return [];
   }
-  const numbersOfClusters = trees.map((d) => d.points.length);
-  const maxAvailZoom = numbersOfClusters.indexOf(
-    numbersOfClusters[numbersOfClusters.length - 1],
-  );
+
+  const numbersOfClusters = trees.map((d) => d?.points.length);
+  const minClusters = min(numbersOfClusters.filter((d) => d > 0));
+  const maxClusters = getMaxNumberOfClusters(locations, locationAccessors);
+
+  let maxAvailZoom = numbersOfClusters.indexOf(maxClusters);
+  if (maxClusters < locationsCount) {
+    maxAvailZoom++;
+    if (maxAvailZoom < maxZoom + 1) {
+      trees[maxAvailZoom] = trees[maxZoom + 1];
+      trees[maxZoom + 1] = undefined;
+    }
+  }
   const minAvailZoom = Math.min(
     maxAvailZoom,
-    numbersOfClusters.lastIndexOf(numbersOfClusters[0]),
+    numbersOfClusters.lastIndexOf(minClusters),
   );
 
   const clusterLevels = new Array<ClusterLevel>();
-  for (let zoom = minAvailZoom; zoom <= maxAvailZoom; zoom++) {
+  prevZoom = NaN;
+  for (let zoom = maxAvailZoom; zoom >= minAvailZoom; zoom--) {
     let childrenByParent: Map<number, string[]> | undefined;
     const tree = trees[zoom];
+    if (!tree) continue;
     if (zoom < maxAvailZoom) {
       childrenByParent = rollup<Point<L>, string[], number>(
-        trees[zoom + 1].points,
+        trees[prevZoom].points,
         (points: any[]) =>
           points.map((p: any) =>
             p.id ? makeClusterId(p.id) : getLocationId(p.location),
@@ -192,6 +216,7 @@ export function clusterLocations<L>(
       zoom,
       nodes,
     });
+    prevZoom = zoom;
   }
   return clusterLevels;
 }
@@ -302,4 +327,34 @@ function getX<L>(p: Point<L>) {
 
 function getY<L>(p: Point<L>) {
   return p.y;
+}
+
+/**
+ * Finds groups of locations which share the same positions.
+ * They will always be clustered together at any zoom level
+ * which can lead to having too many zooms.
+ */
+function getMaxNumberOfClusters<L>(
+  locations: Iterable<L>,
+  locationAccessors: LocationAccessors<L>,
+) {
+  const {getLocationLon, getLocationLat} = locationAccessors;
+  const countByLatLon = new Map<string, number>();
+  let numLocations = 0;
+  for (const loc of locations) {
+    const lon = getLocationLon(loc);
+    const lat = getLocationLat(loc);
+    const key = `${lon},${lat}`;
+    const prev = countByLatLon.get(key);
+    countByLatLon.set(key, prev ? prev + 1 : 1);
+    numLocations++;
+  }
+
+  let numSame = 0;
+  for (const [key, count] of countByLatLon) {
+    if (count > 1) {
+      numSame++;
+    }
+  }
+  return numLocations - numSame;
 }
