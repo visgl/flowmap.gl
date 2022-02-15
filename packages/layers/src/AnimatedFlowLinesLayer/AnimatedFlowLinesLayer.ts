@@ -96,14 +96,12 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       instanceSourcePositions: {
         size: 3,
         type: GL.DOUBLE,
-        fp64: this.use64bitPositions(),
         transition: true,
         accessor: 'getSourcePosition',
       },
       instanceTargetPositions: {
         size: 3,
         type: GL.DOUBLE,
-        fp64: this.use64bitPositions(),
         transition: true,
         accessor: 'getTargetPosition',
       },
