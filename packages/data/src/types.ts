@@ -1,6 +1,7 @@
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
   flows: Iterable<F> | undefined;
+  clusterLevels?: ClusterLevels;
 };
 
 export interface ViewState {

@@ -1,4 +1,5 @@
 import type {GUI} from 'lil-gui';
+import {ClusterLevels} from '@flowmap.gl/data';
 export type LocationDatum = {
   id: string;
   name: string;
@@ -15,7 +16,12 @@ export type LoadedData = {
   flows: FlowDatum[];
 };
 
-export function fetchData(): Promise<LoadedData>;
+export function getClusterLevelsH3(
+  locations: LocationDatum[],
+  minZoom?: number,
+  maxZoom?: number,
+): ClusterLevels;
+export function fetchData(clusteringMethod?: string): Promise<LoadedData>;
 
 export const UI_INITIAL: Record<string, any>;
 export const initLilGui: (gui: GUI) => void;

@@ -12,6 +12,7 @@ export const UI_INITIAL = {
   clusteringEnabled: FlowmapLayer.defaultProps.clusteringEnabled,
   clusteringAuto: FlowmapLayer.defaultProps.clusteringAuto,
   clusteringLevel: 5,
+  clusteringMethod: 'HCA',
   animationEnabled: FlowmapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
@@ -51,6 +52,10 @@ export const initLilGui = (gui) => {
   });
   const clustering = gui.addFolder('Clustering');
   const clusteringEnabled = clustering.add(UI_INITIAL, 'clusteringEnabled');
+  const clusteringMethod = clustering
+    .add(UI_INITIAL, 'clusteringMethod', ['HCA', 'H3'])
+    .enable(FlowmapLayer.defaultProps.clusteringEnabled);
+
   const clusteringAuto = clustering.add(UI_INITIAL, 'clusteringAuto');
   const clusteringLevel = clustering
     .add(UI_INITIAL, 'clusteringLevel')
@@ -60,7 +65,8 @@ export const initLilGui = (gui) => {
     .enable(!FlowmapLayer.defaultProps.clusteringAuto);
   clusteringEnabled.onChange((v) => {
     clusteringAuto.enable(v);
-    clusteringLevel.enable(v);
+    clusteringMethod.enable(v);
+    clusteringLevel.enable(v && !clusteringEnabled.object.clusteringAuto);
   });
   clusteringAuto
     .enable(FlowmapLayer.defaultProps.clusteringEnabled)

@@ -30,9 +30,9 @@ import {
   isFlowmapDataProvider,
   LayersData,
   LocalFlowmapDataProvider,
-  LocationFilterMode,
   ViewportProps,
   FlowmapAggregateAccessors,
+  FilterState,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -47,6 +47,7 @@ import {
 export type FlowmapLayerProps<L, F> = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
+  filter?: FilterState;
   locationTotalsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
@@ -211,11 +212,6 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   }
 
   updateState({oldProps, props, changeFlags}: Record<string, any>): void {
-    const {dataProvider, highlightedObject} = this.state || {};
-    if (!dataProvider) {
-      return;
-    }
-
     if (changeFlags.propsChanged) {
       // this._updateAccessors();
     }
@@ -232,10 +228,13 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       changeFlags.viewportChanged ||
       changeFlags.propsOrDataChanged // TODO can we ignore accessor props changes?
     ) {
-      dataProvider.setFlowmapState(this._getFlowmapState());
-      dataProvider.updateLayersData((layersData: LayersData | undefined) => {
-        this.setState({layersData});
-      }, changeFlags);
+      const {dataProvider} = this.state || {};
+      if (dataProvider) {
+        dataProvider.setFlowmapState(this._getFlowmapState());
+        dataProvider.updateLayersData((layersData: LayersData | undefined) => {
+          this.setState({layersData});
+        }, changeFlags);
+      }
     }
   }
 
@@ -275,12 +274,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   private _getFlowmapState() {
     return {
       viewport: pickViewportProps(this.context.viewport),
-      filterState: {
-        selectedLocations: undefined,
-        locationFilterMode: LocationFilterMode.ALL,
-        selectedTimeRange: undefined,
-      },
-      settingsState: this._getSettingsState(),
+      filter: this.props.filter,
+      settings: this._getSettingsState(),
     };
   }
 
