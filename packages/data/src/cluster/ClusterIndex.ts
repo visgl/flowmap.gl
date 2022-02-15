@@ -27,14 +27,14 @@ import {
 } from './../types';
 import {ascending, bisectLeft, extent} from 'd3-array';
 
-export type LocationWeightGetter = (id: string) => number;
+export type LocationWeightGetter = (id: string | number) => number;
 
 /**
  * A data structure representing the cluster levels for efficient flow aggregation.
  */
 export interface ClusterIndex<F> {
   availableZoomLevels: number[];
-  getClusterById: (clusterId: string) => Cluster | undefined;
+  getClusterById: (clusterId: string | number) => Cluster | undefined;
   /**
    * List the nodes on the given zoom level.
    */
@@ -50,7 +50,10 @@ export interface ClusterIndex<F> {
   /**
    * Find the cluster the given location is residing in on the specified zoom level.
    */
-  findClusterFor: (locationId: string, zoom: number) => string | undefined;
+  findClusterFor: (
+    locationId: string | number,
+    zoom: number,
+  ) => string | number | undefined;
   /**
    * Aggregate flows for the specified zoom level.
    */
@@ -69,8 +72,8 @@ export interface ClusterIndex<F> {
  */
 export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
   const nodesByZoom = new Map<number, ClusterNode[]>();
-  const clustersById = new Map<string, Cluster>();
-  const minZoomByLocationId = new Map<string, number>();
+  const clustersById = new Map<string | number, Cluster>();
+  const minZoomByLocationId = new Map<string | number, number>();
   for (const {zoom, nodes} of clusterLevels) {
     nodesByZoom.set(zoom, nodes);
     for (const node of nodes) {
@@ -91,7 +94,10 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
     throw new Error('Could not determine minZoom or maxZoom');
   }
 
-  const leavesToClustersByZoom = new Map<number, Map<string, Cluster>>();
+  const leavesToClustersByZoom = new Map<
+    number,
+    Map<string | number, Cluster>
+  >();
 
   for (const cluster of clustersById.values()) {
     const {zoom} = cluster;
@@ -118,7 +124,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
 
   const expandCluster = (cluster: Cluster, targetZoom: number = maxZoom) => {
     const ids: string[] = [];
-    const visit = (c: Cluster, expandedIds: string[]) => {
+    const visit = (c: Cluster, expandedIds: (string | number)[]) => {
       if (targetZoom > c.zoom) {
         for (const childId of c.children) {
           const child = clustersById.get(childId);
@@ -136,7 +142,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
     return ids;
   };
 
-  function findClusterFor(locationId: string, zoom: number) {
+  function findClusterFor(locationId: string | number, zoom: number) {
     const leavesToClusters = leavesToClustersByZoom.get(zoom);
     if (!leavesToClusters) {
       return undefined;
@@ -179,7 +185,8 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
       }
       const result: (F | AggregateFlow)[] = [];
       const aggFlowsByKey = new Map<string, AggregateFlow>();
-      const makeKey = (origin: string, dest: string) => `${origin}:${dest}`;
+      const makeKey = (origin: string | number, dest: string | number) =>
+        `${origin}:${dest}`;
       const {
         flowCountsMapReduce = {
           map: getFlowMagnitude,
@@ -223,8 +230,8 @@ export function makeLocationWeightGetter<F>(
   {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
 ): LocationWeightGetter {
   const locationTotals = {
-    incoming: new Map<string, number>(),
-    outgoing: new Map<string, number>(),
+    incoming: new Map<string | number, number>(),
+    outgoing: new Map<string | number, number>(),
   };
   for (const flow of flows) {
     const origin = getFlowOriginId(flow);
@@ -239,7 +246,7 @@ export function makeLocationWeightGetter<F>(
       (locationTotals.outgoing.get(origin) || 0) + count,
     );
   }
-  return (id: string) =>
+  return (id: string | number) =>
     Math.max(
       Math.abs(locationTotals.incoming.get(id) || 0),
       Math.abs(locationTotals.outgoing.get(id) || 0),

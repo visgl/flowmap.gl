@@ -104,12 +104,14 @@ export default class WorkerFlowmapDataProvider
   }
 
   async getLocationById(
-    id: string,
+    id: string | number,
   ): Promise<LocationDatum | Cluster | undefined> {
     return this.localProvider.getLocationById(id);
   }
 
-  async getTotalsForLocation(id: string): Promise<LocationTotals | undefined> {
+  async getTotalsForLocation(
+    id: string | number,
+  ): Promise<LocationTotals | undefined> {
     return this.localProvider.getTotalsForLocation(id);
   }
 

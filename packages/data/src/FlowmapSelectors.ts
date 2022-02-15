@@ -151,9 +151,8 @@ export default class FlowmapSelectors<L, F> {
     props: FlowmapData<L, F>,
   ) => state.settings.animationEnabled;
 
-  getInvalidLocationIds: Selector<L, F, string[] | undefined> = createSelector(
-    this.getLocationsFromProps,
-    (locations) => {
+  getInvalidLocationIds: Selector<L, F, (string | number)[] | undefined> =
+    createSelector(this.getLocationsFromProps, (locations) => {
       if (!locations) return undefined;
       const invalid = [];
       for (const location of locations) {
@@ -165,8 +164,7 @@ export default class FlowmapSelectors<L, F> {
         }
       }
       return invalid.length > 0 ? invalid : undefined;
-    },
-  );
+    });
 
   getLocations: Selector<L, F, Iterable<L> | undefined> = createSelector(
     this.getLocationsFromProps,
@@ -186,17 +184,15 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getLocationIds: Selector<L, F, Set<string> | undefined> = createSelector(
-    this.getLocations,
-    (locations) => {
+  getLocationIds: Selector<L, F, Set<string | number> | undefined> =
+    createSelector(this.getLocations, (locations) => {
       if (!locations) return undefined;
-      const ids = new Set<string>();
+      const ids = new Set<string | number>();
       for (const id of locations) {
         ids.add(this.accessors.getLocationId(id));
       }
       return ids;
-    },
-  );
+    });
 
   getSelectedLocationsSet: Selector<L, F, Set<string> | undefined> =
     createSelector(this.getSelectedLocations, (ids) =>
@@ -317,17 +313,15 @@ export default class FlowmapSelectors<L, F> {
       },
     );
 
-  getLocationsById: Selector<L, F, Map<string, L> | undefined> = createSelector(
-    this.getLocationsHavingFlows,
-    (locations) => {
+  getLocationsById: Selector<L, F, Map<string | number, L> | undefined> =
+    createSelector(this.getLocationsHavingFlows, (locations) => {
       if (!locations) return undefined;
-      const locationsById = new Map<string, L>();
+      const locationsById = new Map<string | number, L>();
       for (const location of locations) {
         locationsById.set(this.accessors.getLocationId(location), location);
       }
       return locationsById;
-    },
-  );
+    });
 
   getLocationWeightGetter: Selector<L, F, LocationWeightGetter | undefined> =
     createSelector(this.getSortedFlowsForKnownLocations, (flows) => {
@@ -371,7 +365,7 @@ export default class FlowmapSelectors<L, F> {
         this.accessors.getFlowmapDataAccessors();
 
       // Adding meaningful names
-      const getName = (id: string) => {
+      const getName = (id: string | number) => {
         const loc = locationsById.get(id);
         if (loc) {
           return getLocationName
@@ -555,27 +549,28 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getUnknownLocations: Selector<L, F, Set<string> | undefined> = createSelector(
-    this.getLocationIds,
-    this.getFlowsFromProps,
-    this.getSortedFlowsForKnownLocations,
-    (ids, flows, flowsForKnownLocations) => {
-      if (!ids || !flows) return undefined;
-      if (
-        flowsForKnownLocations
-        // && flows.length === flowsForKnownLocations.length
-      )
-        return undefined;
-      const missing = new Set<string>();
-      for (const flow of flows) {
-        if (!ids.has(this.accessors.getFlowOriginId(flow)))
-          missing.add(this.accessors.getFlowOriginId(flow));
-        if (!ids.has(this.accessors.getFlowDestId(flow)))
-          missing.add(this.accessors.getFlowDestId(flow));
-      }
-      return missing;
-    },
-  );
+  getUnknownLocations: Selector<L, F, Set<string | number> | undefined> =
+    createSelector(
+      this.getLocationIds,
+      this.getFlowsFromProps,
+      this.getSortedFlowsForKnownLocations,
+      (ids, flows, flowsForKnownLocations) => {
+        if (!ids || !flows) return undefined;
+        if (
+          flowsForKnownLocations
+          // && flows.length === flowsForKnownLocations.length
+        )
+          return undefined;
+        const missing = new Set<string | number>();
+        for (const flow of flows) {
+          if (!ids.has(this.accessors.getFlowOriginId(flow)))
+            missing.add(this.accessors.getFlowOriginId(flow));
+          if (!ids.has(this.accessors.getFlowDestId(flow)))
+            missing.add(this.accessors.getFlowDestId(flow));
+        }
+        return missing;
+      },
+    );
 
   getSortedAggregatedFilteredFlows: Selector<
     L,
@@ -713,47 +708,50 @@ export default class FlowmapSelectors<L, F> {
       },
     );
 
-  getLocationTotals: Selector<L, F, Map<string, LocationTotals> | undefined> =
-    createSelector(
-      this.getLocationsForZoom,
-      this.getSortedAggregatedFilteredFlows,
-      this.getSelectedLocationsSet,
-      this.getLocationFilterMode,
-      (locations, flows, selectedLocationsSet, locationFilterMode) => {
-        if (!flows) return undefined;
-        const totals = new Map<string, LocationTotals>();
-        const add = (
-          id: string,
-          d: Partial<LocationTotals>,
-        ): LocationTotals => {
-          const rv = totals.get(id) ?? {
-            incomingCount: 0,
-            outgoingCount: 0,
-            internalCount: 0,
-          };
-          if (d.incomingCount != null) rv.incomingCount += d.incomingCount;
-          if (d.outgoingCount != null) rv.outgoingCount += d.outgoingCount;
-          if (d.internalCount != null) rv.internalCount += d.internalCount;
-          return rv;
+  getLocationTotals: Selector<
+    L,
+    F,
+    Map<string | number, LocationTotals> | undefined
+  > = createSelector(
+    this.getLocationsForZoom,
+    this.getSortedAggregatedFilteredFlows,
+    this.getSelectedLocationsSet,
+    this.getLocationFilterMode,
+    (locations, flows, selectedLocationsSet, locationFilterMode) => {
+      if (!flows) return undefined;
+      const totals = new Map<string | number, LocationTotals>();
+      const add = (
+        id: string | number,
+        d: Partial<LocationTotals>,
+      ): LocationTotals => {
+        const rv = totals.get(id) ?? {
+          incomingCount: 0,
+          outgoingCount: 0,
+          internalCount: 0,
         };
-        for (const f of flows) {
-          if (
-            this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
-          ) {
-            const originId = this.accessors.getFlowOriginId(f);
-            const destId = this.accessors.getFlowDestId(f);
-            const count = this.accessors.getFlowMagnitude(f);
-            if (originId === destId) {
-              totals.set(originId, add(originId, {internalCount: count}));
-            } else {
-              totals.set(originId, add(originId, {outgoingCount: count}));
-              totals.set(destId, add(destId, {incomingCount: count}));
-            }
+        if (d.incomingCount != null) rv.incomingCount += d.incomingCount;
+        if (d.outgoingCount != null) rv.outgoingCount += d.outgoingCount;
+        if (d.internalCount != null) rv.internalCount += d.internalCount;
+        return rv;
+      };
+      for (const f of flows) {
+        if (
+          this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
+        ) {
+          const originId = this.accessors.getFlowOriginId(f);
+          const destId = this.accessors.getFlowDestId(f);
+          const count = this.accessors.getFlowMagnitude(f);
+          if (originId === destId) {
+            totals.set(originId, add(originId, {internalCount: count}));
+          } else {
+            totals.set(originId, add(originId, {outgoingCount: count}));
+            totals.set(destId, add(destId, {incomingCount: count}));
           }
         }
-        return totals;
-      },
-    );
+      }
+      return totals;
+    },
+  );
 
   getLocationsTree: Selector<L, F, KDBushTree> = createSelector(
     this.getLocationsForZoom,
@@ -787,7 +785,7 @@ export default class FlowmapSelectors<L, F> {
       },
     );
 
-  getLocationIdsInViewport: Selector<L, F, Set<string> | undefined> =
+  getLocationIdsInViewport: Selector<L, F, Set<string | number> | undefined> =
     createSelectorCreator(
       defaultMemoize,
       // @ts-ignore
@@ -1008,7 +1006,7 @@ export default class FlowmapSelectors<L, F> {
     this.getCircleSizeScale,
     this.getLocationTotals,
     (circleSizeScale, locationTotals) => {
-      return (locationId: string) => {
+      return (locationId: string | number) => {
         const total = locationTotals?.get(locationId);
         if (total && circleSizeScale) {
           return (
@@ -1026,7 +1024,7 @@ export default class FlowmapSelectors<L, F> {
     this.getCircleSizeScale,
     this.getLocationTotals,
     (circleSizeScale, locationTotals) => {
-      return (locationId: string) => {
+      return (locationId: string | number) => {
         const total = locationTotals?.get(locationId);
         if (total && circleSizeScale) {
           return (
@@ -1162,10 +1160,10 @@ export default class FlowmapSelectors<L, F> {
     locations: (L | ClusterNode)[] | undefined,
     flows: (F | AggregateFlow)[] | undefined,
     flowmapColors: DiffColorsRGBA | ColorsRGBA,
-    locationsById: Map<string, L | ClusterNode> | undefined,
-    locationIdsInViewport: Set<string> | undefined,
-    getInCircleSize: (locationId: string) => number,
-    getOutCircleSize: (locationId: string) => number,
+    locationsById: Map<string | number, L | ClusterNode> | undefined,
+    locationIdsInViewport: Set<string | number> | undefined,
+    getInCircleSize: (locationId: string | number) => number,
+    getOutCircleSize: (locationId: string | number) => number,
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
     animationEnabled: boolean,
   ): LayersData {
@@ -1339,7 +1337,7 @@ export default class FlowmapSelectors<L, F> {
 
   isFlowInSelection(
     flow: F | AggregateFlow,
-    selectedLocationsSet: Set<string> | undefined,
+    selectedLocationsSet: Set<string | number> | undefined,
     locationFilterMode?: LocationFilterMode,
   ) {
     const origin = this.accessors.getFlowOriginId(flow);
@@ -1386,8 +1384,8 @@ export default class FlowmapSelectors<L, F> {
 }
 
 function calcLocationTotalsExtent(
-  locationTotals: Map<string, LocationTotals> | undefined,
-  locationIdsInViewport: Set<string> | undefined,
+  locationTotals: Map<string | number, LocationTotals> | undefined,
+  locationIdsInViewport: Set<string | number> | undefined,
 ) {
   if (!locationTotals) return undefined;
   let rv: [number, number] | undefined = undefined;

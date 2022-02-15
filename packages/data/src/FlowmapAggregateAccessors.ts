@@ -21,7 +21,7 @@ export default class FlowmapAggregateAccessors<L, F> {
     return this.accessors;
   }
 
-  getLocationId = (location: L | ClusterNode): string =>
+  getLocationId = (location: L | ClusterNode): string | number =>
     isLocationClusterNode(location)
       ? location.id
       : this.accessors.getLocationId(location);
@@ -29,7 +29,7 @@ export default class FlowmapAggregateAccessors<L, F> {
   getLocationName = (location: L | ClusterNode): string =>
     (isLocationClusterNode(location) && isCluster(location)
       ? location.name
-      : undefined) ?? this.getLocationId(location);
+      : undefined) ?? `${this.getLocationId(location)}`;
   // ? location.name // TODO getLocationName for locations and clusters
   // : this.accessors.getLocationName
   // ? this.accessors.getLocationName(location)

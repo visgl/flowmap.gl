@@ -2,20 +2,23 @@ import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {
-  FlowmapLayerPickingInfo,
   FlowmapLayer,
+  FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
-import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
+import {
+  ClusterNode,
+  FlowmapData,
+  getViewStateForLocations,
+} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import {
   fetchData,
   FlowDatum,
-  LocationDatum,
   initLilGui,
+  LocationDatum,
   UI_INITIAL,
   useUI,
-  getClusterLevelsH3,
 } from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -85,9 +88,12 @@ function App() {
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
         getFlowOriginId: (flow) => flow.origin,
+        getLocationName: (loc) => loc.name,
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
-        getLocationName: (loc) => loc.name,
+        renderLocationLabels: (nodes: ClusterNode[]) => {
+          return undefined;
+        },
         onHover: (info) => setTooltip(getTooltipState(info)),
         onClick: (info) =>
           console.log('clicked', info.object?.type, info.object, info),

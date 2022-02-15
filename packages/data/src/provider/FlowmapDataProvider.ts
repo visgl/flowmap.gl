@@ -23,11 +23,13 @@ export default interface FlowmapDataProvider<L, F> {
 
   getFlowByIndex(index: number): Promise<F | AggregateFlow | undefined>;
 
-  getLocationById(id: string): Promise<L | Cluster | undefined>;
+  getLocationById(id: string | number): Promise<L | Cluster | undefined>;
 
   getLocationByIndex(idx: number): Promise<L | ClusterNode | undefined>;
 
-  getTotalsForLocation(id: string): Promise<LocationTotals | undefined>;
+  getTotalsForLocation(
+    id: string | number,
+  ): Promise<LocationTotals | undefined>;
 
   // getLocationsInBbox(
   //   bbox: [number, number, number, number],
