@@ -102,7 +102,6 @@ export default class FlowmapSelectors<L, F> {
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ) => {
-    console.log('getClusterLevelsFromProps', props.clusterLevels);
     return props.clusterLevels;
   };
   getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -364,7 +363,6 @@ export default class FlowmapSelectors<L, F> {
     this.getLocationWeightGetter,
     this.getClusterLevels,
     (locationsById, getLocationWeight, clusterLevels) => {
-      console.log('getClusterIndex');
       if (!locationsById || !getLocationWeight || !clusterLevels)
         return undefined;
 
@@ -1124,7 +1122,6 @@ export default class FlowmapSelectors<L, F> {
       flowThicknessScale,
       animationEnabled,
     ) => {
-      console.log('getLayersData');
       return this._prepareLayersData(
         locations,
         flows,
