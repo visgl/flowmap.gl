@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/flowmap.gl/static/css/main.b8496768.css",
-    "main.js": "/flowmap.gl/static/js/main.ee258440.js",
+    "main.js": "/flowmap.gl/static/js/main.87c8f96d.js",
     "index.html": "/flowmap.gl/index.html",
     "main.b8496768.css.map": "/flowmap.gl/static/css/main.b8496768.css.map",
-    "main.ee258440.js.map": "/flowmap.gl/static/js/main.ee258440.js.map"
+    "main.87c8f96d.js.map": "/flowmap.gl/static/js/main.87c8f96d.js.map"
   },
   "entrypoints": [
     "static/css/main.b8496768.css",
-    "static/js/main.ee258440.js"
+    "static/js/main.87c8f96d.js"
   ]
 }
