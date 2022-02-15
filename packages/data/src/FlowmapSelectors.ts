@@ -31,6 +31,7 @@ import {
   buildIndex,
   ClusterIndex,
   findAppropriateZoomLevel,
+  LocationWeightGetter,
   makeLocationWeightGetter,
 } from './cluster/ClusterIndex';
 import getColors, {
@@ -57,6 +58,7 @@ import {
 import {
   AggregateFlow,
   Cluster,
+  ClusterLevels,
   ClusterNode,
   CountByTime,
   FlowAccessors,
@@ -92,10 +94,17 @@ export default class FlowmapSelectors<L, F> {
     this.accessors = new FlowmapAggregateAccessors(accessors);
   }
 
-  getFetchedFlows = (state: FlowmapState, props: FlowmapData<L, F>) =>
+  getFlowsFromProps = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.flows;
-  getFetchedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
+  getLocationsFromProps = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.locations;
+  getClusterLevelsFromProps = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ) => {
+    console.log('getClusterLevelsFromProps', props.clusterLevels);
+    return props.clusterLevels;
+  };
   getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settingsState.maxTopFlowsDisplayNum;
   getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -144,7 +153,7 @@ export default class FlowmapSelectors<L, F> {
   ) => state.settingsState.animationEnabled;
 
   getInvalidLocationIds: Selector<L, F, string[] | undefined> = createSelector(
-    this.getFetchedLocations,
+    this.getLocationsFromProps,
     (locations) => {
       if (!locations) return undefined;
       const invalid = [];
@@ -161,7 +170,7 @@ export default class FlowmapSelectors<L, F> {
   );
 
   getLocations: Selector<L, F, Iterable<L> | undefined> = createSelector(
-    this.getFetchedLocations,
+    this.getLocationsFromProps,
     this.getInvalidLocationIds,
     (locations, invalidIds) => {
       if (!locations) return undefined;
@@ -196,23 +205,27 @@ export default class FlowmapSelectors<L, F> {
     );
 
   getSortedFlowsForKnownLocations: Selector<L, F, F[] | undefined> =
-    createSelector(this.getFetchedFlows, this.getLocationIds, (flows, ids) => {
-      if (!ids || !flows) return undefined;
-      const filtered = [];
-      for (const flow of flows) {
-        const srcId = this.accessors.getFlowOriginId(flow);
-        const dstId = this.accessors.getFlowDestId(flow);
-        if (ids.has(srcId) && ids.has(dstId)) {
-          filtered.push(flow);
+    createSelector(
+      this.getFlowsFromProps,
+      this.getLocationIds,
+      (flows, ids) => {
+        if (!ids || !flows) return undefined;
+        const filtered = [];
+        for (const flow of flows) {
+          const srcId = this.accessors.getFlowOriginId(flow);
+          const dstId = this.accessors.getFlowDestId(flow);
+          if (ids.has(srcId) && ids.has(dstId)) {
+            filtered.push(flow);
+          }
         }
-      }
-      return filtered.sort((a: F, b: F) =>
-        descending(
-          Math.abs(this.accessors.getFlowMagnitude(a)),
-          Math.abs(this.accessors.getFlowMagnitude(b)),
-        ),
-      );
-    });
+        return filtered.sort((a: F, b: F) =>
+          descending(
+            Math.abs(this.accessors.getFlowMagnitude(a)),
+            Math.abs(this.accessors.getFlowMagnitude(b)),
+          ),
+        );
+      },
+    );
 
   getActualTimeExtent: Selector<L, F, [Date, Date] | undefined> =
     createSelector(this.getSortedFlowsForKnownLocations, (flows) => {
@@ -317,17 +330,23 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getClusterIndex: Selector<L, F, ClusterIndex<F> | undefined> = createSelector(
-    this.getLocationsHavingFlows,
-    this.getLocationsById,
-    this.getSortedFlowsForKnownLocations,
-    (locations, locationsById, flows) => {
-      if (!locations || !locationsById || !flows) return undefined;
-
+  getLocationWeightGetter: Selector<L, F, LocationWeightGetter | undefined> =
+    createSelector(this.getSortedFlowsForKnownLocations, (flows) => {
+      if (!flows) return undefined;
       const getLocationWeight = makeLocationWeightGetter(
         flows,
         this.accessors.getFlowmapDataAccessors(),
       );
+      return getLocationWeight;
+    });
+
+  getClusterLevels: Selector<L, F, ClusterLevels | undefined> = createSelector(
+    this.getClusterLevelsFromProps,
+    this.getLocationsHavingFlows,
+    this.getLocationWeightGetter,
+    (clusterLevelsFromProps, locations, getLocationWeight) => {
+      if (clusterLevelsFromProps) return clusterLevelsFromProps;
+      if (!locations || !getLocationWeight) return undefined;
       const clusterLevels = clusterLocations(
         locations,
         this.accessors.getFlowmapDataAccessors(),
@@ -336,6 +355,19 @@ export default class FlowmapSelectors<L, F> {
           maxZoom: MAX_CLUSTER_ZOOM_LEVEL,
         },
       );
+      return clusterLevels;
+    },
+  );
+
+  getClusterIndex: Selector<L, F, ClusterIndex<F> | undefined> = createSelector(
+    this.getLocationsById,
+    this.getLocationWeightGetter,
+    this.getClusterLevels,
+    (locationsById, getLocationWeight, clusterLevels) => {
+      console.log('getClusterIndex');
+      if (!locationsById || !getLocationWeight || !clusterLevels)
+        return undefined;
+
       const clusterIndex = buildIndex<F>(clusterLevels);
       const {getLocationName, getLocationClusterName} =
         this.accessors.getFlowmapDataAccessors();
@@ -492,7 +524,7 @@ export default class FlowmapSelectors<L, F> {
     );
 
   getDiffMode: Selector<L, F, boolean> = createSelector(
-    this.getFetchedFlows,
+    this.getFlowsFromProps,
     (flows) => {
       if (flows) {
         for (const f of flows) {
@@ -527,7 +559,7 @@ export default class FlowmapSelectors<L, F> {
 
   getUnknownLocations: Selector<L, F, Set<string> | undefined> = createSelector(
     this.getLocationIds,
-    this.getFetchedFlows,
+    this.getFlowsFromProps,
     this.getSortedFlowsForKnownLocations,
     (ids, flows, flowsForKnownLocations) => {
       if (!ids || !flows) return undefined;
@@ -1092,6 +1124,7 @@ export default class FlowmapSelectors<L, F> {
       flowThicknessScale,
       animationEnabled,
     ) => {
+      console.log('getLayersData');
       return this._prepareLayersData(
         locations,
         flows,

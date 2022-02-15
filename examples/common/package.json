@@ -10,6 +10,7 @@
     "@flowmap.gl/data": "^8.0.0-alpha.19",
     "@flowmap.gl/layers": "^8.0.0-alpha.19",
     "d3-fetch": "^3.0.1",
+    "h3-js": "^3.7.2",
     "lil-gui": "^0.15.0"
   },
   "peerDependencies": {

@@ -139,10 +139,8 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
 
     if (changeFlags.extensionsChanged) {
       const {gl} = this.context;
-      if (this.state.model) {
-        this.state.model.delete();
-      }
-      this.setState({model: this._getModel(gl)});
+      this.state.model?.delete();
+      this.state.model = this._getModel(gl);
       this.getAttributeManager().invalidateAll();
     }
   }

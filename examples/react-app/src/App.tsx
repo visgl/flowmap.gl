@@ -6,16 +6,16 @@ import {
   FlowmapLayer,
   PickingType,
 } from '@flowmap.gl/layers';
-import {getViewStateForLocations} from '@flowmap.gl/data';
+import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import {
   fetchData,
   FlowDatum,
-  LoadedData,
   LocationDatum,
   initLilGui,
   UI_INITIAL,
   useUI,
+  getClusterLevelsH3,
 } from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -31,15 +31,19 @@ type TooltipState = {
 function App() {
   const config = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
-  const [data, setData] = useState<LoadedData>();
+  const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
   useEffect(() => {
     (async () => {
-      const {locations, flows} = await fetchData();
-      setData({locations, flows});
+      setData(await fetchData(config.clusteringMethod));
+    })();
+  }, [config.clusteringMethod]);
+
+  useEffect(() => {
+    if (!viewState && data?.locations) {
       const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
       const viewState = getViewStateForLocations(
-        locations,
+        data.locations,
         (loc: LocationDatum) => [loc.lon, loc.lat],
         [width, height],
         {
@@ -53,8 +57,8 @@ function App() {
         },
       );
       setViewState({...viewState, width, height});
-    })();
-  }, []);
+    }
+  }, [data]);
   const handleViewStateChange = ({viewState}: any) => {
     setViewState(viewState);
     setTooltip(undefined);
