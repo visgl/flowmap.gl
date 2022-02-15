@@ -46,17 +46,14 @@ function App() {
         data.locations,
         (loc: LocationDatum) => [loc.lon, loc.lat],
         [width, height],
-        {
-          // this is just for the BIXI dataset to look nicer on load
-          padding: {
-            top: -height * 0.6,
-            left: -width * 0.2,
-            bottom: -height * 0.2,
-            right: 0,
-          },
-        },
       );
-      setViewState({...viewState, width, height});
+      setViewState({
+        ...viewState,
+        latitude: viewState.latitude - 0.02,
+        zoom: viewState.zoom + 1,
+        width,
+        height,
+      });
     }
   }, [data]);
   const handleViewStateChange = ({viewState}: any) => {
