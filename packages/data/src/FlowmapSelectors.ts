@@ -106,51 +106,51 @@ export default class FlowmapSelectors<L, F> {
     return props.clusterLevels;
   };
   getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.settingsState.maxTopFlowsDisplayNum;
+    state.settings.maxTopFlowsDisplayNum;
   getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.selectedLocations;
+    state.filter?.selectedLocations;
   getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.locationFilterMode;
+    state.filter?.locationFilterMode;
   getClusteringEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.settingsState.clusteringEnabled;
+    state.settings.clusteringEnabled;
   getLocationTotalsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.settingsState.locationTotalsEnabled;
+    state.settings.locationTotalsEnabled;
   getZoom = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport.zoom;
   getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport;
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filterState.selectedTimeRange;
+    state.filter?.selectedTimeRange;
 
   getColorScheme: Selector<L, F, string | string[] | undefined> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.colorScheme;
+  ) => state.settings.colorScheme;
 
   getDarkMode: Selector<L, F, boolean> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.darkMode;
+  ) => state.settings.darkMode;
 
   getFadeEnabled: Selector<L, F, boolean> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.fadeEnabled;
+  ) => state.settings.fadeEnabled;
 
   getFadeOpacityEnabled: Selector<L, F, boolean> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.fadeOpacityEnabled;
+  ) => state.settings.fadeOpacityEnabled;
 
   getFadeAmount: Selector<L, F, number> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.fadeAmount;
+  ) => state.settings.fadeAmount;
 
   getAnimate: Selector<L, F, boolean> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settingsState.animationEnabled;
+  ) => state.settings.animationEnabled;
 
   getInvalidLocationIds: Selector<L, F, string[] | undefined> = createSelector(
     this.getLocationsFromProps,
@@ -466,12 +466,12 @@ export default class FlowmapSelectors<L, F> {
   );
 
   getClusterZoom = (state: FlowmapState, props: FlowmapData<L, F>) => {
-    const {settingsState} = state;
-    if (!settingsState.clusteringEnabled) return undefined;
-    if (settingsState.clusteringAuto || settingsState.clusteringLevel == null) {
+    const {settings} = state;
+    if (!settings.clusteringEnabled) return undefined;
+    if (settings.clusteringAuto || settings.clusteringLevel == null) {
       return this._getClusterZoom(state, props);
     }
-    return settingsState.clusteringLevel;
+    return settings.clusteringLevel;
   };
 
   getLocationsForSearchBox: Selector<L, F, (L | Cluster)[] | undefined> =
@@ -861,7 +861,7 @@ export default class FlowmapSelectors<L, F> {
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
-    if (state.settingsState.adaptiveScalesEnabled) {
+    if (state.settings.adaptiveScalesEnabled) {
       return this._getLocationTotalsForViewportExtent(state, props);
     } else {
       return this._getLocationTotalsExtent(state, props);
@@ -956,7 +956,7 @@ export default class FlowmapSelectors<L, F> {
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
-    if (state.settingsState.adaptiveScalesEnabled) {
+    if (state.settings.adaptiveScalesEnabled) {
       return this._getAdaptiveFlowMagnitudeExtent(state, props);
     } else {
       return this._getFlowMagnitudeExtent(state, props);
@@ -1157,7 +1157,7 @@ export default class FlowmapSelectors<L, F> {
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
-      state.settingsState.animationEnabled,
+      state.settings.animationEnabled,
     );
   }
 
@@ -1343,7 +1343,7 @@ export default class FlowmapSelectors<L, F> {
   isFlowInSelection(
     flow: F | AggregateFlow,
     selectedLocationsSet: Set<string> | undefined,
-    locationFilterMode: LocationFilterMode,
+    locationFilterMode?: LocationFilterMode,
   ) {
     const origin = this.accessors.getFlowOriginId(flow);
     const dest = this.accessors.getFlowDestId(flow);
