@@ -1,5 +1,15 @@
 
+
 # Change log
+
+## [8.0.0-alpha.20] - 2022-02-15
+### Changed
+- Added clusterLevels to FlowmapData to enable custom clustering methods
+- Added h3 clustering method to react-app example
+- Fixed stale dataProvider in updateState issue
+- Clustering will skip levels with same number of clusters and treat the case when multiple locations share the same coords
+- Renamed settingsState -> settings, filterState -> filter
+- FlowmapState.filter state made optional
 
 ## [8.0.0-alpha.19] - 2022-01-29
 ### Changed
