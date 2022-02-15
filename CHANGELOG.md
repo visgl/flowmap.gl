@@ -2,6 +2,11 @@
 
 # Change log
 
+## [8.0.0-alpha.21] - 2022-02-15
+### Changed
+- Fixed drawing issue in AnimatedFlowLineLayer when zooming beyond 12
+- Location id type can be number or string
+
 ## [8.0.0-alpha.20] - 2022-02-15
 ### Changed
 - Added clusterLevels to FlowmapData to enable custom clustering methods
