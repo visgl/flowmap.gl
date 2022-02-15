@@ -172,11 +172,11 @@ export function clusterLocations<L>(
   const clusterLevels = new Array<ClusterLevel>();
   prevZoom = NaN;
   for (let zoom = maxAvailZoom; zoom >= minAvailZoom; zoom--) {
-    let childrenByParent: Map<number, string[]> | undefined;
+    let childrenByParent: Map<number, (string | number)[]> | undefined;
     const tree = trees[zoom];
     if (!tree) continue;
     if (zoom < maxAvailZoom) {
-      childrenByParent = rollup<Point<L>, string[], number>(
+      childrenByParent = rollup<Point<L>, (string | number)[], number>(
         trees[prevZoom].points,
         (points: any[]) =>
           points.map((p: any) =>

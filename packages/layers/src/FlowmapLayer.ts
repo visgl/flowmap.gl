@@ -495,6 +495,10 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       }
     }
 
+    if (this.props.renderLocationLabels) {
+      // const labels = this.props.renderLocationLabels(this.state.locations)
+    }
+
     return layers;
   }
 }

@@ -2,20 +2,23 @@ import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {
-  FlowmapLayerPickingInfo,
   FlowmapLayer,
+  FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
-import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
+import {
+  ClusterNode,
+  FlowmapData,
+  getViewStateForLocations,
+} from '@flowmap.gl/data';
 import {StaticMap, ViewportProps} from 'react-map-gl';
 import {
   fetchData,
   FlowDatum,
-  LocationDatum,
   initLilGui,
+  LocationDatum,
   UI_INITIAL,
   useUI,
-  getClusterLevelsH3,
 } from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -46,17 +49,14 @@ function App() {
         data.locations,
         (loc: LocationDatum) => [loc.lon, loc.lat],
         [width, height],
-        {
-          // this is just for the BIXI dataset to look nicer on load
-          padding: {
-            top: -height * 0.6,
-            left: -width * 0.2,
-            bottom: -height * 0.2,
-            right: 0,
-          },
-        },
       );
-      setViewState({...viewState, width, height});
+      setViewState({
+        ...viewState,
+        latitude: viewState.latitude - 0.02,
+        zoom: viewState.zoom + 1,
+        width,
+        height,
+      });
     }
   }, [data]);
   const handleViewStateChange = ({viewState}: any) => {
@@ -88,9 +88,12 @@ function App() {
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
         getFlowOriginId: (flow) => flow.origin,
+        getLocationName: (loc) => loc.name,
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
-        getLocationName: (loc) => loc.name,
+        renderLocationLabels: (nodes: ClusterNode[]) => {
+          return undefined;
+        },
         onHover: (info) => setTooltip(getTooltipState(info)),
         onClick: (info) =>
           console.log('clicked', info.object?.type, info.object, info),

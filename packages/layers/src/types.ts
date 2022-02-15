@@ -27,7 +27,7 @@ export interface PickingInfo<T> {
 }
 
 export interface LocationPickingInfoObject<L> {
-  id: string;
+  id: string | number;
   type: PickingType.LOCATION;
   location: L | ClusterNode;
   name: string;

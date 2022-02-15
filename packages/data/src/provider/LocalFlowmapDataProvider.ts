@@ -72,7 +72,7 @@ export default class LocalFlowmapDataProvider<L, F>
     return this.selectors.getLayersData(this.flowmapState, this.flowmapData);
   }
 
-  async getLocationById(id: string): Promise<L | Cluster | undefined> {
+  async getLocationById(id: string | number): Promise<L | Cluster | undefined> {
     if (!this.flowmapState || !this.flowmapData) {
       return undefined;
     }
@@ -93,7 +93,9 @@ export default class LocalFlowmapDataProvider<L, F>
     return locationsById?.get(id);
   }
 
-  async getTotalsForLocation(id: string): Promise<LocationTotals | undefined> {
+  async getTotalsForLocation(
+    id: string | number,
+  ): Promise<LocationTotals | undefined> {
     if (!this.flowmapState || !this.flowmapData) {
       return undefined;
     }

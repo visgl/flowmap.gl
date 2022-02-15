@@ -17,19 +17,19 @@ export type FlowAccessor<F, T> = (flow: F) => T; // objectInfo?: AccessorObjectI
 export type LocationAccessor<L, T> = (location: L) => T;
 
 export interface FlowAccessors<F> {
-  getFlowOriginId: FlowAccessor<F, string>;
-  getFlowDestId: FlowAccessor<F, string>;
+  getFlowOriginId: FlowAccessor<F, string | number>;
+  getFlowDestId: FlowAccessor<F, string | number>;
   getFlowMagnitude: FlowAccessor<F, number>;
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
 }
 
 export interface LocationAccessors<L> {
-  getLocationId: LocationAccessor<L, string>;
-  getLocationName?: LocationAccessor<L, string>;
+  getLocationId: LocationAccessor<L, string | number>;
+  getLocationName?: LocationAccessor<L, string | number>;
   getLocationLat: LocationAccessor<L, number>;
   getLocationLon: LocationAccessor<L, number>;
-  getLocationClusterName?: (locationIds: string[]) => string;
+  getLocationClusterName?: (locationIds: (string | number)[]) => string;
   // getLocationTotalIn?: LocationAccessor<number>;
   // getLocationTotalOut?: LocationAccessor<number>;
   // getLocationTotalInternal?: LocationAccessor<number>;
@@ -75,7 +75,7 @@ export interface ViewportProps {
 }
 
 export interface ClusterNode {
-  id: string;
+  id: string | number;
   zoom: number;
   lat: number;
   lon: number;
@@ -105,8 +105,8 @@ export function isLocationClusterNode<L>(l: L | ClusterNode): l is ClusterNode {
 }
 
 export interface AggregateFlow {
-  origin: string;
-  dest: string;
+  origin: string | number;
+  dest: string | number;
   count: number;
   aggregate: true;
 }
