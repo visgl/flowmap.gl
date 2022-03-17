@@ -95,6 +95,10 @@ export default class FlowmapSelectors<L, F> {
     this.accessors = new FlowmapAggregateAccessors(accessors);
   }
 
+  getAggregateAccessors(): FlowmapAggregateAccessors<L, F> {
+    return this.accessors;
+  }
+
   getFlowsFromProps = (state: FlowmapState, props: FlowmapData<L, F>) =>
     props.flows;
   getLocationsFromProps = (state: FlowmapState, props: FlowmapData<L, F>) =>
