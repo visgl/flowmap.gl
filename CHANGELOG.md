@@ -1,6 +1,14 @@
-
-
 # Change log
+
+## [8.0.0-alpha.22] - 2022-03-17
+### Changed
+- filterState and some of its props made optional
+- Renamed settingsState -> settings, filterState -> filter
+- Clustering will skip levels with same number of clusters and treat th…
+- Extract addClusterNames
+- Exposing selectors from LocalFlowmapDataProvider
+- Adding missing updateLayersData to WorkerFlowmapDataProvider
+- Adding locationLabelsEnabled prop (experimental)
 
 ## [8.0.0-alpha.21] - 2022-02-15
 ### Changed

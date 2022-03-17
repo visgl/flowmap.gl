@@ -46,6 +46,7 @@ import getColors, {
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
 import {FlowmapState} from './FlowmapState';
 import {
+  addClusterNames,
   getFlowThicknessScale,
   getViewportBoundingBox,
 } from './selector-functions';
@@ -114,6 +115,8 @@ export default class FlowmapSelectors<L, F> {
     state.settings.clusteringEnabled;
   getLocationTotalsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.locationTotalsEnabled;
+  getLocationLabelsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
+    state.settings.locationLabelsEnabled;
   getZoom = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport.zoom;
   getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -361,46 +364,14 @@ export default class FlowmapSelectors<L, F> {
         return undefined;
 
       const clusterIndex = buildIndex<F>(clusterLevels);
-      const {getLocationName, getLocationClusterName} =
-        this.accessors.getFlowmapDataAccessors();
-
       // Adding meaningful names
-      const getName = (id: string | number) => {
-        const loc = locationsById.get(id);
-        if (loc) {
-          return getLocationName
-            ? getLocationName(loc)
-            : this.accessors.getLocationId(loc) || id;
-        }
-        return `"${id}"`;
-      };
-      for (const level of clusterLevels) {
-        for (const node of level.nodes) {
-          // Here mutating the nodes (adding names)
-          if (isCluster(node)) {
-            const leaves = clusterIndex.expandCluster(node);
-
-            leaves.sort((a, b) =>
-              descending(getLocationWeight(a), getLocationWeight(b)),
-            );
-
-            if (getLocationClusterName) {
-              node.name = getLocationClusterName(leaves);
-            } else {
-              const topId = leaves[0];
-              const otherId = leaves.length === 2 ? leaves[1] : undefined;
-              node.name = `"${getName(topId)}" and ${
-                otherId
-                  ? `"${getName(otherId)}"`
-                  : `${leaves.length - 1} others`
-              }`;
-            }
-          } else {
-            (node as any).name = getName(node.id);
-          }
-        }
-      }
-
+      addClusterNames(
+        clusterIndex,
+        clusterLevels,
+        locationsById,
+        this.accessors.getFlowmapDataAccessors(),
+        getLocationWeight,
+      );
       return clusterIndex;
     },
   );
@@ -1099,6 +1070,15 @@ export default class FlowmapSelectors<L, F> {
     );
   });
 
+  getLocationOrClusterByIdGetter = createSelector(
+    this.getClusterIndex,
+    this.getLocationsById,
+    (clusterIndex, locationsById) => {
+      return (id: string | number) =>
+        clusterIndex?.getClusterById(id) ?? locationsById?.get(id);
+    },
+  );
+
   getLayersData: Selector<L, F, LayersData> = createSelector(
     this.getLocationsForFlowmapLayer,
     this.getFlowsForFlowmapLayer,
@@ -1109,6 +1089,7 @@ export default class FlowmapSelectors<L, F> {
     this.getOutCircleSizeGetter,
     this.getFlowThicknessScale,
     this.getAnimate,
+    this.getLocationLabelsEnabled,
     (
       locations,
       flows,
@@ -1119,6 +1100,7 @@ export default class FlowmapSelectors<L, F> {
       getOutCircleSize,
       flowThicknessScale,
       animationEnabled,
+      locationLabelsEnabled,
     ) => {
       return this._prepareLayersData(
         locations,
@@ -1130,6 +1112,7 @@ export default class FlowmapSelectors<L, F> {
         getOutCircleSize,
         flowThicknessScale,
         animationEnabled,
+        locationLabelsEnabled,
       );
     },
   );
@@ -1143,6 +1126,7 @@ export default class FlowmapSelectors<L, F> {
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
+    const locationLabelsEnabled = this.getLocationLabelsEnabled(state, props);
     return this._prepareLayersData(
       locations,
       flows,
@@ -1153,6 +1137,7 @@ export default class FlowmapSelectors<L, F> {
       getOutCircleSize,
       flowThicknessScale,
       state.settings.animationEnabled,
+      locationLabelsEnabled,
     );
   }
 
@@ -1166,6 +1151,7 @@ export default class FlowmapSelectors<L, F> {
     getOutCircleSize: (locationId: string | number) => number,
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
     animationEnabled: boolean,
+    locationLabelsEnabled: boolean,
   ): LayersData {
     if (!locations) locations = [];
     if (!flows) flows = [];
@@ -1176,6 +1162,7 @@ export default class FlowmapSelectors<L, F> {
       getLocationId,
       getLocationLon,
       getLocationLat,
+      getLocationName,
     } = this.accessors;
 
     const flowMagnitudeExtent = extent(flows, (f) => getFlowMagnitude(f)) as [
@@ -1307,6 +1294,9 @@ export default class FlowmapSelectors<L, F> {
             : {}),
         },
       },
+      ...(locationLabelsEnabled
+        ? {locationLabels: locations.map(getLocationName)}
+        : undefined),
     };
   }
 

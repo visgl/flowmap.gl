@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/data",
-  "version": "8.0.0-alpha.21",
+  "version": "8.0.0-alpha.22",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

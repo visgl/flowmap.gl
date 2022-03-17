@@ -11,6 +11,7 @@ export interface SettingsState {
   fadeEnabled: boolean;
   fadeOpacityEnabled: boolean;
   locationTotalsEnabled: boolean;
+  locationLabelsEnabled: boolean;
   adaptiveScalesEnabled: boolean;
   clusteringEnabled: boolean;
   clusteringAuto: boolean;

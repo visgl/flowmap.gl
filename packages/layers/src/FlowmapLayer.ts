@@ -15,7 +15,7 @@
  *
  */
 import {CompositeLayer} from '@deck.gl/core';
-import {ScatterplotLayer} from '@deck.gl/layers';
+import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
   colorAsRgba,
   FlowLinesLayerAttributes,
@@ -49,6 +49,7 @@ export type FlowmapLayerProps<L, F> = {
   dataProvider?: FlowmapDataProvider<L, F>;
   filter?: FilterState;
   locationTotalsEnabled?: boolean;
+  locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
@@ -102,6 +103,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     darkMode: true,
     fadeAmount: 50,
     locationTotalsEnabled: true,
+    locationLabelsEnabled: false,
     animationEnabled: false,
     clusteringEnabled: true,
     fadeEnabled: true,
@@ -241,6 +243,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   private _getSettingsState() {
     const {
       locationTotalsEnabled,
+      locationLabelsEnabled,
       adaptiveScalesEnabled,
       animationEnabled,
       clusteringEnabled,
@@ -256,6 +259,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     } = this.props;
     return {
       locationTotalsEnabled,
+      locationLabelsEnabled,
       adaptiveScalesEnabled,
       animationEnabled,
       clusteringEnabled,
@@ -404,7 +408,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     const layers = [];
     if (this.state?.layersData) {
       const {layersData, highlightedObject} = this.state;
-      const {circleAttributes, lineAttributes} = layersData || {};
+      const {circleAttributes, lineAttributes, locationLabels} =
+        layersData || {};
       if (circleAttributes && lineAttributes) {
         const flowmapColors = getFlowmapColors(this._getSettingsState());
         const outlineColor = colorAsRgba(
@@ -493,10 +498,33 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
           }
         }
       }
-    }
-
-    if (this.props.renderLocationLabels) {
-      // const labels = this.props.renderLocationLabels(this.state.locations)
+      if (locationLabels) {
+        layers.push(
+          new TextLayer(
+            this.getSubLayerProps({
+              id: 'location-labels',
+              data: locationLabels,
+              maxWidth: 1000,
+              pickable: false,
+              fontFamily: 'Helvetica',
+              getPixelOffset: (d: string, {index}: {index: number}) => {
+                const r = getOuterCircleRadiusByIndex(circleAttributes, index);
+                return [0, r + 5];
+              },
+              getPosition: (d: string, {index}: {index: number}) => {
+                const pos = getLocationCoordsByIndex(circleAttributes, index);
+                return pos;
+              },
+              getText: (d: string) => d,
+              getSize: 10,
+              getColor: [255, 255, 255, 255],
+              getAngle: 0,
+              getTextAnchor: 'middle',
+              getAlignmentBaseline: 'top',
+            }),
+          ),
+        );
+      }
     }
 
     return layers;

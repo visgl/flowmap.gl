@@ -26,7 +26,7 @@ export interface FlowAccessors<F> {
 
 export interface LocationAccessors<L> {
   getLocationId: LocationAccessor<L, string | number>;
-  getLocationName?: LocationAccessor<L, string | number>;
+  getLocationName?: LocationAccessor<L, string>;
   getLocationLat: LocationAccessor<L, number>;
   getLocationLon: LocationAccessor<L, number>;
   getLocationClusterName?: (locationIds: (string | number)[]) => string;
@@ -160,6 +160,7 @@ export interface FlowLinesLayerAttributes {
 export interface LayersData {
   circleAttributes: FlowCirclesLayerAttributes;
   lineAttributes: FlowLinesLayerAttributes;
+  locationLabels?: string[];
 }
 
 export type LayersDataAttrValues<T> = {value: T; size: number};

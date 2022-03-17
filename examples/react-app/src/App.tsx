@@ -77,6 +77,7 @@ function App() {
         fadeEnabled: config.fadeEnabled,
         fadeOpacityEnabled: config.fadeOpacityEnabled,
         locationTotalsEnabled: config.locationTotalsEnabled,
+        locationLabelsEnabled: config.locationLabelsEnabled,
         animationEnabled: config.animationEnabled,
         clusteringEnabled: config.clusteringEnabled,
         clusteringAuto: config.clusteringAuto,
@@ -91,9 +92,6 @@ function App() {
         getLocationName: (loc) => loc.name,
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
-        renderLocationLabels: (nodes: ClusterNode[]) => {
-          return undefined;
-        },
         onHover: (info) => setTooltip(getTooltipState(info)),
         onClick: (info) =>
           console.log('clicked', info.object?.type, info.object, info),
