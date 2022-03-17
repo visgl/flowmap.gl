@@ -26,14 +26,16 @@ export default class FlowmapAggregateAccessors<L, F> {
       ? location.id
       : this.accessors.getLocationId(location);
 
-  getLocationName = (location: L | ClusterNode): string =>
-    (isLocationClusterNode(location) && isCluster(location)
-      ? location.name
-      : undefined) ?? `${this.getLocationId(location)}`;
-  // ? location.name // TODO getLocationName for locations and clusters
-  // : this.accessors.getLocationName
-  // ? this.accessors.getLocationName(location)
-  // : this.getLocationId(location);
+  getLocationName = (location: L | ClusterNode): string => {
+    let name;
+    if (isLocationClusterNode(location) && isCluster(location)) {
+      name = location.name;
+    } else if (this.accessors.getLocationName) {
+      name = this.accessors.getLocationName(location as L);
+    }
+    if (!name) name = `${this.getLocationId(location)}`;
+    return name;
+  };
 
   getLocationLat = (location: L | ClusterNode): number =>
     isLocationClusterNode(location)

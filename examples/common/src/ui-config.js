@@ -16,6 +16,7 @@ export const UI_INITIAL = {
   animationEnabled: FlowmapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
+  locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
 };
 
@@ -26,6 +27,7 @@ export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'animationEnabled');
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
+  gui.add(UI_INITIAL, 'locationLabelsEnabled');
 
   gui
     .add(UI_INITIAL, 'maxTopFlowsDisplayNum')
