@@ -1,5 +1,10 @@
 # Change log
 
+## [8.0.0-alpha.23] - 2022-03-17
+### Changed
+- Exposing getAggregateAccessors in FlowmapSelectors
+- Exposing in LocalFlowmapDataProvider: getClusterZoom, getClusterIndex, getLocationsById, getLocationTotals, getFlowsForFlowmapLayer
+
 ## [8.0.0-alpha.22] - 2022-03-17
 ### Changed
 - filterState and some of its props made optional

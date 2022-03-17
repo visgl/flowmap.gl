@@ -15,6 +15,7 @@ import {
   GetViewStateOptions,
   getViewStateForLocations,
 } from '../getViewStateForLocations';
+import {ClusterIndex} from '../cluster/ClusterIndex';
 
 export default class LocalFlowmapDataProvider<L, F>
   implements FlowmapDataProvider<L, F>
@@ -139,5 +140,38 @@ export default class LocalFlowmapDataProvider<L, F>
     setLayersData: (layersData: LayersData | undefined) => void,
   ) {
     setLayersData(await this.getLayersData());
+  }
+
+  getClusterZoom(): number | undefined {
+    return this.flowmapState && this.flowmapData
+      ? this.selectors.getClusterZoom(this.flowmapState, this.flowmapData)
+      : undefined;
+  }
+
+  getClusterIndex(): ClusterIndex<F> | undefined {
+    return this.flowmapState && this.flowmapData
+      ? this.selectors.getClusterIndex(this.flowmapState, this.flowmapData)
+      : undefined;
+  }
+
+  getLocationsById(): Map<string | number, L> | undefined {
+    return this.flowmapState && this.flowmapData
+      ? this.selectors.getLocationsById(this.flowmapState, this.flowmapData)
+      : undefined;
+  }
+
+  getLocationTotals(): Map<string | number, LocationTotals> | undefined {
+    return this.flowmapState && this.flowmapData
+      ? this.selectors.getLocationTotals(this.flowmapState, this.flowmapData)
+      : undefined;
+  }
+
+  getFlowsForFlowmapLayer(): Array<F | AggregateFlow> | undefined {
+    return this.flowmapState && this.flowmapData
+      ? this.selectors.getFlowsForFlowmapLayer(
+          this.flowmapState,
+          this.flowmapData,
+        )
+      : undefined;
   }
 }
