@@ -34,12 +34,24 @@ export default class LocalFlowmapDataProvider<L, F>
     this.selectors.setAccessors(accessors);
   }
 
-  async setFlowmapData(flowmapData: FlowmapData<L, F>): Promise<void> {
+  setFlowmapData(flowmapData: FlowmapData<L, F>): void {
     this.flowmapData = flowmapData;
+  }
+
+  getSelectors(): FlowmapSelectors<L, F> {
+    return this.selectors;
+  }
+
+  getFlowmapData(): FlowmapData<L, F> | undefined {
+    return this.flowmapData;
   }
 
   async setFlowmapState(flowmapState: FlowmapState): Promise<void> {
     this.flowmapState = flowmapState;
+  }
+
+  getFlowmapState(): FlowmapState | undefined {
+    return this.flowmapState;
   }
 
   async getFlowByIndex(idx: number): Promise<F | AggregateFlow | undefined> {
