@@ -70,7 +70,7 @@ export default class WorkerFlowmapDataProvider
       load(this.props.locations.url, LOADERS),
       load(this.props.flows.url, LOADERS),
     ]);
-    await this.localProvider.setFlowmapData({locations, flows});
+    this.localProvider.setFlowmapData({locations, flows});
   }
 
   setAccessors(accessors: FlowmapDataAccessors<LocationDatum, FlowDatum>) {
@@ -119,5 +119,11 @@ export default class WorkerFlowmapDataProvider
     dims: [number, number],
   ): Promise<ViewportProps | undefined> {
     return this.localProvider.getViewportForLocations(dims);
+  }
+
+  async updateLayersData(
+    setLayersData: (layersData: LayersData | undefined) => void,
+  ) {
+    setLayersData(await this.getLayersData());
   }
 }
