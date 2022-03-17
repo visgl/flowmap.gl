@@ -47,13 +47,13 @@ export const getFlowThicknessScale = (
 export function addClusterNames<L, F>(
   clusterIndex: ClusterIndex<F>,
   clusterLevels: ClusterLevel[],
-  locationsById: Map<string, L>,
+  locationsById: Map<string | number, L>,
   locationAccessors: LocationAccessors<L>,
   getLocationWeight: LocationWeightGetter,
 ): void {
   const {getLocationId, getLocationName, getLocationClusterName} =
     locationAccessors;
-  const getName = (id: string) => {
+  const getName = (id: string | number) => {
     const loc = locationsById.get(id);
     if (loc) {
       return getLocationName ? getLocationName(loc) : getLocationId(loc) || id;
