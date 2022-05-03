@@ -491,6 +491,9 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
                     pickable: false,
                     outlineColor: colorAsRgba(this.props.highlightColor),
                     outlineThickness: 1,
+                    parameters: {
+                      depthTest: false,
+                    },
                   }),
                 }),
               );
