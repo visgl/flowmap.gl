@@ -14,7 +14,7 @@
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
     "d3-fetch": "^3.0.1",
-    "lil-gui": "^0.15.0",
+    "lil-gui": "^0.16.1",
     "mapbox-gl": "^2.6.1"
   },
   "devDependencies": {
@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.16.4",
     "@babel/preset-react": "^7.16.0",
     "@babel/runtime": "^7.16.5",
-    "babel-loader": "8.1.0",
+    "babel-loader": "8.2.5",
     "dotenv-webpack": "^7.0.3",
     "html-webpack-plugin": "^5.5.0",
     "webpack": "^5.65.0",

@@ -11,7 +11,7 @@
     "@flowmap.gl/layers": "^8.0.0-alpha.23",
     "d3-fetch": "^3.0.1",
     "h3-js": "^3.7.2",
-    "lil-gui": "^0.15.0"
+    "lil-gui": "^0.16.1"
   },
   "peerDependencies": {
     "react": "^17.0.2"
