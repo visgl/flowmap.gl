@@ -13,7 +13,7 @@ import {
   createWorkerDataProvider,
   WorkerFlowmapDataProvider,
 } from './worker';
-import {StaticMap} from 'react-map-gl';
+import {Map as ReactMapGl} from 'react-map-gl';
 import {initLilGui, UI_INITIAL, useUI} from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -66,6 +66,7 @@ function App() {
         height,
       ]);
       if (viewState) {
+        // @ts-ignore
         setViewState(viewState);
       }
     })();
@@ -118,8 +119,8 @@ function App() {
         layers={layers}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
-        <StaticMap
-          mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
+        <ReactMapGl
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle={config.darkMode ? MAPBOX_STYLE_DARK : MAPBOX_STYLE_LIGHT}
         />
       </DeckGL>
