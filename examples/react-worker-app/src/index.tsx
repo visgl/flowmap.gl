@@ -1,16 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 // import {createWorkerDataProvider, LocationFilterMode} from '@flowmap.gl/data';
 // import {FlowmapLayer} from '@flowmap.gl/layers';
+import {createRoot} from 'react-dom/client';
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root'),
-);
+const container = document.getElementById('root');
+const root = createRoot(container!);
+root.render(<React.StrictMode>
+  <App />
+</React.StrictMode>);
 
 // (async () => {
 //   const base = 'https://gist.githubusercontent.com/ilyabo/';
