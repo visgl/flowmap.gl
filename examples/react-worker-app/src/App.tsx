@@ -158,7 +158,7 @@ function getTooltipState(
         content: (
           <>
             <div>
-              {object.origin.id} → {object.dest.id}
+              {`${object.origin.id} → ${object.dest.id}`}
             </div>
             <div>{object.count}</div>
           </>
