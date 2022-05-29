@@ -113,7 +113,8 @@ function App() {
       <DeckGL
         width="100%"
         height="100%"
-        viewState={viewState}
+        // viewState={viewState}
+        initialViewState={viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
@@ -157,9 +158,7 @@ function getTooltipState(
         position,
         content: (
           <>
-            <div>
-              {`${object.origin.id} → ${object.dest.id}`}
-            </div>
+            <div>{`${object.origin.id} → ${object.dest.id}`}</div>
             <div>{object.count}</div>
           </>
         ),

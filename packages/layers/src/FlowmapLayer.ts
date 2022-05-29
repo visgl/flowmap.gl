@@ -138,16 +138,11 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
-      // dataProvider: {
-      //   // To avoid deck.gl props diffing on comlink worker proxy causing an exception
-      //   dataProvider: props.dataProvider,
-      // },
       onHover: (info: PickingInfo<any>, event: SourceEvent) => {
         // TODO: if (lastHoverEventStartTimeRef > startTime) {
         //   // Skipping, because this is not the latest hover event
         //   return;
         // }
-        console.log('onHover', info);
         this.setState({highlightedObject: this._getHighlightedObject(info)});
         const {onHover} = props;
         if (onHover) {

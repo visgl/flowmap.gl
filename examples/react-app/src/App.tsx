@@ -110,7 +110,8 @@ function App() {
       <DeckGL
         width="100%"
         height="100%"
-        viewState={viewState}
+        // viewState={viewState}
+        initialViewState={viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
