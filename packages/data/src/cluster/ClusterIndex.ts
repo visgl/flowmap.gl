@@ -42,7 +42,7 @@ export interface ClusterIndex<F> {
   /**
    * Get the min zoom level on which the location is not clustered.
    */
-  getMinZoomForLocation: (locationId: string) => number;
+  getMinZoomForLocation: (locationId: string | number) => number;
   /**
    * List the IDs of all locations in the cluster (leaves of the subtree starting in the cluster).
    */

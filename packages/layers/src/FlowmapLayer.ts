@@ -70,6 +70,24 @@ export type FlowmapLayerProps<L, F> = {
 } & Partial<FlowmapDataAccessors<L, F>> &
   LayerProps;
 
+const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
+  'filter',
+  'locationTotalsEnabled',
+  'locationLabelsEnabled',
+  'adaptiveScalesEnabled',
+  'animationEnabled',
+  'clusteringEnabled',
+  'clusteringLevel',
+  'fadeEnabled',
+  'fadeOpacityEnabled',
+  'clusteringAuto',
+  'darkMode',
+  'fadeAmount',
+  'colorScheme',
+  'highlightColor',
+  'maxTopFlowsDisplayNum',
+];
+
 enum HighlightType {
   LOCATION = 'location',
   FLOW = 'flow',
@@ -120,15 +138,16 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
-      dataProvider: {
-        // To avoid deck.gl props diffing on comlink worker proxy causing an exception
-        dataProvider: props.dataProvider,
-      },
+      // dataProvider: {
+      //   // To avoid deck.gl props diffing on comlink worker proxy causing an exception
+      //   dataProvider: props.dataProvider,
+      // },
       onHover: (info: PickingInfo<any>, event: SourceEvent) => {
         // TODO: if (lastHoverEventStartTimeRef > startTime) {
         //   // Skipping, because this is not the latest hover event
         //   return;
         // }
+        console.log('onHover', info);
         this.setState({highlightedObject: this._getHighlightedObject(info)});
         const {onHover} = props;
         if (onHover) {
@@ -184,8 +203,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
 
   private _getOrMakeDataProvider() {
     const {data, dataProvider} = this.props;
-    if (isFlowmapDataProvider<L, F>(dataProvider?.dataProvider)) {
-      return dataProvider.dataProvider;
+    if (isFlowmapDataProvider<L, F>(dataProvider)) {
+      return dataProvider;
     } else if (isFlowmapData<L, F>(data)) {
       const dataProvider = new LocalFlowmapDataProvider<L, F>(this.props);
       dataProvider.setFlowmapData(data);
@@ -221,20 +240,22 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       this._updateDataProvider();
     }
     if (changeFlags.viewportChanged || changeFlags.dataChanged) {
-      this.setState({
-        highlightedObject: undefined,
-      });
+      this.setState({highlightedObject: undefined});
     }
 
     if (
       changeFlags.viewportChanged ||
-      changeFlags.propsOrDataChanged // TODO can we ignore accessor props changes?
+      changeFlags.dataChanged ||
+      (changeFlags.propsChanged &&
+        PROPS_TO_CAUSE_LAYER_DATA_UPDATE.some(
+          (prop) => oldProps[prop] !== props[prop],
+        ))
     ) {
       const {dataProvider} = this.state || {};
       if (dataProvider) {
         dataProvider.setFlowmapState(this._getFlowmapState());
         dataProvider.updateLayersData((layersData: LayersData | undefined) => {
-          this.setState({layersData});
+          this.setState({layersData, highlightedObject: undefined});
         }, changeFlags);
       }
     }
