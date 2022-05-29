@@ -11,7 +11,7 @@ import {
   FlowmapData,
   getViewStateForLocations,
 } from '@flowmap.gl/data';
-import {StaticMap, ViewportProps} from 'react-map-gl';
+import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl';
 import {
   fetchData,
   FlowDatum,
@@ -54,6 +54,7 @@ function App() {
         ...viewState,
         latitude: viewState.latitude - 0.02,
         zoom: viewState.zoom + 1,
+        // @ts-ignore
         width,
         height,
       });
@@ -109,14 +110,15 @@ function App() {
       <DeckGL
         width="100%"
         height="100%"
-        viewState={viewState}
+        // viewState={viewState}
+        initialViewState={viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
-        <StaticMap
-          mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
+        <ReactMapGl
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle={config.darkMode ? MAPBOX_STYLE_DARK : MAPBOX_STYLE_LIGHT}
         />
       </DeckGL>

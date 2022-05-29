@@ -13,7 +13,7 @@ import {
   createWorkerDataProvider,
   WorkerFlowmapDataProvider,
 } from './worker';
-import {StaticMap} from 'react-map-gl';
+import {Map as ReactMapGl} from 'react-map-gl';
 import {initLilGui, UI_INITIAL, useUI} from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -66,6 +66,7 @@ function App() {
         height,
       ]);
       if (viewState) {
+        // @ts-ignore
         setViewState(viewState);
       }
     })();
@@ -112,14 +113,15 @@ function App() {
       <DeckGL
         width="100%"
         height="100%"
-        viewState={viewState}
+        // viewState={viewState}
+        initialViewState={viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
-        <StaticMap
-          mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}
+        <ReactMapGl
+          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle={config.darkMode ? MAPBOX_STYLE_DARK : MAPBOX_STYLE_LIGHT}
         />
       </DeckGL>
@@ -156,9 +158,7 @@ function getTooltipState(
         position,
         content: (
           <>
-            <div>
-              {object.origin.id} → {object.dest.id}
-            </div>
+            <div>{`${object.origin.id} → ${object.dest.id}`}</div>
             <div>{object.count}</div>
           </>
         ),

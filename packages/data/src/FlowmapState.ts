@@ -1,7 +1,7 @@
 import {LocationFilterMode, ViewportProps} from './types';
 
 export interface FilterState {
-  selectedLocations?: string[];
+  selectedLocations?: (string | number)[];
   locationFilterMode?: LocationFilterMode;
   selectedTimeRange?: [Date, Date];
 }

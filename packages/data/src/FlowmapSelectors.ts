@@ -201,7 +201,7 @@ export default class FlowmapSelectors<L, F> {
       return ids;
     });
 
-  getSelectedLocationsSet: Selector<L, F, Set<string> | undefined> =
+  getSelectedLocationsSet: Selector<L, F, Set<string | number> | undefined> =
     createSelector(this.getSelectedLocations, (ids) =>
       ids && ids.length > 0 ? new Set(ids) : undefined,
     );
@@ -391,7 +391,7 @@ export default class FlowmapSelectors<L, F> {
       let maxZoom = Number.POSITIVE_INFINITY;
       let minZoom = Number.NEGATIVE_INFINITY;
 
-      const adjust = (zoneId: string) => {
+      const adjust = (zoneId: string | number) => {
         const cluster = clusterIndex.getClusterById(zoneId);
         if (cluster) {
           minZoom = Math.max(minZoom, cluster.zoom);
@@ -586,31 +586,34 @@ export default class FlowmapSelectors<L, F> {
     },
   );
 
-  getExpandedSelectedLocationsSet: Selector<L, F, Set<string> | undefined> =
-    createSelector(
-      this.getClusteringEnabled,
-      this.getSelectedLocationsSet,
-      this.getClusterIndex,
-      (clusteringEnabled, selectedLocations, clusterIndex) => {
-        if (!selectedLocations || !clusterIndex) {
-          return selectedLocations;
-        }
+  getExpandedSelectedLocationsSet: Selector<
+    L,
+    F,
+    Set<string | number> | undefined
+  > = createSelector(
+    this.getClusteringEnabled,
+    this.getSelectedLocationsSet,
+    this.getClusterIndex,
+    (clusteringEnabled, selectedLocations, clusterIndex) => {
+      if (!selectedLocations || !clusterIndex) {
+        return selectedLocations;
+      }
 
-        const result = new Set<string>();
-        for (const locationId of selectedLocations) {
-          const cluster = clusterIndex.getClusterById(locationId);
-          if (cluster) {
-            const expanded = clusterIndex.expandCluster(cluster);
-            for (const id of expanded) {
-              result.add(id);
-            }
-          } else {
-            result.add(locationId);
+      const result = new Set<string | number>();
+      for (const locationId of selectedLocations) {
+        const cluster = clusterIndex.getClusterById(locationId);
+        if (cluster) {
+          const expanded = clusterIndex.expandCluster(cluster);
+          for (const id of expanded) {
+            result.add(id);
           }
+        } else {
+          result.add(locationId);
         }
-        return result;
-      },
-    );
+      }
+      return result;
+    },
+  );
 
   getTotalCountsByTime: Selector<L, F, CountByTime[] | undefined> =
     createSelector(

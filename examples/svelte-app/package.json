@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/svelte-app",
-  "version": "8.0.0-alpha.23",
+  "version": "8.0.0-alpha.24",
   "private": true,
   "scripts": {
     "build": "rollup -c",
@@ -11,14 +11,14 @@
     "@deck.gl/core": "^8.6.4",
     "@deck.gl/layers": "^8.6.4",
     "@deck.gl/react": "^8.6.4",
-    "@flowmap.gl/data": "^8.0.0-alpha.23",
-    "@flowmap.gl/layers": "^8.0.0-alpha.23",
+    "@flowmap.gl/data": "^8.0.0-alpha.24",
+    "@flowmap.gl/layers": "^8.0.0-alpha.24",
     "@luma.gl/constants": "^8.1.0",
     "@luma.gl/core": "^8.1.0",
-    "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.0.0",
-    "@rollup/plugin-replace": "^3.0.1",
-    "dotenv": "^10.0.0",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "dotenv": "^16.0.1",
     "mapbox-gl": "^2.6.1",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
@@ -28,6 +28,6 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "sirv-cli": "^1.0.0"
+    "sirv-cli": "^2.0.2"
   }
 }
