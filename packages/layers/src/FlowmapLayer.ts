@@ -153,7 +153,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
               const oldInfo = this.state?.pickingInfo;
               if (
                 // @ts-ignore
-                oldInfo.sourceLayer.id === info.sourceLayer.id &&
+                oldInfo?.sourceLayer?.id === info.sourceLayer?.id &&
                 oldInfo?.index === info.index
               ) {
                 return this._wrapPickingObject(oldInfo.object, startTime);
