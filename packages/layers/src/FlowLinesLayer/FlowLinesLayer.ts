@@ -142,8 +142,7 @@ class FlowLinesLayer<F> extends Layer {
   }
 
   initializeState(): void {
-    const {attributeManager} = this.state;
-
+    const attributeManager = this.getAttributeManager();
     attributeManager.addInstanced({
       instanceSourcePositions: {
         accessor: 'getSourcePosition',
