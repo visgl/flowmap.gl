@@ -1,5 +1,14 @@
 # Change log
 
+## [8.0.0-alpha.25] - 2022-06-13
+### Changed
+- Skipping stale async onHover and onClick events 
+
+## [8.0.0-alpha.24] - 2022-05-29
+### Changed
+- Avoid unnecessary calls to getLayerData 
+- Upgraded deps
+
 ## [8.0.0-alpha.23] - 2022-03-17
 ### Changed
 - Exposing getAggregateAccessors in FlowmapSelectors

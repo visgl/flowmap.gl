@@ -18,21 +18,21 @@ import {CompositeLayer} from '@deck.gl/core';
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
   colorAsRgba,
+  FilterState,
   FlowLinesLayerAttributes,
+  FlowmapAggregateAccessors,
   FlowmapData,
   FlowmapDataAccessors,
   FlowmapDataProvider,
   getFlowLineAttributesByIndex,
   getFlowmapColors,
-  getOuterCircleRadiusByIndex,
   getLocationCoordsByIndex,
+  getOuterCircleRadiusByIndex,
   isFlowmapData,
   isFlowmapDataProvider,
   LayersData,
   LocalFlowmapDataProvider,
   ViewportProps,
-  FlowmapAggregateAccessors,
-  FilterState,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -112,6 +112,8 @@ type State<L, F> = {
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
   pickingInfo: FlowmapLayerPickingInfo<L, F> | undefined;
+  lastHoverTime: number | undefined;
+  lastClickTime: number | undefined;
 };
 
 export type SourceEvent = {srcEvent: MouseEvent};
@@ -138,32 +140,40 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
-      // dataProvider: {
-      //   // To avoid deck.gl props diffing on comlink worker proxy causing an exception
-      //   dataProvider: props.dataProvider,
-      // },
       onHover: (info: PickingInfo<any>, event: SourceEvent) => {
-        // TODO: if (lastHoverEventStartTimeRef > startTime) {
-        //   // Skipping, because this is not the latest hover event
-        //   return;
-        // }
-        console.log('onHover', info);
-        this.setState({highlightedObject: this._getHighlightedObject(info)});
+        const startTime = Date.now();
+        this.setState({
+          highlightedObject: this._getHighlightedObject(info),
+          lastHoverTime: startTime,
+        });
+
         const {onHover} = props;
         if (onHover) {
           this._getFlowmapLayerPickingInfo(info).then((info) => {
-            this.setState({pickingInfo: info});
-            onHover(info, event);
+            if ((this.state?.lastHoverTime ?? 0) <= startTime) {
+              this.setState({pickingInfo: info});
+              onHover(info, event);
+            } else {
+              // Skipping, because this is not the latest hover event
+            }
           });
         }
       },
       onClick: (info: PickingInfo<any>, event: SourceEvent) => {
         const {onClick} = props;
+        const startTime = Date.now();
+        this.setState({
+          lastClickTime: startTime,
+        });
         if (onClick) {
           this._getFlowmapLayerPickingInfo(info).then((info) => {
-            this.setState({pickingInfo: info});
-            if (info) {
-              onClick(info, event);
+            if ((this.state?.lastClickTime ?? 0) <= startTime) {
+              this.setState({pickingInfo: info});
+              if (info) {
+                onClick(info, event);
+              }
+            } else {
+              // Skipping, because this is not the latest hover event
             }
           });
         }
@@ -178,6 +188,8 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       layersData: undefined,
       highlightedObject: undefined,
       pickingInfo: undefined,
+      lastHoverTime: undefined,
+      lastClickTime: undefined,
     };
   }
 
