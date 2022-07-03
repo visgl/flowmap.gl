@@ -52,6 +52,10 @@ export type FlowPickingInfo<L, F> = PickingInfo<FlowPickingInfoObject<L, F>>;
 //   object: FlowLocation;
 // }
 
+export type FlowmapLayerPickingInfoObject<L, F> =
+  | LocationPickingInfo<L>['object']
+  | FlowPickingInfo<L, F>['object'];
+
 export type FlowmapLayerPickingInfo<L, F> =
   | LocationPickingInfo<L>
   // | LocationAreaPickingInfo

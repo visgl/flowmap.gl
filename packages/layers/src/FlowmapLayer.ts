@@ -146,17 +146,27 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
           highlightedObject: this._getHighlightedObject(info),
           lastHoverTime: startTime,
         });
-
         const {onHover} = props;
         if (onHover) {
-          this._getFlowmapLayerPickingInfo(info).then((info) => {
-            if ((this.state?.lastHoverTime ?? 0) <= startTime) {
-              this.setState({pickingInfo: info});
-              onHover(info, event);
-            } else {
-              // Skipping, because this is not the latest hover event
-            }
-          });
+          if (info.index >= 0) {
+            const getPickingObject = async () => {
+              const oldInfo = this.state?.pickingInfo;
+              if (
+                // @ts-ignore
+                oldInfo.sourceLayer.id === info.sourceLayer.id &&
+                oldInfo?.index === info.index
+              ) {
+                return this._wrapPickingObject(oldInfo.object, startTime);
+              }
+              const _info = await this._getFlowmapLayerPickingInfo(info);
+              this.setState({pickingInfo: _info});
+              return this._wrapPickingObject(_info?.object, startTime);
+            };
+            // @ts-ignore
+            onHover({...info, object: getPickingObject()}, event);
+          } else {
+            onHover(info, event);
+          }
         }
       },
       onClick: (info: PickingInfo<any>, event: SourceEvent) => {
@@ -181,6 +191,14 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
     });
   }
 
+  private _wrapPickingObject(object: any, startTime: number) {
+    if (!object) return undefined;
+    return {
+      stale: (this.state?.lastHoverTime ?? 0) > startTime,
+      ...object,
+    };
+  }
+
   initializeState() {
     this.state = {
       accessors: new FlowmapAggregateAccessors<L, F>(this.props),
@@ -195,9 +213,11 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
 
   getPickingInfo({info}: Record<string, any>) {
     // This is for onHover event handlers set on the <DeckGL> component
-    if (!info.object) {
-      const object = this.state?.pickingInfo?.object;
-      if (object) {
+    if (!info.object && info.index >= 0) {
+      const pickingInfo = this.state?.pickingInfo;
+      const index = pickingInfo?.index;
+      const object = pickingInfo?.object;
+      if (object && index === info.index) {
         return {
           ...info,
           object,
