@@ -13,7 +13,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "d3-array": "2 - 3",
+    "d3-array": "^3.2.0",
     "d3-color": "2 - 3",
     "d3-geo": "2 - 3",
     "d3-interpolate": "2 - 3",
@@ -35,7 +35,7 @@
     "@types/d3-scale-chromatic": "^3.0.0",
     "@types/d3-time": "^3.0.0",
     "@types/d3-time-format": "^4.0.0",
-    "@types/geojson": "^7946.0.7",
+    "@types/geojson": "^7946.0.10",
     "@types/kdbush": "^3.0.0",
     "@types/mapbox__geo-viewport": "^0.4.1",
     "@types/seedrandom": "^3.0.1"
