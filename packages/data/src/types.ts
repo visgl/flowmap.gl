@@ -111,15 +111,15 @@ export interface AggregateFlow {
   aggregate: true;
 }
 
-export function isAggregateFlow(
-  flow: Record<string, any>,
+export function isAggregateFlow<F>(
+  flow: F | AggregateFlow,
 ): flow is AggregateFlow {
   return (
     flow &&
     // flow.origin !== undefined &&
     // flow.dest !== undefined &&
     // flow.count !== undefined &&
-    (flow.aggregate ? true : false)
+    ((flow as Record<string, any>).aggregate ? true : false)
   );
 }
 
