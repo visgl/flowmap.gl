@@ -2,7 +2,7 @@
 
 **Thanks for taking the time to contribute!**
 
-PRs and bug reports are welcome, and we are actively looking for new maintainers.
+PRs and bug reports are welcome, and we are actively looking for new contributors.
 
 ## Setting Up Dev Environment
 
