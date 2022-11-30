@@ -341,10 +341,17 @@ export default class FlowmapSelectors<L, F> {
     });
 
   getClusterLevels: Selector<L, F, ClusterLevels | undefined> = createSelector(
+    this.getClusteringEnabled,
     this.getClusterLevelsFromProps,
     this.getLocationsHavingFlows,
     this.getLocationWeightGetter,
-    (clusterLevelsFromProps, locations, getLocationWeight) => {
+    (
+      clusteringEnabled,
+      clusterLevelsFromProps,
+      locations,
+      getLocationWeight,
+    ) => {
+      if (!clusteringEnabled) return undefined;
       if (clusterLevelsFromProps) return clusterLevelsFromProps;
       if (!locations || !getLocationWeight) return undefined;
       const clusterLevels = clusterLocations(
