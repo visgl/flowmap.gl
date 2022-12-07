@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Flowmap.gl contributors
+ * Copyright (c) 2018-2020 Teralytics
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import {Deck} from '@deck.gl/core';
 import mapboxgl from 'mapbox-gl';
 import {FlowmapLayer} from '@flowmap.gl/layers';

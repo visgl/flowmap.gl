@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Flowmap.gl contributors
+ * Copyright (c) 2018-2020 Teralytics
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires,no-undef
 const webpack = require('webpack');
 // eslint-disable-next-line @typescript-eslint/no-var-requires,no-undef
