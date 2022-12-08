@@ -47,4 +47,18 @@ Please be mindful of and adhere to the Contributor Covenant's [Code of Conduct](
 
 ## Maintainers
 
-- [Ilya Boyandin](https://github.com/ilyabo)
+- [Ilya Boyandin](https://github.com/ilyabo) – ilya@boyandin.me
+
+
+## License
+
+    Copyright (c) Flowmap.gl contributors
+    Copyright (c) 2018-2020 Teralytics
+    SPDX-License-Identifier: Apache-2.0
+
+[Full-text license](LICENSE)
+
+
+## Acknowledgements
+
+The project was [originally developed at Teralytics](https://github.com/teralytics/flowmap.gl). Thanks to [Philippe Voinov](https://github.com/tehwalris) for his help with the first version of `FlowLinesLayer`, to [Nikita Rokotyan](https://github.com/rokotyan) for his advice on implementing `AnimatedFlowLinesLayer` and to [Xiaoji Chen](https://github.com/pessimistress) for her help with [deck.gl](http://deck.gl).
