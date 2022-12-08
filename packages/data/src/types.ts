@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Flowmap.gl contributors
+ * Copyright (c) 2018-2020 Teralytics
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
   flows: Iterable<F> | undefined;

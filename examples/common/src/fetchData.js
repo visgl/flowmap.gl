@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) Flowmap.gl contributors
+ * Copyright (c) 2018-2020 Teralytics
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import {csv} from 'd3-fetch';
 import {getClusterLevelsH3} from './h3-clustering';
 
