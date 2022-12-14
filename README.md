@@ -7,7 +7,7 @@
 
 Try [Flowmap.blue](https://flowmap.blue/) for an easy way of publishing flow maps (no programming skills required).
 
-Run the [LIVE EXAMPLE](https://flowmapblue.github.io/flowmap.gl/) or 
+Run the [LIVE EXAMPLE](https://visgl.github.io/flowmap.gl/) or 
 check the source code of the following examples:
 
  - [React example](./examples/react-app)
