@@ -60,6 +60,10 @@ export default function Home() {
               </p>
 
               <p>
+                Flowmap.gl belongs to the <Link to={"http://vis.gl/"}>Vis.gl</Link> family.
+              </p>
+
+              <p>
                 Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing a flow map backed by a Google Sheets spreadsheet (no programming skills required).
               </p>
             </div>
