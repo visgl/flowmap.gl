@@ -15,6 +15,7 @@
     "dev:layers": "yarn workspace @flowmap.gl/layers dev",
     "build:example": "yarn workspace @flowmap.gl/react-app build",
     "build:data": "yarn workspace @flowmap.gl/data build",
+    "build:docs": "cd docs && yarn && yarn build",
     "build:layers": "yarn workspace @flowmap.gl/layers build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
