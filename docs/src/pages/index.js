@@ -54,18 +54,34 @@ export default function Home() {
               Flowmap.gl is a flow map drawing layer
               for <Link to={"https://deck.gl"}>deck.gl</Link>.
               It is a JavaScript module which can be used for
-                visualizing movement of people (e.g. migration)
-              or objects between geographic locations. The layer is rendered in WebGL and can handle large
-              numbers of flows with a relatively good rendering performance.
+                visualization of geographic movement:
+                mobility, transportation, migration, etc. The layer is rendered in a WebGL context and
+                is capable of adaptive aggregation and filtering, which allows it to
+                handle relatively large numbers of flows.
+              </p>
+
+              <p>
+                Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing a flow map backed by a Google Sheets spreadsheet (no programming skills required).
               </p>
 
               <p>
                 Flowmap.gl belongs to the <Link to={"http://vis.gl/"}>Vis.gl</Link> family.
               </p>
 
+              {/*<h2>Acknowledgements</h2>*/}
               <p>
-                Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing a flow map backed by a Google Sheets spreadsheet (no programming skills required).
+                The project has been developed and maintained
+                by <Link to={"https://ilya.boyandin.me"}>Ilya Boyandin</Link>  (<Link to={"https://github.com/teralytics/flowmap.gl"}>originally at Teralytics</Link>).
+                </p><p>
+                Thanks to <Link to={"https://github.com/tehwalris"}>Philippe Voinov</Link> for the help with
+                the first version of <code>FlowLinesLayer</code>,
+                to  <Link to={"https://github.com/rokotyan"}>Nikita Rokotyan</Link> for the advice
+                on <code>AnimatedFlowLinesLayer</code>,
+                to <Link to={"https://github.com/pessimistress"}>Xiaoji Chen</Link> for her help
+                with <Link to={"http://deck.gl"}>deck.gl</Link>, and to other contributors.
               </p>
+
+
             </div>
             <div className="col col--6">
               <Link to={"https://visgl.github.io/flowmap.gl/"}>
