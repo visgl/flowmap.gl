@@ -14,6 +14,11 @@
   background-position: center;
 }
 
+.heroContainer h1 {
+  color: white;
+  display: flex;
+  align-items: center;
+}
 .heroContainer {
   backdrop-filter: invert(1) hue-rotate(-100deg) blur(4px) brightness(0.6);
   padding: 2rem 0;
