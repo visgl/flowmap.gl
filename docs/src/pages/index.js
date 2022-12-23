@@ -61,7 +61,7 @@ export default function Home() {
               </p>
 
               <p>
-                Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing a flow map backed by a Google Sheets spreadsheet (no programming skills required).
+                Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing flow maps backed by Google Sheets (no coding required).
               </p>
 
               <p>
