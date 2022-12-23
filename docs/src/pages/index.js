@@ -49,11 +49,19 @@ export default function Home() {
         <section className="container margin-vert--xl">
           <div className="row">
             <div className="col col--6 padding-bottom--lg">
+              <p>
+
               Flowmap.gl is a flow map drawing layer
-              for{'\u00A0'}<Link to={"https://deck.gl"}>deck.gl</Link>.
-              It can be used for visualizing movement of people (e.g. migration)
+              for <Link to={"https://deck.gl"}>deck.gl</Link>.
+              It is a JavaScript module which can be used for
+                visualizing movement of people (e.g. migration)
               or objects between geographic locations. The layer is rendered in WebGL and can handle large
               numbers of flows with a relatively good rendering performance.
+              </p>
+
+              <p>
+                Try <Link to={"https://flowmap.blue"}>FlowmapBlue</Link> for an easy way of publishing a flow map backed by a Google Sheets spreadsheet (no programming skills required).
+              </p>
             </div>
             <div className="col col--6">
               <Link to={"https://visgl.github.io/flowmap.gl/"}>

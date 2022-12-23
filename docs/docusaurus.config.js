@@ -95,8 +95,12 @@ const config = {
               //   href: 'https://stackoverflow.com/questions/tagged/docusaurus',
               // },
               {
-                label: 'GitHub Discussions',
+                label: 'Discussions',
                 href: 'https://github.com/visgl/flowmap.gl/discussions',
+              },
+              {
+                label: 'Issues',
+                href: 'https://github.com/visgl/flowmap.gl/issues',
               },
               // {
               //   label: 'Twitter',

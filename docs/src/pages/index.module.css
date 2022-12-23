@@ -5,13 +5,14 @@
 
 .heroBanner {
   /*color: #fff;*/
-  padding: 4rem 0;
+  padding: 4rem;
   text-align: center;
   position: relative;
   overflow: hidden;
   background-image: url('/img/hero-bg-blur.jpg');
   background-size: cover;
   background-position: center;
+  height: 300px;
 }
 
 .heroContainer h1 {
@@ -20,13 +21,15 @@
   align-items: center;
 }
 .heroContainer {
-  backdrop-filter: invert(1) hue-rotate(-100deg) blur(4px) brightness(0.6);
+  /*backdrop-filter: invert(1) hue-rotate(-100deg) blur(4px) brightness(0.6);*/
+  /*backdrop-filter: invert(1) hue-rotate(-100deg) blur(4px) brightness(0.6);*/
   padding: 2rem 0;
-  max-width: 600px;
+  /*max-width: 600px;*/
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: white;
 }
 
 
