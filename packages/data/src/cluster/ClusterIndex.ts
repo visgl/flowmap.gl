@@ -48,7 +48,12 @@ export interface ClusterIndex<F> {
   aggregateFlows: (
     flows: F[],
     zoom: number,
-    {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
+    {
+      getFlowOriginId,
+      getFlowDestId,
+      getFlowMagnitude,
+      getFlowAggFunc,
+    }: FlowAccessors<F>,
     options?: {
       flowCountsMapReduce?: FlowCountsMapReduce<F>;
     },
@@ -165,11 +170,15 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
     aggregateFlows: (
       flows,
       zoom,
-      {getFlowOriginId, getFlowDestId, getFlowMagnitude},
+      {getFlowOriginId, getFlowDestId, getFlowMagnitude, getFlowAggFunc},
       options = {},
     ) => {
       if (zoom > maxZoom) {
         return flows;
+      }
+      if (!getFlowAggFunc) {
+        getFlowAggFunc = (flowValues: number[]) =>
+          flowValues.reduce((a, b) => a + b, 0);
       }
       const result: (F | AggregateFlow)[] = [];
       const aggFlowsByKey = new Map<string, AggregateFlow>();
@@ -178,7 +187,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
       const {
         flowCountsMapReduce = {
           map: getFlowMagnitude,
-          reduce: (acc: any, count: number) => (acc || 0) + count,
+          reduce: getFlowAggFunc,
         },
       } = options;
       for (const flow of flows) {
@@ -197,13 +206,14 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
               dest: destCluster,
               count: flowCountsMapReduce.map(flow),
               aggregate: true,
+              values: [flowCountsMapReduce.map(flow)],
             };
             result.push(aggregateFlow);
             aggFlowsByKey.set(key, aggregateFlow);
           } else {
+            aggregateFlow.values.push(flowCountsMapReduce.map(flow));
             aggregateFlow.count = flowCountsMapReduce.reduce(
-              aggregateFlow.count,
-              flowCountsMapReduce.map(flow),
+              aggregateFlow.values,
             );
           }
         }
