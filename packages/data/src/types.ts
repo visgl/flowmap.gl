@@ -31,6 +31,7 @@ export interface FlowAccessors<F> {
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
   getFlowAggFunc: FlowAggregatorFunc<number[], number>;
+  getFlowAggWeight: FlowAccessor<F, number>;
 }
 
 export interface LocationAccessors<L> {
@@ -118,7 +119,6 @@ export interface AggregateFlow {
   dest: string | number;
   count: number;
   aggregate: true;
-  values: number[];
 }
 
 export function isAggregateFlow(
@@ -133,8 +133,9 @@ export function isAggregateFlow(
   );
 }
 
-export interface FlowCountsMapReduce<F, T = any> {
+export interface FlowCountsMapReduce<F, H, T = any> {
   map: (flow: F) => T;
+  aggweightmap: (flow: H) => T;
   reduce: (values: T) => T;
 }
 

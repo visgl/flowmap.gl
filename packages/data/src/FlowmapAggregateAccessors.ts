@@ -13,6 +13,11 @@ import {
   isLocationClusterNode,
 } from './types';
 
+export type aggFunctionVars = {
+  aggvalue: number;
+  aggweight: number;
+};
+
 export default class FlowmapAggregateAccessors<L, F> {
   private accessors: FlowmapDataAccessors<L, F>;
   constructor(accessors: FlowmapDataAccessors<L, F>) {
@@ -63,6 +68,18 @@ export default class FlowmapAggregateAccessors<L, F> {
 
   getFlowMagnitude = (f: F | AggregateFlow) => {
     return isAggregateFlow(f) ? f.count : this.accessors.getFlowMagnitude(f);
+  };
+
+  getFlowAggWeight = (f: F | AggregateFlow) => {
+    return !this.accessors.getFlowAggWeight
+      ? undefined
+      : this.accessors.getFlowAggWeight(f);
+  };
+
+  getFlowAggFunc = (f: aggFunctionVars[] = []) => {
+    return !this.accessors.getFlowAggFunc
+      ? undefined
+      : this.accessors.getFlowAggFunc(f);
   };
 
   // Note: Aggregate flows have no time
