@@ -36,8 +36,7 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/visgl/flowmap.gl-docs',
+          editUrl: 'https://github.com/visgl/flowmap.gl-docs',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -95,6 +94,10 @@ const config = {
               //   href: 'https://stackoverflow.com/questions/tagged/docusaurus',
               // },
               {
+                label: 'GitHub',
+                href: 'https://github.com/visgl/flowmap.gl/',
+              },
+              {
                 label: 'Discussions',
                 href: 'https://github.com/visgl/flowmap.gl/discussions',
               },
@@ -116,13 +119,28 @@ const config = {
               //   to: '/blog',
               // },
               {
-                label: 'GitHub',
-                href: 'https://github.com/visgl/flowmap.gl/',
+                label: 'deck.gl',
+                href: 'https://deck.gl/',
               },
+              {
+                label: 'vis.gl',
+                href: 'https://vis.gl/',
+              },
+              // {
+              //   label: 'OpenJS Foundation',
+              //   href: 'https://openjsf.org/',
+              // },
             ],
           },
         ],
-        copyright: `Copyright © Flowmap.gl contributors`,
+        copyright: `
+        <div style="display:flex; flex-direction:column; gap: 30px; align-items: center;">
+        <a href="https://openjsf.org/" target="_blank" rel="noopener noreferrer">
+          <img src="img/openjsf-color-textw.svg" width="100" height="31" alt="OpenJS Foundation" style="margin-top:20px"/>
+        </a>
+        <div>Copyright © Flowmap.gl contributors</div>
+        </div>
+        `,
       },
       prism: {
         theme: lightCodeTheme,
