@@ -3,6 +3,10 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
+export type aggFunctionVars = {
+  aggvalue: number | undefined;
+  aggweight: number | undefined;
+};
 
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
@@ -30,8 +34,8 @@ export interface FlowAccessors<F> {
   getFlowMagnitude: FlowAccessor<F, number>;
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
-  getFlowAggFunc: FlowAggregatorFunc<number[], number>;
-  getFlowAggWeight: FlowAccessor<F, number>;
+  getFlowAggFunc: FlowAggregatorFunc<aggFunctionVars[], number>;
+  getFlowAggWeight: FlowAccessor<F | AggregateFlow, number>;
 }
 
 export interface LocationAccessors<L> {

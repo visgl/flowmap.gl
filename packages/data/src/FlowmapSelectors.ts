@@ -61,15 +61,11 @@ import {
   LocationFilterMode,
   LocationTotals,
   FlowAggregatorFunc,
+  aggFunctionVars,
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
 type KDBushTree = any;
-
-export type aggFunctionVars = {
-  aggvalue: number;
-  aggweight: number;
-};
 
 export type Selector<L, F, T> = ParametricSelector<
   FlowmapState,

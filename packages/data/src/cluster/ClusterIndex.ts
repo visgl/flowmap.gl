@@ -12,13 +12,9 @@ import {
   FlowAccessors,
   FlowCountsMapReduce,
   isCluster,
+  aggFunctionVars,
 } from './../types';
 import {ascending, bisectLeft, extent} from 'd3-array';
-
-export type aggFunctionVars = {
-  aggvalue: number;
-  aggweight: number;
-};
 
 export type LocationWeightGetter = (id: string | number) => number;
 
@@ -256,7 +252,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
         for (const [key, aggregateFlow] of aggFlowsByKey.entries()) {
           aggregateFlow.count = flowCountsMapReduce.reduce(
             aggFlowCountsByKey.get(key),
-            null,
+            0,
           );
         }
       }
@@ -326,10 +322,10 @@ export function makeLocationWeightGetter<F>(
       }
     }
     for (const [dest, values] of flowDestValues.entries()) {
-      locationTotals.incoming.set(dest, flowAggFunc(values, null));
+      locationTotals.incoming.set(dest, flowAggFunc(values, 0));
     }
     for (const [origin, values] of flowOriginValues.entries()) {
-      locationTotals.outgoing.set(origin, flowAggFunc(values, null));
+      locationTotals.outgoing.set(origin, flowAggFunc(values, 0));
     }
   }
   return (id: string | number) =>

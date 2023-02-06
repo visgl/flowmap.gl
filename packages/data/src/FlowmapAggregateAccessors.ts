@@ -14,8 +14,8 @@ import {
 } from './types';
 
 export type aggFunctionVars = {
-  aggvalue: number;
-  aggweight: number;
+  aggvalue: number | undefined;
+  aggweight: number | undefined;
 };
 
 export default class FlowmapAggregateAccessors<L, F> {
@@ -76,7 +76,7 @@ export default class FlowmapAggregateAccessors<L, F> {
       : this.accessors.getFlowAggWeight(f);
   };
 
-  getFlowAggFunc = (f: aggFunctionVars[] = []) => {
+  getFlowAggFunc = (f: aggFunctionVars[] | undefined = []) => {
     return !this.accessors.getFlowAggFunc
       ? undefined
       : this.accessors.getFlowAggFunc(f);
