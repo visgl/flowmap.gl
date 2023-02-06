@@ -35,7 +35,7 @@ export interface FlowAccessors<F> {
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
   getFlowAggFunc: FlowAggregatorFunc<aggFunctionVars[], number>;
-  getFlowAggWeight: FlowAccessor<F | AggregateFlow, number>;
+  getFlowAggWeight: FlowAccessor<F, number>;
 }
 
 export interface LocationAccessors<L> {

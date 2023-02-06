@@ -73,6 +73,8 @@ export default class FlowmapAggregateAccessors<L, F> {
   getFlowAggWeight = (f: F | AggregateFlow) => {
     return !this.accessors.getFlowAggWeight
       ? undefined
+      : isAggregateFlow(f)
+      ? f.count
       : this.accessors.getFlowAggWeight(f);
   };
 
