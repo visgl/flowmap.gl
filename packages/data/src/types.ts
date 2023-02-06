@@ -27,7 +27,7 @@ export interface FlowAccessors<F> {
   getFlowDestId: FlowAccessor<F, string | number>;
   getFlowMagnitude: FlowAccessor<F, number>;
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
-  // getFlowColor?: FlowAccessor<string | undefined>;
+  getFlowColor?: FlowAccessor<F, string | undefined>;
 }
 
 export interface LocationAccessors<L> {
@@ -115,6 +115,7 @@ export interface AggregateFlow {
   dest: string | number;
   count: number;
   aggregate: true;
+  color?: string;
 }
 
 export function isAggregateFlow(

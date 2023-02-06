@@ -30,6 +30,7 @@ import getColors, {
   getFlowColorScale,
   isDiffColors,
   isDiffColorsRGBA,
+  colorAsRgba,
 } from './colors';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
 import {FlowmapState} from './FlowmapState';
@@ -1154,6 +1155,7 @@ export default class FlowmapSelectors<L, F> {
       getFlowOriginId,
       getFlowDestId,
       getFlowMagnitude,
+      getFlowColor,
       getLocationId,
       getLocationLon,
       getLocationLat,
@@ -1247,10 +1249,19 @@ export default class FlowmapSelectors<L, F> {
         }
       })(),
     );
+
     const flowLineColors = Uint8Array.from(
       (function* () {
         for (const flow of flows) {
-          yield* flowColorScale(getFlowMagnitude(flow));
+          const customColor = getFlowColor(flow);
+
+          if (customColor) {
+            // need to use color from flow with acssesor `getFlowColor`
+            yield* colorAsRgba(customColor);
+          } else {
+            // use default color generated with `getFlowMagnitude`
+            yield* flowColorScale(getFlowMagnitude(flow));
+          }
         }
       })(),
     );
@@ -1421,7 +1432,10 @@ function aggregateFlows<F>(
     (ff: F[]) => {
       const origin = flowAccessors.getFlowOriginId(ff[0]);
       const dest = flowAccessors.getFlowDestId(ff[0]);
-      // const color = ff[0].color;
+      const color = flowAccessors.getFlowColor
+        ? flowAccessors.getFlowColor(ff[0])
+        : null;
+
       const rv: AggregateFlow = {
         aggregate: true,
         origin,
@@ -1435,7 +1449,8 @@ function aggregateFlows<F>(
         }, 0),
         // time: undefined,
       };
-      // if (color) rv.color = color;
+
+      if (color) rv.color = color;
       return rv;
     },
     flowAccessors.getFlowOriginId,

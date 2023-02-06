@@ -345,6 +345,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
               origin: origin,
               dest: dest,
               count: accessors.getFlowMagnitude(flow),
+              color: accessors.getFlowColor && accessors.getFlowColor(flow),
             },
           };
         }
