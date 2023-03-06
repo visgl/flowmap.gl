@@ -60,6 +60,8 @@ import {
   LayersData,
   LocationFilterMode,
   LocationTotals,
+  FlowAggregatorFunc,
+  aggFunctionVars,
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
@@ -700,19 +702,107 @@ export default class FlowmapSelectors<L, F> {
         if (d.internalCount != null) rv.internalCount += d.internalCount;
         return rv;
       };
-      for (const f of flows) {
-        if (
-          this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
-        ) {
-          const originId = this.accessors.getFlowOriginId(f);
-          const destId = this.accessors.getFlowDestId(f);
-          const count = this.accessors.getFlowMagnitude(f);
-          if (originId === destId) {
-            totals.set(originId, add(originId, {internalCount: count}));
-          } else {
-            totals.set(originId, add(originId, {outgoingCount: count}));
-            totals.set(destId, add(destId, {incomingCount: count}));
+
+      const aggFuncAdd = (
+        id: string | number,
+        d: Partial<LocationTotals>,
+      ): LocationTotals => {
+        const rv = totals.get(id) ?? {
+          incomingCount: 0,
+          outgoingCount: 0,
+          internalCount: 0,
+        };
+        if (d.incomingCount != null) rv.incomingCount = d.incomingCount;
+        if (d.outgoingCount != null) rv.outgoingCount = d.outgoingCount;
+        if (d.internalCount != null) rv.internalCount = d.internalCount;
+        return rv;
+      };
+
+      if (this.accessors.getFlowAggFunc() === undefined) {
+        for (const f of flows) {
+          if (
+            this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
+          ) {
+            const originId = this.accessors.getFlowOriginId(f);
+            const destId = this.accessors.getFlowDestId(f);
+            const count = this.accessors.getFlowMagnitude(f);
+            if (originId === destId) {
+              totals.set(originId, add(originId, {internalCount: count}));
+            } else {
+              totals.set(originId, add(originId, {outgoingCount: count}));
+              totals.set(destId, add(destId, {incomingCount: count}));
+            }
           }
+        }
+      } else {
+        const flowDestValues = new Map<string, aggFunctionVars[]>();
+        const flowOriginValues = new Map<string, aggFunctionVars[]>();
+        const flowInternalValues = new Map<string, aggFunctionVars[]>();
+        for (const f of flows) {
+          if (
+            this.isFlowInSelection(f, selectedLocationsSet, locationFilterMode)
+          ) {
+            const originId = this.accessors.getFlowOriginId(f).toString();
+            const destId = this.accessors.getFlowDestId(f).toString();
+            const count = this.accessors.getFlowMagnitude(f);
+            const aggweightmap =
+              this.accessors.getFlowAggWeight === undefined
+                ? this.accessors.getFlowMagnitude(f)
+                : this.accessors.getFlowAggWeight(f);
+            if (originId === destId) {
+              const interval = flowInternalValues.get(originId);
+              if (!interval) {
+                flowInternalValues.set(originId, [
+                  {aggvalue: count, aggweight: aggweightmap},
+                ]);
+              } else {
+                interval.push({aggvalue: count, aggweight: aggweightmap});
+              }
+            } else {
+              const destval = flowDestValues.get(destId);
+              if (!destval) {
+                flowDestValues.set(destId, [
+                  {aggvalue: count, aggweight: aggweightmap},
+                ]);
+              } else {
+                destval.push({aggvalue: count, aggweight: aggweightmap});
+              }
+
+              const originval = flowOriginValues.get(originId);
+              if (!originval) {
+                flowOriginValues.set(originId, [
+                  {aggvalue: count, aggweight: aggweightmap},
+                ]);
+              } else {
+                originval.push({aggvalue: count, aggweight: aggweightmap});
+              }
+            }
+          }
+        }
+
+        for (const [originId, values] of flowOriginValues.entries()) {
+          totals.set(
+            originId,
+            aggFuncAdd(originId, {
+              outgoingCount: this.accessors.getFlowAggFunc(values),
+            }),
+          );
+        }
+        for (const [destId, values] of flowDestValues.entries()) {
+          totals.set(
+            destId,
+            aggFuncAdd(destId, {
+              incomingCount: this.accessors.getFlowAggFunc(values),
+            }),
+          );
+        }
+        for (const [internalIds, values] of flowInternalValues.entries()) {
+          totals.set(
+            internalIds,
+            aggFuncAdd(internalIds, {
+              internalCount: this.accessors.getFlowAggFunc(values),
+            }),
+          );
         }
       }
       return totals;

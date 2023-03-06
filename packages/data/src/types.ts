@@ -3,6 +3,10 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
+export type aggFunctionVars = {
+  aggvalue: number | undefined;
+  aggweight: number | undefined;
+};
 
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
@@ -22,12 +26,16 @@ export interface ViewState {
 export type FlowAccessor<F, T> = (flow: F) => T; // objectInfo?: AccessorObjectInfo,
 export type LocationAccessor<L, T> = (location: L) => T;
 
+export type FlowAggregatorFunc<V, T> = (values: V) => T;
+
 export interface FlowAccessors<F> {
   getFlowOriginId: FlowAccessor<F, string | number>;
   getFlowDestId: FlowAccessor<F, string | number>;
   getFlowMagnitude: FlowAccessor<F, number>;
   getFlowTime?: FlowAccessor<F, Date>; // TODO: use number instead of Date
   // getFlowColor?: FlowAccessor<string | undefined>;
+  getFlowAggFunc: FlowAggregatorFunc<aggFunctionVars[], number>;
+  getFlowAggWeight: FlowAccessor<F, number>;
 }
 
 export interface LocationAccessors<L> {
@@ -129,9 +137,10 @@ export function isAggregateFlow(
   );
 }
 
-export interface FlowCountsMapReduce<F, T = any> {
+export interface FlowCountsMapReduce<F, H, T = any> {
   map: (flow: F) => T;
-  reduce: (accumulated: T, val: T) => T;
+  aggweightmap: (flow: H) => T;
+  reduce: (values: T) => T;
 }
 
 export enum LocationFilterMode {

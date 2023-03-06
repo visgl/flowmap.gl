@@ -12,6 +12,7 @@ import {
   FlowAccessors,
   FlowCountsMapReduce,
   isCluster,
+  aggFunctionVars,
 } from './../types';
 import {ascending, bisectLeft, extent} from 'd3-array';
 
@@ -48,9 +49,15 @@ export interface ClusterIndex<F> {
   aggregateFlows: (
     flows: F[],
     zoom: number,
-    {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
+    {
+      getFlowOriginId,
+      getFlowDestId,
+      getFlowMagnitude,
+      getFlowAggFunc,
+      getFlowAggWeight,
+    }: FlowAccessors<F>,
     options?: {
-      flowCountsMapReduce?: FlowCountsMapReduce<F>;
+      flowCountsMapReduce?: FlowCountsMapReduce<F, F>;
     },
   ) => (F | AggregateFlow)[];
 }
@@ -165,7 +172,13 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
     aggregateFlows: (
       flows,
       zoom,
-      {getFlowOriginId, getFlowDestId, getFlowMagnitude},
+      {
+        getFlowOriginId,
+        getFlowDestId,
+        getFlowMagnitude,
+        getFlowAggFunc,
+        getFlowAggWeight,
+      },
       options = {},
     ) => {
       if (zoom > maxZoom) {
@@ -173,12 +186,16 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
       }
       const result: (F | AggregateFlow)[] = [];
       const aggFlowsByKey = new Map<string, AggregateFlow>();
+      const aggFlowCountsByKey = new Map<string, aggFunctionVars[]>();
       const makeKey = (origin: string | number, dest: string | number) =>
         `${origin}:${dest}`;
       const {
         flowCountsMapReduce = {
           map: getFlowMagnitude,
-          reduce: (acc: any, count: number) => (acc || 0) + count,
+          aggweightmap: !getFlowAggWeight ? getFlowMagnitude : getFlowAggWeight,
+          reduce: !getFlowAggFunc
+            ? (acc: any, count: number) => (acc || 0) + count
+            : getFlowAggFunc,
         },
       } = options;
       for (const flow of flows) {
@@ -200,14 +217,46 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
             };
             result.push(aggregateFlow);
             aggFlowsByKey.set(key, aggregateFlow);
+            aggFlowCountsByKey.set(key, [
+              {
+                aggvalue: flowCountsMapReduce.map(flow),
+                aggweight: flowCountsMapReduce.aggweightmap(flow),
+              },
+            ]);
           } else {
-            aggregateFlow.count = flowCountsMapReduce.reduce(
-              aggregateFlow.count,
-              flowCountsMapReduce.map(flow),
-            );
+            if (!getFlowAggFunc) {
+              aggregateFlow.count = flowCountsMapReduce.reduce(
+                aggregateFlow.count,
+                flowCountsMapReduce.map(flow),
+              );
+            } else {
+              const aggFlowsCounts = aggFlowCountsByKey.get(key);
+              if (!aggFlowsCounts) {
+                aggFlowCountsByKey.set(key, [
+                  {
+                    aggvalue: flowCountsMapReduce.map(flow),
+                    aggweight: flowCountsMapReduce.aggweightmap(flow),
+                  },
+                ]);
+              } else {
+                aggFlowsCounts.push({
+                  aggvalue: flowCountsMapReduce.map(flow),
+                  aggweight: flowCountsMapReduce.aggweightmap(flow),
+                });
+              }
+            }
           }
         }
       }
+      if (getFlowAggFunc !== undefined) {
+        for (const [key, aggregateFlow] of aggFlowsByKey.entries()) {
+          aggregateFlow.count = flowCountsMapReduce.reduce(
+            aggFlowCountsByKey.get(key),
+            0,
+          );
+        }
+      }
+
       return result;
     },
   };
@@ -215,24 +264,69 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
 
 export function makeLocationWeightGetter<F>(
   flows: F[],
-  {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
+  {
+    getFlowOriginId,
+    getFlowDestId,
+    getFlowMagnitude,
+    getFlowAggFunc,
+    getFlowAggWeight,
+  }: FlowAccessors<F>,
 ): LocationWeightGetter {
   const locationTotals = {
     incoming: new Map<string | number, number>(),
     outgoing: new Map<string | number, number>(),
   };
-  for (const flow of flows) {
-    const origin = getFlowOriginId(flow);
-    const dest = getFlowDestId(flow);
-    const count = getFlowMagnitude(flow);
-    locationTotals.incoming.set(
-      dest,
-      (locationTotals.incoming.get(dest) || 0) + count,
-    );
-    locationTotals.outgoing.set(
-      origin,
-      (locationTotals.outgoing.get(origin) || 0) + count,
-    );
+  const flowAggFunc = !getFlowAggFunc
+    ? (acc: any, count: number) => (acc || 0) + count
+    : getFlowAggFunc;
+  if (!getFlowAggFunc) {
+    for (const flow of flows) {
+      const origin = getFlowOriginId(flow);
+      const dest = getFlowDestId(flow);
+      const count = getFlowMagnitude(flow);
+      locationTotals.incoming.set(
+        dest,
+        flowAggFunc(locationTotals.incoming.get(dest) || 0, count),
+      );
+      locationTotals.outgoing.set(
+        origin,
+        flowAggFunc(locationTotals.outgoing.get(origin) || 0, count),
+      );
+    }
+  } else {
+    const flowDestValues = new Map<string, aggFunctionVars[]>();
+    const flowOriginValues = new Map<string, aggFunctionVars[]>();
+    for (const flow of flows) {
+      const origin = getFlowOriginId(flow).toString();
+      const dest = getFlowDestId(flow).toString();
+      const count = getFlowMagnitude(flow);
+      const aggweightmap =
+        getFlowAggWeight === undefined
+          ? getFlowMagnitude(flow)
+          : getFlowAggWeight(flow);
+
+      const destFlowVal = flowDestValues.get(dest);
+      if (!destFlowVal) {
+        flowDestValues.set(dest, [{aggvalue: count, aggweight: aggweightmap}]);
+      } else {
+        destFlowVal.push({aggvalue: count, aggweight: aggweightmap});
+      }
+
+      const originFlowVal = flowOriginValues.get(origin);
+      if (!originFlowVal) {
+        flowOriginValues.set(origin, [
+          {aggvalue: count, aggweight: aggweightmap},
+        ]);
+      } else {
+        originFlowVal.push({aggvalue: count, aggweight: aggweightmap});
+      }
+    }
+    for (const [dest, values] of flowDestValues.entries()) {
+      locationTotals.incoming.set(dest, flowAggFunc(values, 0));
+    }
+    for (const [origin, values] of flowOriginValues.entries()) {
+      locationTotals.outgoing.set(origin, flowAggFunc(values, 0));
+    }
   }
   return (id: string | number) =>
     Math.max(
