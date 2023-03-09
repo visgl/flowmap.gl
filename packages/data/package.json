@@ -13,32 +13,32 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "d3-array": "2 - 3",
+    "d3-array": "^3.2.2",
     "d3-color": "2 - 3",
-    "d3-geo": "2 - 3",
+    "d3-geo": "^3.1.0",
     "d3-interpolate": "2 - 3",
     "d3-scale": "3 - 4",
     "d3-scale-chromatic": "2 - 3",
-    "d3-time": "2 - 3",
+    "d3-time": "^3.1.0",
     "d3-time-format": "3 - 4",
     "kdbush": "^3.0.0",
-    "reselect": "^4.0.0",
+    "reselect": "^4.1.7",
     "seedrandom": "^3.0.5"
   },
   "devDependencies": {
-    "@types/d3-array": "^3.0.1",
+    "@types/d3-array": "^3.0.4",
     "@types/d3-collection": "^1.0.10",
-    "@types/d3-color": "^3.0.2",
-    "@types/d3-geo": "^3.0.2",
+    "@types/d3-color": "^3.1.0",
+    "@types/d3-geo": "^3.0.3",
     "@types/d3-interpolate": "^3.0.1",
-    "@types/d3-scale": "^4.0.1",
+    "@types/d3-scale": "^4.0.3",
     "@types/d3-scale-chromatic": "^3.0.0",
     "@types/d3-time": "^3.0.0",
     "@types/d3-time-format": "^4.0.0",
-    "@types/geojson": "^7946.0.7",
-    "@types/kdbush": "^3.0.0",
+    "@types/geojson": "^7946.0.10",
+    "@types/kdbush": "^3.0.2",
     "@types/mapbox__geo-viewport": "^0.4.1",
-    "@types/seedrandom": "^3.0.1"
+    "@types/seedrandom": "^3.0.5"
   },
   "gitHead": "66e2235c27734094d45099c1746e0d334be4972d",
   "publishConfig": {

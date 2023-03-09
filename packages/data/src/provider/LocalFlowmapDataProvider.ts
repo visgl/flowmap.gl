@@ -23,8 +23,10 @@ import {
 } from '../getViewStateForLocations';
 import {ClusterIndex} from '../cluster/ClusterIndex';
 
-export default class LocalFlowmapDataProvider<L, F>
-  implements FlowmapDataProvider<L, F>
+export default class LocalFlowmapDataProvider<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> implements FlowmapDataProvider<L, F>
 {
   private selectors: FlowmapSelectors<L, F>;
   private flowmapData: FlowmapData<L, F> | undefined;

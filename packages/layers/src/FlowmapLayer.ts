@@ -33,7 +33,10 @@ import {
   PickingType,
 } from './types';
 
-export type FlowmapLayerProps<L, F> = {
+export type FlowmapLayerProps<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
   filter?: FilterState;
@@ -95,7 +98,7 @@ type HighlightedFlowObject = {
 
 type HighlightedObject = HighlightedLocationObject | HighlightedFlowObject;
 
-type State<L, F> = {
+type State<L extends Record<string, any>, F extends Record<string, any>> = {
   accessors: FlowmapAggregateAccessors<L, F>;
   dataProvider: FlowmapDataProvider<L, F>;
   layersData: LayersData | undefined;
@@ -107,7 +110,10 @@ type State<L, F> = {
 
 export type SourceEvent = {srcEvent: MouseEvent};
 
-export default class FlowmapLayer<L, F> extends CompositeLayer {
+export default class FlowmapLayer<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> extends CompositeLayer {
   static defaultProps = {
     darkMode: true,
     fadeAmount: 50,

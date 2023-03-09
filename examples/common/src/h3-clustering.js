@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {geoToH3, h3ToGeo} from 'h3-js';
+import {latLngToCell, cellToLatLng} from 'h3-js';
 
 export function getClusterLevelsH3(locations, minZoom = 1, maxZoom = 20) {
   let nodes = locations.map((d) => ({
@@ -19,7 +19,7 @@ export function getClusterLevelsH3(locations, minZoom = 1, maxZoom = 20) {
   for (let zoom = maxZoom - 1; zoom >= minZoom; zoom--) {
     const h3Zoom = zoom - 4;
     const nodesByH3 = nodes.reduce((acc, d) => {
-      const h3Id = geoToH3(+d.lat, +d.lon, h3Zoom);
+      const h3Id = latLngToCell(+d.lat, +d.lon, h3Zoom);
       if (!acc[h3Id]) {
         acc[h3Id] = [];
       }
@@ -46,8 +46,8 @@ export function getClusterLevelsH3(locations, minZoom = 1, maxZoom = 20) {
         return {
           id: `{[${id}:${zoom}]}`,
           zoom,
-          lat: h3ToGeo(id, true)[0],
-          lon: h3ToGeo(id, true)[1],
+          lat: cellToLatLng(id, true)[0],
+          lon: cellToLatLng(id, true)[1],
           children: nodesByH3[id].map((d) => d.id),
         };
       });

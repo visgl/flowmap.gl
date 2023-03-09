@@ -13,7 +13,10 @@ import {
   isLocationClusterNode,
 } from './types';
 
-export default class FlowmapAggregateAccessors<L, F> {
+export default class FlowmapAggregateAccessors<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> {
   private accessors: FlowmapDataAccessors<L, F>;
   constructor(accessors: FlowmapDataAccessors<L, F>) {
     this.accessors = accessors;
