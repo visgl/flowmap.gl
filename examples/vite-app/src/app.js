@@ -12,7 +12,7 @@ import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 
 // eslint-disable-next-line no-undef
-const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
 
 const config = {...UI_INITIAL};
