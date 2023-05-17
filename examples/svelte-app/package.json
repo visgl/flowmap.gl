@@ -8,24 +8,24 @@
     "start": "sirv public --no-clear"
   },
   "devDependencies": {
-    "@deck.gl/core": "^8.9.9",
-    "@deck.gl/layers": "^8.9.9",
-    "@deck.gl/react": "^8.9.9",
+    "@deck.gl/core": "^8.9.15",
+    "@deck.gl/layers": "^8.9.15",
+    "@deck.gl/react": "^8.9.15",
     "@flowmap.gl/data": "^8.0.0-alpha.25",
     "@flowmap.gl/layers": "^8.0.0-alpha.25",
-    "@luma.gl/constants": "^8.5.19",
-    "@luma.gl/core": "^8.5.19",
-    "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@luma.gl/constants": "^8.5.20",
+    "@luma.gl/core": "^8.5.20",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.2",
     "@rollup/plugin-replace": "^5.0.2",
     "dotenv": "^16.0.3",
-    "mapbox-gl": "^2.13.0",
-    "rollup": "^3.18.0",
+    "mapbox-gl": "^2.14.1",
+    "rollup": "^3.22.0",
     "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.1.4",
     "rollup-plugin-terser": "^7.0.0",
-    "svelte": "^3.55.1"
+    "svelte": "^3.59.1"
   },
   "dependencies": {
     "sirv-cli": "^2.0.2"
