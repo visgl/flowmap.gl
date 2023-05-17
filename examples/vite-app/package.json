@@ -19,7 +19,7 @@
     "mapbox-gl": "^2.14.1"
   },
   "devDependencies": {
-    "typescript": "^4.3.2",
-    "vite": "^3.2.4"
+    "typescript": "^5.0.4",
+    "vite": "^4.3.7"
   }
 }
