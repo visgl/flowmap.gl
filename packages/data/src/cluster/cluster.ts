@@ -142,16 +142,19 @@ export function clusterLocations<L>(
 
   const numbersOfClusters = trees.map((d) => d?.points.length);
   const minClusters = min(numbersOfClusters.filter((d) => d > 0));
+
   const maxClusters = getMaxNumberOfClusters(locations, locationAccessors);
 
   let maxAvailZoom = numbersOfClusters.indexOf(maxClusters);
   if (maxClusters < locationsCount) {
     maxAvailZoom++;
     if (maxAvailZoom < maxZoom + 1) {
+      // move the higher level clusters up to avoid gap between zoom levels
       trees[maxAvailZoom] = trees[maxZoom + 1];
       trees[maxZoom + 1] = undefined;
     }
   }
+
   const minAvailZoom = Math.min(
     maxAvailZoom,
     numbersOfClusters.lastIndexOf(minClusters),
@@ -188,16 +191,19 @@ export function clusterLocations<L>(
         const {id} = point;
         const children = childrenByParent && childrenByParent.get(id);
         if (!children) {
-          throw new Error(`Cluster ${id} doesn't have children`);
+          // Might happen if there are multiple locations with same coordinates
+          console.warn(`Omitting cluster with no children, point:`, point);
+          continue;
         }
-        nodes.push({
+        const cluster = {
           id: makeClusterId(id),
           name: makeClusterName(id, numPoints),
           zoom,
           lat: yLat(y),
           lon: xLng(x),
-          children,
-        } as Cluster);
+          children: children ?? [],
+        } as Cluster;
+        nodes.push(cluster);
       }
     }
     clusterLevels.push({
@@ -341,7 +347,7 @@ function getMaxNumberOfClusters<L>(
   let numSame = 0;
   for (const [key, count] of countByLatLon) {
     if (count > 1) {
-      numSame++;
+      numSame += count - 1;
     }
   }
   return numLocations - numSame;
