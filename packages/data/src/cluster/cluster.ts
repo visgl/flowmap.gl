@@ -143,17 +143,23 @@ export function clusterLocations<L>(
   const numbersOfClusters = trees.map((d) => d?.points.length);
   const minClusters = min(numbersOfClusters.filter((d) => d > 0));
 
-  const maxClusters = getMaxNumberOfClusters(locations, locationAccessors);
-
-  let maxAvailZoom = numbersOfClusters.indexOf(maxClusters);
-  if (maxClusters < locationsCount) {
-    maxAvailZoom++;
-    if (maxAvailZoom < maxZoom + 1) {
-      // move the higher level clusters up to avoid gap between zoom levels
-      trees[maxAvailZoom] = trees[maxZoom + 1];
-      trees[maxZoom + 1] = undefined;
-    }
-  }
+  // let maxAvailZoom;
+  // const numUniqueLocations = countUniqueLocations(locations, locationAccessors);
+  // if (numUniqueLocations < locationsCount) {
+  //   // Duplicate locations would be clustered together at any zoom level
+  //   // which can lead to having too many zooms.
+  //   maxAvailZoom =
+  //     findIndexOfNextToMax(numbersOfClusters) ?? numbersOfClusters.length - 1;
+  //   maxAvailZoom++;
+  //   if (maxAvailZoom < maxZoom + 1) {
+  //     // move the higher level clusters up to avoid gap between zoom levels
+  //     trees[maxAvailZoom] = trees[maxZoom + 1];
+  //     trees[maxZoom + 1] = undefined;
+  //   }
+  // } else {
+  const maxAvailZoom =
+    findIndexOfMax(numbersOfClusters) ?? numbersOfClusters.length - 1;
+  // }
 
   const minAvailZoom = Math.min(
     maxAvailZoom,
@@ -323,32 +329,67 @@ function getY<L>(p: Point<L>) {
   return p.y;
 }
 
-/**
- * Finds groups of locations which share the same positions.
- * They will always be clustered together at any zoom level
- * which can lead to having too many zooms.
- */
-function getMaxNumberOfClusters<L>(
+function countUniqueLocations<L>(
   locations: Iterable<L>,
   locationAccessors: LocationAccessors<L>,
 ) {
   const {getLocationLon, getLocationLat} = locationAccessors;
   const countByLatLon = new Map<string, number>();
-  let numLocations = 0;
+  let uniqueCnt = 0;
   for (const loc of locations) {
     const lon = getLocationLon(loc);
     const lat = getLocationLat(loc);
     const key = `${lon},${lat}`;
     const prev = countByLatLon.get(key);
+    if (!prev) {
+      uniqueCnt++;
+    }
     countByLatLon.set(key, prev ? prev + 1 : 1);
-    numLocations++;
   }
+  return uniqueCnt;
+}
 
-  let numSame = 0;
-  for (const [key, count] of countByLatLon) {
-    if (count > 1) {
-      numSame += count - 1;
+// function findIndexOfNextToMax(arr: (number | undefined)[]): number | undefined {
+//   const result = arr.reduce(
+//     (acc, value, index) => {
+//       if (typeof value === 'number') {
+//         if (value > acc.max) {
+//           acc.nextToMax = acc.max;
+//           acc.nextToMaxIndex = acc.maxIndex;
+//           acc.max = value;
+//           acc.maxIndex = index;
+//         } else if (value < acc.max && value > acc.nextToMax) {
+//           acc.nextToMax = value;
+//           acc.nextToMaxIndex = index;
+//         }
+//       }
+//       return acc;
+//     },
+//     {
+//       max: -Infinity,
+//       nextToMax: -Infinity,
+//       maxIndex: -1,
+//       nextToMaxIndex: -1,
+//     },
+//   );
+
+//   return result.nextToMaxIndex !== -1 ? result.nextToMaxIndex : undefined;
+// }
+
+function findIndexOfMax(arr: (number | undefined)[]): number | undefined {
+  let max = -Infinity;
+  let maxIndex: number | undefined = undefined;
+
+  for (let i = 0; i < arr.length; i++) {
+    const value = arr[i];
+
+    if (typeof value === 'number') {
+      if (value > max) {
+        max = value;
+        maxIndex = i;
+      }
     }
   }
-  return numLocations - numSame;
+
+  return maxIndex;
 }
