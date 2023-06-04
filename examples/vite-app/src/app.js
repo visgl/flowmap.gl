@@ -81,6 +81,7 @@ fetchData().then((data) => {
           fadeAmount: config.fadeAmount,
           fadeEnabled: config.fadeEnabled,
           fadeOpacityEnabled: config.fadeOpacityEnabled,
+          locationsEnabled: config.locationsEnabled,
           locationTotalsEnabled: config.locationTotalsEnabled,
           animationEnabled: config.animationEnabled,
           clusteringEnabled: config.clusteringEnabled,

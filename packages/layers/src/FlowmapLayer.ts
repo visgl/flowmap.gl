@@ -40,6 +40,7 @@ export type FlowmapLayerProps<
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
   filter?: FilterState;
+  locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
@@ -64,6 +65,7 @@ export type FlowmapLayerProps<
 
 const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'filter',
+  'locationsEnabled',
   'locationTotalsEnabled',
   'locationLabelsEnabled',
   'adaptiveScalesEnabled',
@@ -117,6 +119,7 @@ export default class FlowmapLayer<
   static defaultProps = {
     darkMode: true,
     fadeAmount: 50,
+    locationsEnabled: true,
     locationTotalsEnabled: true,
     locationLabelsEnabled: false,
     animationEnabled: false,
@@ -270,6 +273,7 @@ export default class FlowmapLayer<
 
   private _getSettingsState() {
     const {
+      locationsEnabled,
       locationTotalsEnabled,
       locationLabelsEnabled,
       adaptiveScalesEnabled,
@@ -286,6 +290,7 @@ export default class FlowmapLayer<
       maxTopFlowsDisplayNum,
     } = this.props;
     return {
+      locationsEnabled,
       locationTotalsEnabled,
       locationLabelsEnabled,
       adaptiveScalesEnabled,
