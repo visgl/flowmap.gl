@@ -143,23 +143,25 @@ export function clusterLocations<L>(
   const numbersOfClusters = trees.map((d) => d?.points.length);
   const minClusters = min(numbersOfClusters.filter((d) => d > 0));
 
-  // let maxAvailZoom;
-  // const numUniqueLocations = countUniqueLocations(locations, locationAccessors);
-  // if (numUniqueLocations < locationsCount) {
-  //   // Duplicate locations would be clustered together at any zoom level
-  //   // which can lead to having too many zooms.
-  //   maxAvailZoom =
-  //     findIndexOfNextToMax(numbersOfClusters) ?? numbersOfClusters.length - 1;
-  //   maxAvailZoom++;
-  //   if (maxAvailZoom < maxZoom + 1) {
-  //     // move the higher level clusters up to avoid gap between zoom levels
-  //     trees[maxAvailZoom] = trees[maxZoom + 1];
-  //     trees[maxZoom + 1] = undefined;
-  //   }
-  // } else {
-  const maxAvailZoom =
+  let maxAvailZoom =
     findIndexOfMax(numbersOfClusters) ?? numbersOfClusters.length - 1;
-  // }
+
+  const numUniqueLocations = countUniqueLocations(locations, locationAccessors);
+  if (numUniqueLocations < locationsCount) {
+    // Duplicate locations would be clustered together at any zoom level which can lead to having too many zooms.
+    // To avoid that, we need to find the max zoom level that has less or equal clusters than unique locations
+    // and drop all zoom levels beyond that (except the unclustered level).
+    const maxClustersZoom = numbersOfClusters.findLastIndex(
+      (d) => d <= numUniqueLocations,
+    );
+
+    // Now, move the unclustered points to the next zoom level to avoid having a gap
+    if (maxClustersZoom < maxAvailZoom) {
+      trees[maxClustersZoom + 1] = trees[maxAvailZoom];
+      trees.splice(maxClustersZoom + 2); // Remove all zoom levels beyond maxClustersZoom
+    }
+    maxAvailZoom = maxClustersZoom + 1;
+  }
 
   const minAvailZoom = Math.min(
     maxAvailZoom,
@@ -172,7 +174,7 @@ export function clusterLocations<L>(
     let childrenByParent: Map<number, (string | number)[]> | undefined;
     const tree = trees[zoom];
     if (!tree) continue;
-    if (zoom < maxAvailZoom) {
+    if (trees[prevZoom] && zoom < maxAvailZoom) {
       childrenByParent = rollup<Point<L>, (string | number)[], number>(
         trees[prevZoom].points,
         (points: any[]) =>
@@ -348,33 +350,6 @@ function countUniqueLocations<L>(
   }
   return uniqueCnt;
 }
-
-// function findIndexOfNextToMax(arr: (number | undefined)[]): number | undefined {
-//   const result = arr.reduce(
-//     (acc, value, index) => {
-//       if (typeof value === 'number') {
-//         if (value > acc.max) {
-//           acc.nextToMax = acc.max;
-//           acc.nextToMaxIndex = acc.maxIndex;
-//           acc.max = value;
-//           acc.maxIndex = index;
-//         } else if (value < acc.max && value > acc.nextToMax) {
-//           acc.nextToMax = value;
-//           acc.nextToMaxIndex = index;
-//         }
-//       }
-//       return acc;
-//     },
-//     {
-//       max: -Infinity,
-//       nextToMax: -Infinity,
-//       maxIndex: -1,
-//       nextToMaxIndex: -1,
-//     },
-//   );
-
-//   return result.nextToMaxIndex !== -1 ? result.nextToMaxIndex : undefined;
-// }
 
 function findIndexOfMax(arr: (number | undefined)[]): number | undefined {
   let max = -Infinity;
