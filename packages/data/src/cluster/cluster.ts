@@ -140,7 +140,7 @@ export function clusterLocations<L>(
     return [];
   }
 
-  const numbersOfClusters = trees.map((d) => d?.points.length);
+  const numbersOfClusters: number[] = trees.map((d) => d?.points.length);
   const minClusters = min(numbersOfClusters.filter((d) => d > 0));
 
   let maxAvailZoom =
@@ -151,21 +151,23 @@ export function clusterLocations<L>(
     // Duplicate locations would be clustered together at any zoom level which can lead to having too many zooms.
     // To avoid that, we need to find the max zoom level that has less or equal clusters than unique locations
     // and drop all zoom levels beyond that (except the unclustered level).
-    const maxClustersZoom = numbersOfClusters.findLastIndex(
+    const maxClustersZoom = findLastIndex(
+      numbersOfClusters,
       (d) => d <= numUniqueLocations,
     );
-
-    // Now, move the unclustered points to the next zoom level to avoid having a gap
-    if (maxClustersZoom < maxAvailZoom) {
-      trees[maxClustersZoom + 1] = trees[maxAvailZoom];
-      trees.splice(maxClustersZoom + 2); // Remove all zoom levels beyond maxClustersZoom
+    if (maxClustersZoom >= 0) {
+      // Now, move the unclustered points to the next zoom level to avoid having a gap
+      if (maxClustersZoom < maxAvailZoom) {
+        trees[maxClustersZoom + 1] = trees[maxAvailZoom];
+        trees.splice(maxClustersZoom + 2); // Remove all zoom levels beyond maxClustersZoom
+      }
+      maxAvailZoom = maxClustersZoom + 1;
     }
-    maxAvailZoom = maxClustersZoom + 1;
   }
 
   const minAvailZoom = Math.min(
     maxAvailZoom,
-    numbersOfClusters.lastIndexOf(minClusters),
+    minClusters ? numbersOfClusters.lastIndexOf(minClusters) : maxAvailZoom,
   );
 
   const clusterLevels = new Array<ClusterLevel>();
@@ -367,4 +369,16 @@ function findIndexOfMax(arr: (number | undefined)[]): number | undefined {
   }
 
   return maxIndex;
+}
+
+function findLastIndex<T>(
+  arr: T[],
+  predicate: (value: T, index: number, array: T[]) => boolean,
+): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i], i, arr)) {
+      return i;
+    }
+  }
+  return -1;
 }
