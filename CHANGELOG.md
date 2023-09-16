@@ -1,8 +1,13 @@
 # Change log
 
-## [8.0.0-alpha.25] - 2022-06-13
+## [8.0.0-alpha.26] - 2023-09-17
 ### Changed
-- Skipping stale async onHover and onClick events 
+- Added locationsEnabled setting: location circles won't be rendered at all when set to false
+- Fixed issue clustering with multiple same-coords locations
+- Better treatment of duplicate locations
+- Upgraded deps
+- Replacing CRA with vite for examples
+ 
 
 ## [8.0.0-alpha.24] - 2022-05-29
 ### Changed
