@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import './index.css';
-import App from './App';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+
 // import {createWorkerDataProvider, LocationFilterMode} from '@flowmap.gl/data';
 // import {FlowmapLayer} from '@flowmap.gl/layers';
-import {createRoot} from 'react-dom/client';
 
-const container = document.getElementById('root');
-const root = createRoot(container!);
-root.render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
-);
+)
 
 // (async () => {
 //   const base = 'https://gist.githubusercontent.com/ilyabo/';

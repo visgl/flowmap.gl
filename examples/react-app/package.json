@@ -11,8 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/react": "^8.9.28",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-map-gl": "^7.1.6",
+    "@flowmap.gl/data": "^8.0.0-alpha.25",
+    "@flowmap.gl/layers": "^8.0.0-alpha.25"
   },
   "devDependencies": {
     "@types/react": "^18.2.18",
