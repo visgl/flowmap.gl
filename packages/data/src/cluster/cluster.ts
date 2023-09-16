@@ -177,7 +177,7 @@ export function clusterLocations<L>(
     const tree = trees[zoom];
     if (!tree) continue;
     if (trees[prevZoom] && zoom < maxAvailZoom) {
-      childrenByParent = rollup<Point<L>, (string | number)[], number>(
+      childrenByParent = rollup(
         trees[prevZoom].points,
         (points: any[]) =>
           points.map((p: any) =>

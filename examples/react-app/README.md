@@ -11,7 +11,7 @@ Rename `.env.example` into `.env` and add your Mapbox token there.
 
 ```bash
 npm i
-npm run start
+npm run dev
 ```
 
 To build a production version:
