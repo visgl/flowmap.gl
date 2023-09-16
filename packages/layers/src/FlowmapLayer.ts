@@ -33,10 +33,14 @@ import {
   PickingType,
 } from './types';
 
-export type FlowmapLayerProps<L, F> = {
+export type FlowmapLayerProps<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
   filter?: FilterState;
+  locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
@@ -61,6 +65,7 @@ export type FlowmapLayerProps<L, F> = {
 
 const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'filter',
+  'locationsEnabled',
   'locationTotalsEnabled',
   'locationLabelsEnabled',
   'adaptiveScalesEnabled',
@@ -95,7 +100,7 @@ type HighlightedFlowObject = {
 
 type HighlightedObject = HighlightedLocationObject | HighlightedFlowObject;
 
-type State<L, F> = {
+type State<L extends Record<string, any>, F extends Record<string, any>> = {
   accessors: FlowmapAggregateAccessors<L, F>;
   dataProvider: FlowmapDataProvider<L, F>;
   layersData: LayersData | undefined;
@@ -107,10 +112,14 @@ type State<L, F> = {
 
 export type SourceEvent = {srcEvent: MouseEvent};
 
-export default class FlowmapLayer<L, F> extends CompositeLayer {
+export default class FlowmapLayer<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> extends CompositeLayer {
   static defaultProps = {
     darkMode: true,
     fadeAmount: 50,
+    locationsEnabled: true,
     locationTotalsEnabled: true,
     locationLabelsEnabled: false,
     animationEnabled: false,
@@ -264,6 +273,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
 
   private _getSettingsState() {
     const {
+      locationsEnabled,
       locationTotalsEnabled,
       locationLabelsEnabled,
       adaptiveScalesEnabled,
@@ -280,6 +290,7 @@ export default class FlowmapLayer<L, F> extends CompositeLayer {
       maxTopFlowsDisplayNum,
     } = this.props;
     return {
+      locationsEnabled,
       locationTotalsEnabled,
       locationLabelsEnabled,
       adaptiveScalesEnabled,

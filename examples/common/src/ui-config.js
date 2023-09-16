@@ -21,6 +21,7 @@ export const UI_INITIAL = {
   clusteringMethod: 'HCA',
   animationEnabled: FlowmapLayer.defaultProps.animationEnabled,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
+  locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
@@ -32,6 +33,7 @@ export const initLilGui = (gui) => {
   gui.addColor(UI_INITIAL, 'highlightColor');
   gui.add(UI_INITIAL, 'animationEnabled');
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
+  gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
   gui.add(UI_INITIAL, 'locationLabelsEnabled');
 

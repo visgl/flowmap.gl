@@ -16,6 +16,7 @@ export interface SettingsState {
   animationEnabled: boolean;
   fadeEnabled: boolean;
   fadeOpacityEnabled: boolean;
+  locationsEnabled: boolean;
   locationTotalsEnabled: boolean;
   locationLabelsEnabled: boolean;
   adaptiveScalesEnabled: boolean;

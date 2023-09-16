@@ -1,0 +1,25 @@
+{
+  "name": "@flowmap.gl/webpack-app",
+  "version": "8.0.0-alpha.26",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@deck.gl/core": "^8.9.28",
+    "@deck.gl/layers": "^8.9.28",
+    "@flowmap.gl/data": "^8.0.0-alpha.26",
+    "@flowmap.gl/layers": "^8.0.0-alpha.26",
+    "@luma.gl/constants": "^8.5.21",
+    "@luma.gl/core": "^8.5.21",
+    "d3-fetch": "^3.0.1",
+    "lil-gui": "^0.18.2",
+    "mapbox-gl": "^2.15.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9"
+  }
+}

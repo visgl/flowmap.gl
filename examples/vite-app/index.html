@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright (c) Flowmap.gl contributors
+  ~ Copyright (c) 2018-2020 Teralytics
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flowmap.gl pure js example</title>
+    <style>
+      #container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #000;
+      }
+
+      #container > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #map {
+        opacity: 0.5;
+      }
+
+      #deck-canvas {
+        mix-blend-mode: screen;
+      }
+    </style>
+    <script type="module">
+      import './src/app.js';
+    </script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <canvas id="deck-canvas"></canvas>
+    </div>
+  </body>
+</html>

@@ -9,7 +9,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  background-color: #080F19;
+  background-color: #080f19;
   background-image: url('/img/hero-bg-blur.jpg');
   background-size: cover;
   background-position: center;
@@ -32,7 +32,6 @@
   align-items: center;
   color: white;
 }
-
 
 @media screen and (max-width: 996px) {
   .heroBanner {

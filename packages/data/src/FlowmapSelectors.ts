@@ -71,7 +71,10 @@ export type Selector<L, F, T> = ParametricSelector<
   T
 >;
 
-export default class FlowmapSelectors<L, F> {
+export default class FlowmapSelectors<
+  L extends Record<string, any>,
+  F extends Record<string, any>,
+> {
   accessors: FlowmapAggregateAccessors<L, F>;
 
   constructor(accessors: FlowmapDataAccessors<L, F>) {

@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {
@@ -24,7 +23,7 @@ import {
 } from '@flowmap.gl/examples-common';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
 const MAPBOX_STYLE_DARK = MAPBOX_STYLE_LIGHT;
 
@@ -79,6 +78,7 @@ function App() {
         fadeAmount: config.fadeAmount,
         fadeEnabled: config.fadeEnabled,
         fadeOpacityEnabled: config.fadeOpacityEnabled,
+        locationsEnabled: config.locationsEnabled,
         locationTotalsEnabled: config.locationTotalsEnabled,
         locationLabelsEnabled: config.locationLabelsEnabled,
         animationEnabled: config.animationEnabled,

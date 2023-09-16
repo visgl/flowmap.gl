@@ -140,21 +140,34 @@ export function clusterLocations<L>(
     return [];
   }
 
-  const numbersOfClusters = trees.map((d) => d?.points.length);
+  const numbersOfClusters: number[] = trees.map((d) => d?.points.length);
   const minClusters = min(numbersOfClusters.filter((d) => d > 0));
-  const maxClusters = getMaxNumberOfClusters(locations, locationAccessors);
 
-  let maxAvailZoom = numbersOfClusters.indexOf(maxClusters);
-  if (maxClusters < locationsCount) {
-    maxAvailZoom++;
-    if (maxAvailZoom < maxZoom + 1) {
-      trees[maxAvailZoom] = trees[maxZoom + 1];
-      trees[maxZoom + 1] = undefined;
+  let maxAvailZoom =
+    findIndexOfMax(numbersOfClusters) ?? numbersOfClusters.length - 1;
+
+  const numUniqueLocations = countUniqueLocations(locations, locationAccessors);
+  if (numUniqueLocations < locationsCount) {
+    // Duplicate locations would be clustered together at any zoom level which can lead to having too many zooms.
+    // To avoid that, we need to find the max zoom level that has less or equal clusters than unique locations
+    // and drop all zoom levels beyond that (except the unclustered level).
+    const maxClustersZoom = findLastIndex(
+      numbersOfClusters,
+      (d) => d <= numUniqueLocations,
+    );
+    if (maxClustersZoom >= 0) {
+      // Now, move the unclustered points to the next zoom level to avoid having a gap
+      if (maxClustersZoom < maxAvailZoom) {
+        trees[maxClustersZoom + 1] = trees[maxAvailZoom];
+        trees.splice(maxClustersZoom + 2); // Remove all zoom levels beyond maxClustersZoom
+      }
+      maxAvailZoom = maxClustersZoom + 1;
     }
   }
+
   const minAvailZoom = Math.min(
     maxAvailZoom,
-    numbersOfClusters.lastIndexOf(minClusters),
+    minClusters ? numbersOfClusters.lastIndexOf(minClusters) : maxAvailZoom,
   );
 
   const clusterLevels = new Array<ClusterLevel>();
@@ -163,8 +176,8 @@ export function clusterLocations<L>(
     let childrenByParent: Map<number, (string | number)[]> | undefined;
     const tree = trees[zoom];
     if (!tree) continue;
-    if (zoom < maxAvailZoom) {
-      childrenByParent = rollup<Point<L>, (string | number)[], number>(
+    if (trees[prevZoom] && zoom < maxAvailZoom) {
+      childrenByParent = rollup(
         trees[prevZoom].points,
         (points: any[]) =>
           points.map((p: any) =>
@@ -188,16 +201,19 @@ export function clusterLocations<L>(
         const {id} = point;
         const children = childrenByParent && childrenByParent.get(id);
         if (!children) {
-          throw new Error(`Cluster ${id} doesn't have children`);
+          // Might happen if there are multiple locations with same coordinates
+          console.warn(`Omitting cluster with no children, point:`, point);
+          continue;
         }
-        nodes.push({
+        const cluster = {
           id: makeClusterId(id),
           name: makeClusterName(id, numPoints),
           zoom,
           lat: yLat(y),
           lon: xLng(x),
-          children,
-        } as Cluster);
+          children: children ?? [],
+        } as Cluster;
+        nodes.push(cluster);
       }
     }
     clusterLevels.push({
@@ -317,32 +333,52 @@ function getY<L>(p: Point<L>) {
   return p.y;
 }
 
-/**
- * Finds groups of locations which share the same positions.
- * They will always be clustered together at any zoom level
- * which can lead to having too many zooms.
- */
-function getMaxNumberOfClusters<L>(
+function countUniqueLocations<L>(
   locations: Iterable<L>,
   locationAccessors: LocationAccessors<L>,
 ) {
   const {getLocationLon, getLocationLat} = locationAccessors;
   const countByLatLon = new Map<string, number>();
-  let numLocations = 0;
+  let uniqueCnt = 0;
   for (const loc of locations) {
     const lon = getLocationLon(loc);
     const lat = getLocationLat(loc);
     const key = `${lon},${lat}`;
     const prev = countByLatLon.get(key);
+    if (!prev) {
+      uniqueCnt++;
+    }
     countByLatLon.set(key, prev ? prev + 1 : 1);
-    numLocations++;
   }
+  return uniqueCnt;
+}
 
-  let numSame = 0;
-  for (const [key, count] of countByLatLon) {
-    if (count > 1) {
-      numSame++;
+function findIndexOfMax(arr: (number | undefined)[]): number | undefined {
+  let max = -Infinity;
+  let maxIndex: number | undefined = undefined;
+
+  for (let i = 0; i < arr.length; i++) {
+    const value = arr[i];
+
+    if (typeof value === 'number') {
+      if (value > max) {
+        max = value;
+        maxIndex = i;
+      }
     }
   }
-  return numLocations - numSame;
+
+  return maxIndex;
+}
+
+function findLastIndex<T>(
+  arr: T[],
+  predicate: (value: T, index: number, array: T[]) => boolean,
+): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i], i, arr)) {
+      return i;
+    }
+  }
+  return -1;
 }
