@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@deck.gl/react": "^8.9.28",
+    "@flowmap.gl/data": "^8.0.0-alpha.25",
+    "@flowmap.gl/layers": "^8.0.0-alpha.25",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-map-gl": "^7.1.6",
-    "@flowmap.gl/data": "^8.0.0-alpha.25",
-    "@flowmap.gl/layers": "^8.0.0-alpha.25"
+    "react-map-gl": "^7.1.6"
   },
   "devDependencies": {
     "@types/react": "^18.2.18",
@@ -27,7 +27,6 @@
     "eslint": "^8.46.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.9"
+    "typescript": "^5.0.2"
   }
 }

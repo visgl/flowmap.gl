@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:FlowmapBlue/flowmap.gl.git",
+  "repository": "git@github.com:visgl/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "Apache-2.0",
   "scripts": {

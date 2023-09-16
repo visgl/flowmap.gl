@@ -8,11 +8,9 @@
   "license": "Apache-2.0",
   "scripts": {
     "start": "yarn dev",
-    "build": "yarn build:data && yarn build:layers",
-    "dev": "concurrently \"npm:dev:*\"",
+    "dev": "yarn dev:example",
     "dev:example": "yarn workspace @flowmap.gl/react-app start",
-    "dev:data": "yarn workspace @flowmap.gl/data dev",
-    "dev:layers": "yarn workspace @flowmap.gl/layers dev",
+    "build": "yarn build:data && yarn build:layers",
     "build:example": "yarn workspace @flowmap.gl/react-app build",
     "build:data": "yarn workspace @flowmap.gl/data build",
     "build:docs": "cd docs && yarn && yarn build",
@@ -43,7 +41,6 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
-    "concurrently": "^8.0.1",
     "eslint": "^8.49.0",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
