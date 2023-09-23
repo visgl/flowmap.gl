@@ -21,7 +21,7 @@
     "d3-scale-chromatic": "2 - 3",
     "d3-time": "^3.1.0",
     "d3-time-format": "3 - 4",
-    "kdbush": "^3.0.0",
+    "kdbush": "^4.0.2",
     "reselect": "^4.1.6",
     "seedrandom": "^3.0.5"
   },
@@ -36,7 +36,7 @@
     "@types/d3-time": "^3.0.0",
     "@types/d3-time-format": "^4.0.0",
     "@types/geojson": "^7946.0.10",
-    "@types/kdbush": "^3.0.2",
+    "@types/kdbush": "^3.0.3",
     "@types/mapbox__geo-viewport": "^0.5.0",
     "@types/seedrandom": "^3.0.5"
   },

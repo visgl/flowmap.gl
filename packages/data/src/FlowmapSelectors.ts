@@ -728,14 +728,20 @@ export default class FlowmapSelectors<
       if (!locations) {
         return undefined;
       }
-      return new KDBush(
-        // @ts-ignore
-        locations,
-        (location: L | ClusterNode) =>
-          lngX(this.accessors.getLocationLon(location)),
-        (location: L | ClusterNode) =>
-          latY(this.accessors.getLocationLat(location)),
-      );
+      const nodes = Array.isArray(locations)
+        ? locations
+        : Array.from(locations);
+      const bush = new KDBush(nodes.length, 64, Float32Array);
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        bush.add(
+          lngX(this.accessors.getLocationLon(node)),
+          latY(this.accessors.getLocationLat(node)),
+        );
+      }
+      bush.finish();
+      bush.points = nodes;
+      return bush;
     },
   );
 
