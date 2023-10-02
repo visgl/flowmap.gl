@@ -6,6 +6,7 @@
 
 - Upgraded kdbush to the new version with more efficient typed arrays storage
 - Added "type": "module" to published packages
+- Fix StackBlitz example
 
 ## [8.0.0-alpha.26] - 2023-09-17
 
