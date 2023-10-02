@@ -114,9 +114,19 @@ export function clusterLocations<L>(
     locationsCount++;
   }
 
+  const makeBush = (points: Point<L>[]) => {
+    const bush = new KDBush(points.length, nodeSize, Float32Array);
+    for (let i = 0; i < points.length; i++) {
+      bush.add(points[i].x, points[i].y);
+    }
+    bush.finish();
+    bush.points = points;
+    return bush;
+  };
+
   // cluster points on max zoom, then cluster the results on previous zoom, etc.;
   // results in a cluster hierarchy across zoom levels
-  trees[maxZoom + 1] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
+  trees[maxZoom + 1] = makeBush(clusters);
   let prevZoom = maxZoom + 1;
 
   for (let z = maxZoom; z >= minZoom; z--) {
@@ -132,7 +142,7 @@ export function clusterLocations<L>(
     } else {
       prevZoom = z;
       clusters = _clusters;
-      trees[z] = new KDBush(clusters, getX, getY, nodeSize, Float32Array);
+      trees[z] = makeBush(clusters);
     }
   }
 

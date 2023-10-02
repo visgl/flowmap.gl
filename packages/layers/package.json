@@ -1,12 +1,13 @@
 {
   "name": "@flowmap.gl/layers",
-  "version": "8.0.0-alpha.26",
+  "version": "8.0.0-alpha.27",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:visgl/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "Apache-2.0",
+  "type": "module",
   "scripts": {
     "dev": "tsc --watch",
     "build": "rm -rf dist && tsc",
