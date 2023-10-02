@@ -7,7 +7,7 @@
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "Apache-2.0",
   "scripts": {
-    "start": "yarn dev",
+    "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
     "dev:example": "yarn workspace @flowmap.gl/react-app start",
     "build": "yarn build:data && yarn build:layers",

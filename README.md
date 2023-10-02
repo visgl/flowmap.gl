@@ -2,7 +2,6 @@
 
 <a href=https://visgl.github.io/flowmap.gl/><img alt=flowmap-gl src=https://user-images.githubusercontent.com/351828/147912794-36eab3ce-7ce3-40d6-ad24-4a11c1bda924.jpg width=400></a>
 
-
 [Flow map](https://en.wikipedia.org/wiki/Flow_map) drawing layer for [deck.gl](http://deck.gl). Can be used for visualizing movement of people (e.g. migration) or objects between geographic locations. The layer is rendered in WebGL and can handle large numbers of flows with a relatively good rendering performance.
 
 Try [FlowmapBlue](https://flowmap.blue/) for an easy way of publishing flow maps (no programming skills required).
@@ -10,16 +9,15 @@ Try [FlowmapBlue](https://flowmap.blue/) for an easy way of publishing flow maps
 Run the [LIVE EXAMPLE](https://visgl.github.io/flowmap.gl/) or
 check the source code of the following examples:
 
+- [Minimal Pure js example](https://github.com/ilyabo/flowmap.gl-purejs-example)
+
+  [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/ilyabo/flowmap.gl-purejs-example?file=main.js)
+
 - [React example](./examples/react-app)
 - [React worker example](./examples/react-worker-app)
-- [Webpack pure JS example](./examples/webpack-app)
 - [Svelte example](./examples/svelte-app)
 
 ## Development
-
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/visgl/flowmap.gl?file=examples%2Freact-app%2Fsrc%2FApp.tsx)
-
 
 Building flowmap.gl locally from the source requires Node.js.
 We use [yarn](https://yarnpkg.com/en/docs/install) to manage the dependencies.
@@ -36,6 +34,8 @@ cp .env.example .env
 cd ../..
 yarn start
 ```
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/visgl/flowmap.gl?file=examples%2Freact-app%2Fsrc%2FApp.tsx)
 
 ## Contributing to flowmap.gl
 
