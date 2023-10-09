@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.1] - 2023-10-09
+
+- Publishing first release
+
 ## [8.0.0-alpha.27] - 2023-10-02
 
 ### Changed
