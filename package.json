@@ -17,7 +17,7 @@
     "build:layers": "yarn workspace @flowmap.gl/layers build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
-    "prepare": "husky install",
+    "prepare": "./node_modules/.bin/husky install",
     "deploy": "yarn build:example && gh-pages -d examples/react-app/build/",
     "bump": "lerna version --no-push --force-publish",
     "publish-release": "lerna publish from-package",
