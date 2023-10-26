@@ -48,7 +48,12 @@ export interface ClusterIndex<F> {
   aggregateFlows: (
     flows: F[],
     zoom: number,
-    {getFlowOriginId, getFlowDestId, getFlowMagnitude}: FlowAccessors<F>,
+    {
+      getFlowOriginId,
+      getFlowDestId,
+      getFlowMagnitude,
+      getFlowColor,
+    }: FlowAccessors<F>,
     options?: {
       flowCountsMapReduce?: FlowCountsMapReduce<F>;
     },
@@ -165,7 +170,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
     aggregateFlows: (
       flows,
       zoom,
-      {getFlowOriginId, getFlowDestId, getFlowMagnitude},
+      {getFlowOriginId, getFlowDestId, getFlowMagnitude, getFlowColor},
       options = {},
     ) => {
       if (zoom > maxZoom) {
@@ -187,6 +192,7 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
         const originCluster = findClusterFor(origin, zoom) || origin;
         const destCluster = findClusterFor(dest, zoom) || dest;
         const key = makeKey(originCluster, destCluster);
+        const color = getFlowColor ? getFlowColor(flow) : null;
         if (originCluster === origin && destCluster === dest) {
           result.push(flow);
         } else {
@@ -198,6 +204,9 @@ export function buildIndex<F>(clusterLevels: ClusterLevels): ClusterIndex<F> {
               count: flowCountsMapReduce.map(flow),
               aggregate: true,
             };
+            if (color) {
+              aggregateFlow.color = color;
+            }
             result.push(aggregateFlow);
             aggFlowsByKey.set(key, aggregateFlow);
           } else {
