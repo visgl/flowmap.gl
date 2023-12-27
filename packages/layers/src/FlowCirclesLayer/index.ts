@@ -5,5 +5,6 @@
  */
 
 import FlowCirclesLayer from './FlowCirclesLayer';
+export type {Props as FlowCirclesLayerProps} from './FlowCirclesLayer';
 
 export default FlowCirclesLayer;

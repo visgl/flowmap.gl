@@ -5,5 +5,6 @@
  */
 
 import FlowLinesLayer from './FlowLinesLayer';
+export type {Props as FlowLinesLayerProps} from './FlowLinesLayer';
 
 export default FlowLinesLayer;

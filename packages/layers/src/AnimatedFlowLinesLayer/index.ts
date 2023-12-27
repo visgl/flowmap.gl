@@ -5,5 +5,6 @@
  */
 
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
+export type {Props as AnimatedFlowLinesLayerProps} from './AnimatedFlowLinesLayer';
 
 export default AnimatedFlowLinesLayer;
