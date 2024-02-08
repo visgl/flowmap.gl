@@ -4,7 +4,7 @@
 
 [Flow map](https://en.wikipedia.org/wiki/Flow_map) drawing layer for [deck.gl](http://deck.gl). Can be used for visualizing movement of people (e.g. migration) or objects between geographic locations. The layer is rendered in WebGL and can handle large numbers of flows with a relatively good rendering performance.
 
-Try [FlowmapBlue](https://flowmap.blue/) for an easy way of publishing flow maps (no programming skills required).
+Try [FlowmapBlue](https://flowmap.blue/) and [Flowmap City](https://flowmap.city/) for an easy way of publishing flow maps (no programming skills required).
 
 Run the [LIVE EXAMPLE](https://visgl.github.io/flowmap.gl/) or
 check the source code of the following examples:
