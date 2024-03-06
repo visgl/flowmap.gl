@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/layers",
-  "version": "8.0.1",
+  "version": "8.0.2",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "*"
+    "@flowmap.gl/data": "^8.0.2"
   },
   "peerDependencies": {
     "@deck.gl/core": "^8.6.5",
