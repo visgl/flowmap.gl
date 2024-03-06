@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/react-worker-app",
   "private": true,
-  "version": "8.0.1",
+  "version": "8.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.1",
-    "@flowmap.gl/layers": "^8.0.1",
+    "@flowmap.gl/data": "^8.0.2",
+    "@flowmap.gl/layers": "^8.0.2",
     "@loaders.gl/core": "^3.4.14",
     "@loaders.gl/csv": "^3.4.14",
     "comlink": "^4.4.1",
