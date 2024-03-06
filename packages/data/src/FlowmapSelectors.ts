@@ -8,20 +8,22 @@ import {ascending, descending, extent, min, rollup} from 'd3-array';
 import {ScaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
 import {
+  ParametricSelector,
   createSelector,
   createSelectorCreator,
   defaultMemoize,
-  ParametricSelector,
 } from 'reselect';
 import {alea} from 'seedrandom';
-import {clusterLocations} from './cluster/cluster';
+import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
+import {FlowmapState} from './FlowmapState';
 import {
-  buildIndex,
   ClusterIndex,
-  findAppropriateZoomLevel,
   LocationWeightGetter,
+  buildIndex,
+  findAppropriateZoomLevel,
   makeLocationWeightGetter,
 } from './cluster/ClusterIndex';
+import {clusterLocations} from './cluster/cluster';
 import getColors, {
   ColorsRGBA,
   DiffColorsRGBA,
@@ -31,18 +33,16 @@ import getColors, {
   isDiffColors,
   isDiffColorsRGBA,
 } from './colors';
-import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
-import {FlowmapState} from './FlowmapState';
 import {
   addClusterNames,
   getFlowThicknessScale,
   getViewportBoundingBox,
 } from './selector-functions';
 import {
+  TimeGranularityKey,
   getTimeGranularityByKey,
   getTimeGranularityByOrder,
   getTimeGranularityForDate,
-  TimeGranularityKey,
 } from './time';
 import {
   AggregateFlow,
@@ -55,11 +55,10 @@ import {
   FlowLinesLayerAttributes,
   FlowmapData,
   FlowmapDataAccessors,
-  isCluster,
-  isLocationClusterNode,
   LayersData,
   LocationFilterMode,
   LocationTotals,
+  isLocationClusterNode,
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
@@ -753,7 +752,9 @@ export default class FlowmapSelectors<
         const ids = this._getLocationsInBboxIndices(tree, bbox);
         if (ids) {
           return new Set(
-            ids.map((idx: number) => tree.points[idx].id) as Array<string>,
+            ids.map((idx: number) =>
+              this.accessors.getLocationId(tree.points[idx]),
+            ) as Array<string>,
           );
         }
         return undefined;

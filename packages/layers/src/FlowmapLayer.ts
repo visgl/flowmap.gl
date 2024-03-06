@@ -6,22 +6,22 @@
 import {CompositeLayer} from '@deck.gl/core';
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
-  colorAsRgba,
   FilterState,
   FlowLinesLayerAttributes,
   FlowmapAggregateAccessors,
   FlowmapData,
   FlowmapDataAccessors,
   FlowmapDataProvider,
+  LayersData,
+  LocalFlowmapDataProvider,
+  ViewportProps,
+  colorAsRgba,
   getFlowLineAttributesByIndex,
   getFlowmapColors,
   getLocationCoordsByIndex,
   getOuterCircleRadiusByIndex,
   isFlowmapData,
   isFlowmapDataProvider,
-  LayersData,
-  LocalFlowmapDataProvider,
-  ViewportProps,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
