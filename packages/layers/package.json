@@ -13,6 +13,9 @@
     "build": "rm -rf dist && tsc",
     "prepare": "yarn build"
   },
+  "dependencies": {
+    "@flowmap.gl/data": "*"
+  },
   "peerDependencies": {
     "@deck.gl/core": "^8.6.5",
     "@deck.gl/layers": "^8.6.5",

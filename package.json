@@ -9,12 +9,9 @@
   "scripts": {
     "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
-    "dev:example": "yarn workspace @flowmap.gl/react-app start",
-    "build": "yarn build:data && yarn build:layers",
-    "build:example": "yarn workspace @flowmap.gl/react-app build",
-    "build:data": "yarn workspace @flowmap.gl/data build",
+    "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
+    "build": "turbo run build --filter './packages/*' --concurrency 1",
     "build:docs": "cd docs && yarn && yarn build",
-    "build:layers": "yarn workspace @flowmap.gl/layers build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
     "prepare": "./node_modules/.bin/husky install",
@@ -45,6 +42,7 @@
     "eslint": "^8.49.0",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.2"
+    "lint-staged": "^13.2.2",
+    "turbo": "^1.12.4"
   }
 }
