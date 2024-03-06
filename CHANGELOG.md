@@ -1,5 +1,9 @@
 # Change log
 
+## [8.0.2] - 2024-03-06
+
+- Fix: getLocationIdsInViewport didn't use location id accessor
+
 ## [8.0.1] - 2023-10-09
 
 - Publishing first release
