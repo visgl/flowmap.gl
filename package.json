@@ -17,8 +17,8 @@
     "prepare": "./node_modules/.bin/husky install",
     "deploy": "yarn build:example && gh-pages -d examples/react-app/build/",
     "bump": "lerna version --no-push --force-publish",
-    "publish-release": "lerna publish from-package",
-    "publish-prerelease": "lerna publish --dist-tag next from-package",
+    "publish-release": "yarn build && lerna publish from-package",
+    "publish-prerelease": "yarn build && lerna publish --dist-tag next from-package",
     "typecheck": "lerna run --stream typecheck"
   },
   "prettier": {
