@@ -6,6 +6,7 @@
   "repository": "git@github.com:visgl/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "Apache-2.0",
+  "packageManager": "yarn@4.5.0",
   "scripts": {
     "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
@@ -43,6 +44,6 @@
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
-    "turbo": "^1.12.4"
+    "turbo": "^2.1.3"
   }
 }

@@ -16,3 +16,10 @@ node_modules/
 .DS_Store
 .turbo
 *.tsbuildinfo
+
+
+# Ignore Yarn cache and unplugged dependencies
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
