@@ -133,7 +133,7 @@ export default class FlowmapLayer<
     highlightColor: 'orange',
     maxTopFlowsDisplayNum: 5000,
   };
-  state: State<L, F> | undefined;
+  state: State<L, F> = {} as State<L, F>;
 
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({

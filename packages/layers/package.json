@@ -17,10 +17,10 @@
     "@flowmap.gl/data": "workspace:*"
   },
   "peerDependencies": {
-    "@deck.gl/core": "^8.6.5",
-    "@deck.gl/layers": "^8.6.5",
-    "@luma.gl/constants": "^8.5.10",
-    "@luma.gl/core": "^8.5.10"
+    "@deck.gl/core": "^9.0.33",
+    "@deck.gl/layers": "^9.0.33",
+    "@luma.gl/constants": "^9.0.27",
+    "@luma.gl/core": "^9.0.27"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

@@ -5,8 +5,8 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import GL from '@luma.gl/constants';
-import {Geometry, Model} from '@luma.gl/core';
+import {GL} from '@luma.gl/constants';
+import {Geometry, Model} from '@luma.gl/engine';
 import FragmentShader from './FlowLinesLayerFragment.glsl';
 import VertexShader from './FlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';

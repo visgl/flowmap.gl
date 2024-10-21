@@ -8,13 +8,13 @@
     "start": "sirv public --no-clear"
   },
   "devDependencies": {
-    "@deck.gl/core": "^8.9.28",
-    "@deck.gl/layers": "^8.9.28",
-    "@deck.gl/react": "^8.9.28",
+    "@deck.gl/core": "^9.0.33",
+    "@deck.gl/layers": "^9.0.33",
+    "@deck.gl/react": "^9.0.33",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
-    "@luma.gl/constants": "^8.5.21",
-    "@luma.gl/core": "^8.5.21",
+    "@luma.gl/constants": "^9.0.27",
+    "@luma.gl/core": "^9.0.27",
     "@rollup/plugin-commonjs": "^25.0.0",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@rollup/plugin-replace": "^5.0.2",

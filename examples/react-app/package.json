@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deck.gl/react": "^8.9.28",
+    "@deck.gl/react": "^9.0.33",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/examples-common": "workspace:^",
     "@flowmap.gl/layers": "workspace:*",

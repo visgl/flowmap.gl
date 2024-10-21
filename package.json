@@ -10,7 +10,8 @@
   "scripts": {
     "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
-    "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
+    "_dev:example": "turbo dev --filter './packages/*' --filter='./examples/react-app'",
+    "dev:example": "yarn workspaces foreach --from './examples/react-app' -R run build",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
     "build:docs": "cd docs && yarn && yarn build",
     "prettier": "prettier . --write",
