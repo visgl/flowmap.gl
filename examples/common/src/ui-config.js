@@ -25,6 +25,8 @@ export const UI_INITIAL = {
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
+  flowEndpointsInViewportMode:
+    FlowmapLayer.defaultProps.flowEndpointsInViewportMode,
 };
 
 export const initLilGui = (gui) => {
@@ -36,6 +38,7 @@ export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
   gui.add(UI_INITIAL, 'locationLabelsEnabled');
+  gui.add(UI_INITIAL, 'flowEndpointsInViewportMode', ['any', 'both']);
 
   gui
     .add(UI_INITIAL, 'maxTopFlowsDisplayNum')

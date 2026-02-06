@@ -195,6 +195,17 @@ Whether to adapt flow thickness and color scales to the current viewport. When `
 
 Maximum number of flows to display. Flows are sorted by magnitude and only the top N are shown. Increase for denser visualizations (may impact performance).
 
+#### `flowEndpointsInViewportMode`
+
+- Type: `'any' | 'both'`
+- Default: `'any'`
+
+Controls when a flow is considered visible based on endpoint locations:
+- `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport
+- `'both'`: Show flows only if both endpoints (origin AND destination) are in viewport
+
+The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.
+
 ### Event Handlers
 
 #### `onHover`

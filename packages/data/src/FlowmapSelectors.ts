@@ -101,6 +101,10 @@ export default class FlowmapSelectors<
   };
   getMaxTopFlowsDisplayNum = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.maxTopFlowsDisplayNum;
+  getFlowEndpointsInViewportMode = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ) => state.settings.flowEndpointsInViewportMode;
   getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filter?.selectedLocations;
   getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -847,12 +851,14 @@ export default class FlowmapSelectors<
       this.getSelectedLocationsSet,
       this.getLocationFilterMode,
       this.getMaxTopFlowsDisplayNum,
+      this.getFlowEndpointsInViewportMode,
       (
         flows,
         locationIdsInViewport,
         selectedLocationsSet,
         locationFilterMode,
         maxTopFlowsDisplayNum,
+        flowEndpointsInViewportMode,
       ) => {
         if (!flows || !locationIdsInViewport) return undefined;
         const picked: (F | AggregateFlow)[] = [];
@@ -860,10 +866,13 @@ export default class FlowmapSelectors<
         for (const flow of flows) {
           const origin = this.accessors.getFlowOriginId(flow);
           const dest = this.accessors.getFlowDestId(flow);
-          if (
-            locationIdsInViewport.has(origin) ||
-            locationIdsInViewport.has(dest)
-          ) {
+          const originInView = locationIdsInViewport.has(origin);
+          const destInView = locationIdsInViewport.has(dest);
+          const isInViewport =
+            flowEndpointsInViewportMode === 'both'
+              ? originInView && destInView
+              : originInView || destInView;
+          if (isInViewport) {
             if (
               this.isFlowInSelection(
                 flow,

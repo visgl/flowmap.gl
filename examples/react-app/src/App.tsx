@@ -88,6 +88,7 @@ function App() {
         adaptiveScalesEnabled: config.adaptiveScalesEnabled,
         highlightColor: config.highlightColor,
         maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
+        flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
