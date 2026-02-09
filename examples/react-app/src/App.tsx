@@ -4,15 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {ReactNode, useEffect, useState} from 'react';
-import DeckGL from '@deck.gl/react';
-import {
-  FlowmapLayer,
-  FlowmapLayerPickingInfo,
-  PickingType,
-} from '@flowmap.gl/layers';
+import DeckGL from '@deck.gl/react/typed';
 import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
-import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl';
 import {
   fetchData,
   FlowDatum,
@@ -21,7 +14,14 @@ import {
   UI_INITIAL,
   useUI,
 } from '@flowmap.gl/examples-common';
+import {
+  FlowmapLayer,
+  FlowmapLayerPickingInfo,
+  PickingType,
+} from '@flowmap.gl/layers';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import {ReactNode, useEffect, useState} from 'react';
+import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl';
 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
@@ -116,6 +116,7 @@ function App() {
         initialViewState={viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
+        // @ts-ignore
         layers={layers}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
