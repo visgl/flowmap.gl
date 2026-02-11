@@ -6,6 +6,8 @@
 
 import {LocationFilterMode, ViewportProps} from './types';
 
+export type FlowEndpointsInViewportMode = 'any' | 'both';
+
 export interface FilterState {
   selectedLocations?: (string | number)[];
   locationFilterMode?: LocationFilterMode;
@@ -28,6 +30,7 @@ export interface SettingsState {
   colorScheme: string | string[] | undefined;
   highlightColor: string;
   maxTopFlowsDisplayNum: number;
+  flowEndpointsInViewportMode: FlowEndpointsInViewportMode;
 }
 
 export interface FlowmapState {
