@@ -591,7 +591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flowmap.gl/data@npm:^8.0.2, @flowmap.gl/data@workspace:*, @flowmap.gl/data@workspace:packages/data":
+"@flowmap.gl/data@workspace:*, @flowmap.gl/data@workspace:packages/data":
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/data@workspace:packages/data"
   dependencies:
@@ -640,7 +640,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/layers@workspace:packages/layers"
   dependencies:
-    "@flowmap.gl/data": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
   peerDependencies:
     "@deck.gl/core": ^8.6.5
     "@deck.gl/layers": ^8.6.5

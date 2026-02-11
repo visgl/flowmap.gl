@@ -14,7 +14,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
   },
   "peerDependencies": {
     "@deck.gl/core": "^8.6.5",
