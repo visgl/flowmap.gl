@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {FlowmapLayer} from '@flowmap.gl/layers';
 import {COLOR_SCHEMES} from '@flowmap.gl/data';
+import {FlowmapLayer} from '@flowmap.gl/layers';
 
 export const UI_INITIAL = {
   darkMode: true,
@@ -25,6 +25,7 @@ export const UI_INITIAL = {
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
+  flowEndpointsInViewportMode: 'any',
 };
 
 export const initLilGui = (gui) => {
@@ -36,6 +37,7 @@ export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
   gui.add(UI_INITIAL, 'locationLabelsEnabled');
+  gui.add(UI_INITIAL, 'flowEndpointsInViewportMode', ['any', 'both']);
 
   gui
     .add(UI_INITIAL, 'maxTopFlowsDisplayNum')

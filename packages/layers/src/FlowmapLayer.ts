@@ -7,6 +7,7 @@ import {CompositeLayer} from '@deck.gl/core';
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
   FilterState,
+  FlowEndpointsInViewportMode,
   FlowLinesLayerAttributes,
   FlowmapAggregateAccessors,
   FlowmapData,
@@ -55,6 +56,7 @@ export type FlowmapLayerProps<
   colorScheme?: string | string[];
   highlightColor?: string | number[];
   maxTopFlowsDisplayNum?: number;
+  flowEndpointsInViewportMode?: FlowEndpointsInViewportMode;
   onHover?: (
     info: FlowmapLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
@@ -80,6 +82,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'colorScheme',
   'highlightColor',
   'maxTopFlowsDisplayNum',
+  'flowEndpointsInViewportMode',
 ];
 
 enum HighlightType {
@@ -132,6 +135,7 @@ export default class FlowmapLayer<
     colorScheme: 'Teal',
     highlightColor: 'orange',
     maxTopFlowsDisplayNum: 5000,
+    flowEndpointsInViewportMode: 'any',
   };
   state: State<L, F> | undefined;
 
@@ -288,6 +292,7 @@ export default class FlowmapLayer<
       colorScheme,
       highlightColor,
       maxTopFlowsDisplayNum,
+      flowEndpointsInViewportMode,
     } = this.props;
     return {
       locationsEnabled,
@@ -305,6 +310,7 @@ export default class FlowmapLayer<
       colorScheme,
       highlightColor,
       maxTopFlowsDisplayNum,
+      flowEndpointsInViewportMode,
     };
   }
 
