@@ -1,6 +1,7 @@
 {
   "name": "flowmap.gl",
   "private": true,
+  "packageManager": "yarn@4.5.0",
   "description": "Flow map drawing layer for Deck.gl",
   "main": "index.js",
   "repository": "git@github.com:visgl/flowmap.gl.git",
@@ -9,6 +10,7 @@
   "scripts": {
     "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
+    "clean": "shx rm -rf .turbo packages/*/.turbo packages/*/dist examples/*/.turbo examples/*/dist",
     "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
     "build:example": "turbo build --filter='./examples/react-app' --filter './packages/*'",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
@@ -44,6 +46,11 @@
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
-    "turbo": "^1.12.4"
+    "shx": "^0.3.4",
+    "turbo": "2.3.0"
+  },
+  "volta": {
+    "node": "22.22.0",
+    "yarn": "4.5.0"
   }
 }

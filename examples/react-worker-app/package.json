@@ -11,8 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.2",
-    "@flowmap.gl/layers": "^8.0.2",
+    "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/layers": "workspace:*",
     "@loaders.gl/core": "^3.4.14",
     "@loaders.gl/csv": "^3.4.14",
     "comlink": "^4.4.1",
@@ -30,6 +30,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "typescript": "^5.0.2",
-    "vite": "^4.4.9"
+    "vite": "^7.3.1"
   }
 }

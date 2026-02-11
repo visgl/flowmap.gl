@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@deck.gl/react": "^8.9.28",
-    "@flowmap.gl/data": "^8.0.2",
-    "@flowmap.gl/layers": "^8.0.2",
+    "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/layers": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.1.6"
@@ -28,6 +28,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "typescript": "^5.0.2",
-    "vite": "^5.0.0"
+    "vite": "^7.3.1"
   }
 }
