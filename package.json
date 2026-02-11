@@ -10,6 +10,7 @@
   "scripts": {
     "start": "yarn build && yarn dev",
     "dev": "yarn dev:example",
+    "clean": "shx rm -rf .turbo packages/*/.turbo packages/*/dist examples/*/.turbo examples/*/dist",
     "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
     "build:example": "turbo build --filter='./examples/react-app' --filter './packages/*'",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
@@ -45,7 +46,8 @@
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
-    "turbo": "^2.8.5"
+    "shx": "^0.3.4",
+    "turbo": "2.3.0"
   },
   "volta": {
     "node": "22.22.0",
