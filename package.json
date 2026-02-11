@@ -1,6 +1,7 @@
 {
   "name": "flowmap.gl",
   "private": true,
+  "packageManager": "yarn@4.5.0",
   "description": "Flow map drawing layer for Deck.gl",
   "main": "index.js",
   "repository": "git@github.com:visgl/flowmap.gl.git",
@@ -45,5 +46,9 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "turbo": "^1.12.4"
+  },
+  "volta": {
+    "node": "22.22.0",
+    "yarn": "4.5.0"
   }
 }
