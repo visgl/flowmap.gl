@@ -7,8 +7,8 @@
   "module": "src/index.js",
   "license": "MIT",
   "dependencies": {
-    "@flowmap.gl/data": "^8.0.2",
-    "@flowmap.gl/layers": "^8.0.2",
+    "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/layers": "workspace:*",
     "d3-fetch": "^3.0.1",
     "h3-js": "^4.1.0",
     "lil-gui": "^0.18.2"

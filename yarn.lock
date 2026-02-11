@@ -591,7 +591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flowmap.gl/data@npm:^8.0.2, @flowmap.gl/data@workspace:packages/data":
+"@flowmap.gl/data@npm:^8.0.2, @flowmap.gl/data@workspace:*, @flowmap.gl/data@workspace:packages/data":
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/data@workspace:packages/data"
   dependencies:
@@ -626,8 +626,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/examples-common@workspace:examples/common"
   dependencies:
-    "@flowmap.gl/data": "npm:^8.0.2"
-    "@flowmap.gl/layers": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
+    "@flowmap.gl/layers": "workspace:*"
     d3-fetch: "npm:^3.0.1"
     h3-js: "npm:^4.1.0"
     lil-gui: "npm:^0.18.2"
@@ -636,7 +636,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@flowmap.gl/layers@npm:^8.0.2, @flowmap.gl/layers@workspace:packages/layers":
+"@flowmap.gl/layers@workspace:*, @flowmap.gl/layers@workspace:packages/layers":
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/layers@workspace:packages/layers"
   dependencies:
@@ -654,8 +654,8 @@ __metadata:
   resolution: "@flowmap.gl/react-app@workspace:examples/react-app"
   dependencies:
     "@deck.gl/react": "npm:^8.9.28"
-    "@flowmap.gl/data": "npm:^8.0.2"
-    "@flowmap.gl/layers": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
+    "@flowmap.gl/layers": "workspace:*"
     "@types/react": "npm:^18.2.18"
     "@types/react-dom": "npm:^18.2.7"
     "@typescript-eslint/eslint-plugin": "npm:^6.2.1"
@@ -676,8 +676,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/react-worker-app@workspace:examples/react-worker-app"
   dependencies:
-    "@flowmap.gl/data": "npm:^8.0.2"
-    "@flowmap.gl/layers": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
+    "@flowmap.gl/layers": "workspace:*"
     "@loaders.gl/core": "npm:^3.4.14"
     "@loaders.gl/csv": "npm:^3.4.14"
     "@types/react": "npm:^18.2.18"
@@ -704,8 +704,8 @@ __metadata:
     "@deck.gl/core": "npm:^8.9.28"
     "@deck.gl/layers": "npm:^8.9.28"
     "@deck.gl/react": "npm:^8.9.28"
-    "@flowmap.gl/data": "npm:^8.0.2"
-    "@flowmap.gl/layers": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
+    "@flowmap.gl/layers": "workspace:*"
     "@luma.gl/constants": "npm:^8.5.21"
     "@luma.gl/core": "npm:^8.5.21"
     "@rollup/plugin-commonjs": "npm:^25.0.0"
@@ -729,8 +729,8 @@ __metadata:
   dependencies:
     "@deck.gl/core": "npm:^8.9.28"
     "@deck.gl/layers": "npm:^8.9.28"
-    "@flowmap.gl/data": "npm:^8.0.2"
-    "@flowmap.gl/layers": "npm:^8.0.2"
+    "@flowmap.gl/data": "workspace:*"
+    "@flowmap.gl/layers": "workspace:*"
     "@luma.gl/constants": "npm:^8.5.21"
     "@luma.gl/core": "npm:^8.5.21"
     d3-fetch: "npm:^3.0.1"
