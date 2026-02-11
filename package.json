@@ -21,7 +21,6 @@
     "deploy": "yarn build:example && gh-pages -d examples/react-app/dist/",
     "bump": "lerna version --no-push --force-publish",
     "publish-release": "yarn build && lerna publish from-package",
-    "publish-release-dry-run": "yarn build && lerna publish from-package --dry-run",
     "publish-prerelease": "yarn build && lerna publish --dist-tag next from-package",
     "typecheck": "lerna run --stream typecheck"
   },
