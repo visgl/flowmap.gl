@@ -68,6 +68,17 @@ export default class FlowmapAggregateAccessors<
     return isAggregateFlow(f) ? f.count : this.accessors.getFlowMagnitude(f);
   };
 
+  getFlowColor = (f: F | AggregateFlow) => {
+    // used only with non animated flows (i.e. not with FlowmapAnimated)
+    // animated flows need to use the default color sheme
+    if (isAggregateFlow(f))
+      // don't know if this is the best way to do this, color from aggregated flow like flow from cluster
+      return f.color;
+
+    const {getFlowColor} = this.accessors;
+    return getFlowColor ? getFlowColor(f) : undefined;
+  };
+
   // Note: Aggregate flows have no time
   getFlowTime = (f: F) => {
     const {getFlowTime} = this.accessors;

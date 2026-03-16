@@ -49,6 +49,7 @@ export interface FlowPickingInfoObject<L, F> {
   origin: L | ClusterNode;
   dest: L | ClusterNode;
   count: number;
+  color?: string;
 }
 
 export type FlowPickingInfo<L, F> = PickingInfo<FlowPickingInfoObject<L, F>>;

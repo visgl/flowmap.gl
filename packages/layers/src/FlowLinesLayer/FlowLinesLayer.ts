@@ -9,7 +9,7 @@ import GL from '@luma.gl/constants';
 import {Geometry, Model} from '@luma.gl/core';
 import FragmentShader from './FlowLinesLayerFragment.glsl';
 import VertexShader from './FlowLinesLayerVertex.glsl';
-import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {FlowLinesLayerAttributes, RGBA, colorAsRgba} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
 
 export interface Props<F> extends LayerProps {
@@ -103,7 +103,10 @@ class FlowLinesLayer<F> extends Layer {
   static defaultProps = {
     getSourcePosition: {type: 'accessor', value: (d: any) => [0, 0]},
     getTargetPosition: {type: 'accessor', value: (d: any) => [0, 0]},
-    getColor: {type: 'accessor', value: DEFAULT_COLOR},
+    getColor: {
+      type: 'accessor',
+      value: (d: any) => (d.color && colorAsRgba(d.color)) || DEFAULT_COLOR,
+    },
     getThickness: {type: 'accessor', value: (d: any) => d.count}, // 0..0.5
     getPickable: {type: 'accessor', value: (d: any) => 1.0},
     drawOutline: true,

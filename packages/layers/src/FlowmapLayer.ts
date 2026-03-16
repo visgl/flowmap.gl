@@ -362,6 +362,7 @@ export default class FlowmapLayer<
               origin: origin,
               dest: dest,
               count: accessors.getFlowMagnitude(flow),
+              color: accessors.getFlowColor && accessors.getFlowColor(flow),
             },
           };
         }
