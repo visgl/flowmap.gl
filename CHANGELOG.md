@@ -1,5 +1,10 @@
 # Change log
 
+## [9.0.0] - 2026-04-11
+
+- Upgrade to deck.gl v9
+- Improve arrow outline rendering (no need anymore to draw every arrow twice)
+
 ## [8.0.2] - 2024-03-06
 
 - Fix: getLocationIdsInViewport didn't use location id accessor
