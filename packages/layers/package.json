@@ -14,7 +14,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "workspace:^",
+    "@flowmap.gl/data": "^9.0.0",
     "@luma.gl/core": "9.2.6",
     "@luma.gl/engine": "9.2.6",
     "@luma.gl/shadertools": "9.2.6"
@@ -23,7 +23,7 @@
     "@deck.gl/core": "^9.0.0",
     "@deck.gl/layers": "^9.0.0"
   },
-  "gitHead": "66e2235c27734094d45099c1746e0d334be4972d",
+  "gitHead": "38b45c47b20c999970f53d01744eff24f66a1865",
   "publishConfig": {
     "access": "public"
   }

@@ -41,7 +41,7 @@
     "@types/mapbox__geo-viewport": "^0.5.3",
     "@types/seedrandom": "^3.0.8"
   },
-  "gitHead": "66e2235c27734094d45099c1746e0d334be4972d",
+  "gitHead": "38b45c47b20c999970f53d01744eff24f66a1865",
   "publishConfig": {
     "access": "public"
   }
