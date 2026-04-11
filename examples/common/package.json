@@ -7,16 +7,16 @@
   "module": "src/index.js",
   "license": "MIT",
   "dependencies": {
-    "@deck.gl/core": "^9.0.0",
-    "@deck.gl/layers": "^9.0.0",
+    "@deck.gl/core": "^9.2.11",
+    "@deck.gl/layers": "^9.2.11",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
-    "@loaders.gl/core": "^4.3.4",
-    "@luma.gl/core": "^9.0.0",
-    "@luma.gl/engine": "^9.0.0",
+    "@loaders.gl/core": "^4.4.1",
+    "@luma.gl/core": "9.2.6",
+    "@luma.gl/engine": "9.2.6",
     "d3-fetch": "^3.0.1",
-    "h3-js": "^4.1.0",
-    "lil-gui": "^0.18.2"
+    "h3-js": "^4.4.0",
+    "lil-gui": "^0.21.0"
   },
   "peerDependencies": {
     "react": "^17.0.2"

@@ -15,9 +15,9 @@
   },
   "dependencies": {
     "@flowmap.gl/data": "workspace:^",
-    "@luma.gl/core": "^9.0.0",
-    "@luma.gl/engine": "^9.0.0",
-    "@luma.gl/shadertools": "^9.0.0"
+    "@luma.gl/core": "9.2.6",
+    "@luma.gl/engine": "9.2.6",
+    "@luma.gl/shadertools": "9.2.6"
   },
   "peerDependencies": {
     "@deck.gl/core": "^9.0.0",

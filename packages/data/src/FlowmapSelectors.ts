@@ -7,12 +7,7 @@
 import {ascending, descending, extent, min, rollup} from 'd3-array';
 import {ScaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
-import {
-  ParametricSelector,
-  createSelector,
-  createSelectorCreator,
-  defaultMemoize,
-} from 'reselect';
+import {createSelector, createSelectorCreator, lruMemoize} from 'reselect';
 import {alea} from 'seedrandom';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
 import {FlowmapState} from './FlowmapState';
@@ -64,11 +59,10 @@ import {
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
 type KDBushTree = any;
 
-export type Selector<L, F, T> = ParametricSelector<
-  FlowmapState,
-  FlowmapData<L, F>,
-  T
->;
+export type Selector<L, F, T> = (
+  state: FlowmapState,
+  props: FlowmapData<L, F>,
+) => T;
 
 export default class FlowmapSelectors<
   L extends Record<string, any>,
@@ -246,7 +240,7 @@ export default class FlowmapSelectors<
       (flows, timeExtent) => {
         if (!flows || !timeExtent) return undefined;
 
-        const minOrder = min(flows, (d) => {
+        const minOrder = min(flows, (d: F) => {
           const t = this.accessors.getFlowTime(d);
           return t ? getTimeGranularityForDate(t).order : null;
         });
@@ -286,7 +280,7 @@ export default class FlowmapSelectors<
       ) {
         return flows;
       }
-      return flows.filter((flow) => {
+      return flows.filter((flow: F) => {
         const time = this.accessors.getFlowTime(flow);
         return time && timeRange[0] <= time && time < timeRange[1];
       });
@@ -403,7 +397,7 @@ export default class FlowmapSelectors<
       }
 
       return clusterIndex.availableZoomLevels.filter(
-        (level) => minZoom <= level && level <= maxZoom,
+        (level: number) => minZoom <= level && level <= maxZoom,
       );
     },
   );
@@ -627,7 +621,7 @@ export default class FlowmapSelectors<
           ? getTimeGranularityByKey(timeGranularityKey)
           : undefined;
         if (!flows || !timeGranularity || !timeExtent) return undefined;
-        const byTime = flows.reduce((m, flow) => {
+        const byTime = flows.reduce((m: Map<number, number>, flow: F) => {
           if (
             this.isFlowInSelection(
               flow,
@@ -646,10 +640,12 @@ export default class FlowmapSelectors<
           return m;
         }, new Map<number, number>());
 
-        return Array.from(byTime.entries()).map(([millis, count]) => ({
-          time: new Date(millis),
-          count,
-        }));
+        return Array.from(byTime.entries()).map(
+          ([millis, count]: [number, number]) => ({
+            time: new Date(millis),
+            count,
+          }),
+        );
       },
     );
 
@@ -766,21 +762,21 @@ export default class FlowmapSelectors<
     );
 
   getLocationIdsInViewport: Selector<L, F, Set<string | number> | undefined> =
-    createSelectorCreator(
-      defaultMemoize,
-      // @ts-ignore
-      (
-        s1: Set<string> | undefined,
-        s2: Set<string> | undefined,
-        index: number,
-      ) => {
-        if (s1 === s2) return true;
-        if (s1 == null || s2 == null) return false;
-        if (s1.size !== s2.size) return false;
-        for (const item of s1) if (!s2.has(item)) return false;
-        return true;
+    createSelectorCreator({
+      memoize: lruMemoize,
+      memoizeOptions: {
+        equalityCheck: (
+          s1: Set<string> | undefined,
+          s2: Set<string> | undefined,
+        ) => {
+          if (s1 === s2) return true;
+          if (s1 == null || s2 == null) return false;
+          if (s1.size !== s2.size) return false;
+          for (const item of s1) if (!s2.has(item)) return false;
+          return true;
+        },
       },
-    )(
+    })(
       this._getLocationIdsInViewport,
       (locationIds: Set<string> | undefined) => {
         if (!locationIds) return undefined;
@@ -793,7 +789,7 @@ export default class FlowmapSelectors<
     (flows) => {
       if (!flows) return undefined;
       return flows.reduce(
-        (m, flow) => m + this.accessors.getFlowMagnitude(flow),
+        (m: number, flow: F) => m + this.accessors.getFlowMagnitude(flow),
         0,
       );
     },
@@ -805,7 +801,7 @@ export default class FlowmapSelectors<
     this.getLocationFilterMode,
     (flows, selectedLocationSet, locationFilterMode) => {
       if (!flows) return undefined;
-      const count = flows.reduce((m, flow) => {
+      const count = flows.reduce((m: number, flow: F | AggregateFlow) => {
         if (
           this.isFlowInSelection(flow, selectedLocationSet, locationFilterMode)
         ) {
@@ -1075,11 +1071,14 @@ export default class FlowmapSelectors<
   getLocationsForFlowmapLayerById: Selector<
     L,
     F,
-    Map<string, L | ClusterNode> | undefined
+    Map<string | number, L | ClusterNode> | undefined
   > = createSelector(this.getLocationsForFlowmapLayer, (locations) => {
     if (!locations) return undefined;
     return locations.reduce(
-      (m, d) => (m.set(this.accessors.getLocationId(d), d), m),
+      (m: Map<string | number, L | ClusterNode>, d: L | ClusterNode) => (
+        m.set(this.accessors.getLocationId(d), d),
+        m
+      ),
       new Map(),
     );
   });
@@ -1134,7 +1133,9 @@ export default class FlowmapSelectors<
   prepareLayersData(state: FlowmapState, props: FlowmapData<L, F>): LayersData {
     const locations = this.getLocationsForFlowmapLayer(state, props) || [];
     const flows = this.getFlowsForFlowmapLayer(state, props) || [];
-    const flowmapColors = this.getFlowmapColorsRGBA(state, props);
+    const flowmapColors = (
+      this.getFlowmapColorsRGBA as Selector<L, F, DiffColorsRGBA | ColorsRGBA>
+    )(state, props);
     const locationsById = this.getLocationsForFlowmapLayerById(state, props);
     const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
