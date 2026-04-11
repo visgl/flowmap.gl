@@ -4,6 +4,8 @@ const uniformBlock = `\
 layout(std140) uniform flowLinesUniforms {
   vec4 outlineColor;
   float thicknessUnit;
+  float outlineThickness;
+  float drawOutline;
   float gap;
 } flowLines;
 `;
@@ -11,6 +13,8 @@ layout(std140) uniform flowLinesUniforms {
 export type FlowLinesProps = {
   outlineColor: [number, number, number, number];
   thicknessUnit: number;
+  outlineThickness: number;
+  drawOutline: number;
   gap: number;
 };
 
@@ -21,6 +25,8 @@ export const flowLinesUniforms = {
   uniformTypes: {
     outlineColor: 'vec4<f32>',
     thicknessUnit: 'f32',
+    outlineThickness: 'f32',
+    drawOutline: 'f32',
     gap: 'f32',
   },
 } as const satisfies ShaderModule<FlowLinesProps>;

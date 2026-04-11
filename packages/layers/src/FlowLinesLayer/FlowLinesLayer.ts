@@ -5,12 +5,12 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import {Geometry, Model} from '@luma.gl/engine';
-import FragmentShader from './FlowLinesLayerFragment.glsl';
-import VertexShader from './FlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {Geometry, Model} from '@luma.gl/engine';
 import {LayerProps} from '../types';
+import FragmentShader from './FlowLinesLayerFragment.glsl';
 import {flowLinesUniforms} from './FlowLinesLayerUniforms';
+import VertexShader from './FlowLinesLayerVertex.glsl';
 
 export interface Props<F> extends LayerProps {
   id: string;
@@ -31,7 +31,6 @@ export interface Props<F> extends LayerProps {
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
-const INNER_SIDE_OUTLINE_THICKNESS = 1;
 
 // source_target_mix, perpendicular_offset_in_thickness_units, direction_of_travel_offset_in_thickness_units
 // prettier-ignore
@@ -65,38 +64,46 @@ const POSITIONS = [
     4 ························································  0
 
  */
+// Additional static pixel offsets applied on top of the parametric arrow shape.
+// The single-pass outline path does not require any extra offset geometry.
+const PIXEL_OFFSETS = new Float32Array(9 * 2);
 
-function getOutlinePixelOffsets(tout: number, tin: number) {
-  // perpendicular_offset_in_pixels, direction_of_travel_offset_in_pixels, fill_outline_color_mix
-  // prettier-ignore
-  return ([
-
-    -tin, 2*tout, 1,   // 0
-    2*tout, -tout, 1,  // 1
-    tout, -tout, 1,   // 2
-
-    -tin, 2*tout, 1, // 0
-    tout, -tout, 1,  // 2
-    tout, -tout, 1,  // 3
-
-    -tin, 2*tout, 1, // 0
-    tout, -tout, 1,  // 3
-    -tin, -tout, 1,  // 4
-  ]);
-}
-
+// One barycentric basis per triangle. After interpolation in the fragment shader,
+// each component goes to 0 on the edge opposite its vertex, which lets us compute
+// a stable pixel distance to each triangle edge using `fwidth`.
 // prettier-ignore
-const ZEROES = [
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-];
+const BARYCENTRICS = new Float32Array([
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+]);
+
+// Each component maps to the edge opposite the matching barycentric component.
+// A value of 1 means "this is a real polygon boundary edge that may receive the
+// inset outline"; 0 means "ignore this edge" so the fragment shader does not draw
+// seams along the internal triangle splits used to build the arrow shape.
+// prettier-ignore
+const EDGE_MASKS = new Float32Array([
+  1, 0, 1,
+  1, 0, 1,
+  1, 0, 1,
+
+  1, 0, 0,
+  1, 0, 0,
+  1, 0, 0,
+
+  1, 1, 0,
+  1, 1, 0,
+  1, 1, 0,
+]);
 
 class FlowLinesLayer<F> extends Layer {
   static layerName = 'FlowLinesLayer';
@@ -184,8 +191,12 @@ class FlowLinesLayer<F> extends Layer {
   }
 
   draw(): void {
-    const {outlineColor = [255, 255, 255, 255], thicknessUnit = 12} = this
-      .props as unknown as Props<F>;
+    const {
+      drawOutline = true,
+      outlineColor = [255, 255, 255, 255],
+      outlineThickness = 1,
+      thicknessUnit = 12,
+    } = this.props as unknown as Props<F>;
     const model = this.state.model;
     if (!model) {
       return;
@@ -199,6 +210,8 @@ class FlowLinesLayer<F> extends Layer {
           number,
         ],
         thicknessUnit: thicknessUnit * 2.0,
+        outlineThickness,
+        drawOutline: drawOutline ? 1 : 0,
         gap: 0.5,
       },
     });
@@ -206,24 +219,7 @@ class FlowLinesLayer<F> extends Layer {
   }
 
   _getModel(): Model {
-    const {
-      drawOutline,
-      outlineThickness = 1,
-      id,
-    } = this.props as unknown as Props<F>;
-    let positions: number[] = [];
-    let pixelOffsets: number[] = [];
-
-    if (drawOutline) {
-      // source_target_mix, perpendicular_offset_in_thickness_units, direction_of_travel_offset_in_thickness_units
-      positions = positions.concat(POSITIONS);
-      const tout = outlineThickness;
-      const tin = INNER_SIDE_OUTLINE_THICKNESS; // the outline shouldn't cover the opposite arrow
-      pixelOffsets = pixelOffsets.concat(getOutlinePixelOffsets(tout, tin));
-    }
-
-    positions = positions.concat(POSITIONS);
-    pixelOffsets = pixelOffsets.concat(ZEROES);
+    const {id} = this.props as unknown as Props<F>;
 
     return new Model(this.context.device as any, {
       id,
@@ -232,8 +228,10 @@ class FlowLinesLayer<F> extends Layer {
       geometry: new Geometry({
         topology: 'triangle-list',
         attributes: {
-          positions: {size: 3, value: new Float32Array(positions)},
-          normals: {size: 3, value: new Float32Array(pixelOffsets)},
+          positions: {size: 3, value: new Float32Array(POSITIONS)},
+          pixelOffsets: {size: 2, value: PIXEL_OFFSETS},
+          barycentrics: {size: 3, value: BARYCENTRICS},
+          edgeMasks: {size: 3, value: EDGE_MASKS},
         },
       }),
       isInstanced: true,
