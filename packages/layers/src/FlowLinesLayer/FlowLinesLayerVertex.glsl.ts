@@ -9,6 +9,8 @@ export default `\
 
 in vec3 positions;
 in vec2 pixelOffsets;
+in vec2 outlineOffsetCoefficients;
+in vec2 outlineOffsetConstants;
 in vec3 barycentrics;
 in vec3 edgeMasks;
 in vec4 instanceColors;
@@ -67,7 +69,11 @@ void main(void) {
 
   vec2 flowlineDir = normalize(target_commonspace.xy - source_commonspace.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  vec2 pixelOffsetCommon = project_pixel_size(pixelOffsets);
+  vec2 outlinePixelOffset = (
+    outlineOffsetCoefficients * flowLines.outlineThickness +
+    outlineOffsetConstants
+  ) * flowLines.drawOutline;
+  vec2 pixelOffsetCommon = project_pixel_size(pixelOffsets + outlinePixelOffset);
   float gapCommon = project_pixel_size(flowLines.gap);
   vec3 offsetCommon = vec3(
     flowlineDir * (instanceThickness * limitedOffsetDistances[1] + pixelOffsetCommon.y + endpointOffset * 1.05) -

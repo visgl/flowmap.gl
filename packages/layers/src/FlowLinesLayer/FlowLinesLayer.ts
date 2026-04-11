@@ -64,9 +64,44 @@ const POSITIONS = [
     4 ························································  0
 
  */
-// Additional static pixel offsets applied on top of the parametric arrow shape.
-// The single-pass outline path does not require any extra offset geometry.
+const INNER_SIDE_OUTLINE_THICKNESS = 0.5;
+
+// Base per-vertex pixel offsets for the fill shape.
 const PIXEL_OFFSETS = new Float32Array(9 * 2);
+
+// Coefficients for the extra per-vertex expansion when outline rendering is enabled.
+// Multiplied by `outlineThickness` in the vertex shader.
+// prettier-ignore
+const OUTLINE_OFFSET_COEFFICIENTS = new Float32Array([
+  0, 2,
+  2, -1,
+  1, -1,
+
+  0, 2,
+  1, -1,
+  1, -1,
+
+  0, 2,
+  1, -1,
+  0, -1,
+]);
+
+// Constant pixel tweaks applied regardless of outline thickness to keep the
+// leading arrowhead from visually swallowing the opposite edge.
+// prettier-ignore
+const OUTLINE_OFFSET_CONSTANTS = new Float32Array([
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  0, 0,
+
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  0, 0,
+
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+]);
 
 // One barycentric basis per triangle. After interpolation in the fragment shader,
 // each component goes to 0 on the edge opposite its vertex, which lets us compute
@@ -230,6 +265,14 @@ class FlowLinesLayer<F> extends Layer {
         attributes: {
           positions: {size: 3, value: new Float32Array(POSITIONS)},
           pixelOffsets: {size: 2, value: PIXEL_OFFSETS},
+          outlineOffsetCoefficients: {
+            size: 2,
+            value: OUTLINE_OFFSET_COEFFICIENTS,
+          },
+          outlineOffsetConstants: {
+            size: 2,
+            value: OUTLINE_OFFSET_CONSTANTS,
+          },
           barycentrics: {size: 3, value: BARYCENTRICS},
           edgeMasks: {size: 3, value: EDGE_MASKS},
         },

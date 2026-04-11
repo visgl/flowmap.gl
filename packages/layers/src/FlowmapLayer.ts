@@ -551,7 +551,7 @@ export default class FlowmapLayer<
                     drawOutline: true,
                     pickable: false,
                     outlineColor: colorAsRgba(highlightColor),
-                    outlineThickness: 1,
+                    outlineThickness: 1.5,
                     parameters: {
                       depthTest: false,
                     },
