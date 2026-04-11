@@ -4,34 +4,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 export default `\
+#version 300 es
 #define SHADER_NAME animated-flow-lines-layer-vertex-shader
 #define SPEED 0.015
 #define NUM_PARTS 5.0
 
-attribute vec3 positions;
-attribute vec3 instanceSourcePositions;
-attribute vec3 instanceTargetPositions;
-attribute vec3 instanceSourcePositions64Low;
-attribute vec3 instanceTargetPositions64Low;
-attribute vec4 instanceColors;
-attribute vec3 instancePickingColors;
-attribute float instanceWidths;
-attribute float instancePickable;
-attribute float instanceStaggering;
+in vec3 positions;
+in vec3 instanceSourcePositions;
+in vec3 instanceTargetPositions;
+in vec3 instanceSourcePositions64Low;
+in vec3 instanceTargetPositions64Low;
+in vec4 instanceColors;
+in vec3 instancePickingColors;
+in float instanceWidths;
+in float instancePickable;
+in float instanceStaggering;
 
-uniform float opacity;
-uniform float currentTime;
-uniform float thicknessUnit;
-    
-varying vec4 vColor;
-varying float sourceToTarget;
-varying vec2 uv;
+out vec4 vColor;
+out float sourceToTarget;
+out vec2 uv;
 
 // offset vector by strokeWidth pixels
 // offset_direction is -1 (left) or 1 (right)
 vec2 getExtrusionOffset(vec2 line_clipspace, float offset_direction, float width) {
   // normalized direction of the line
-  vec2 dir_screenspace = normalize(line_clipspace * project_uViewportSize);
+  vec2 dir_screenspace = normalize(line_clipspace * project.viewportSize);
   // rotate by 90 degrees
   dir_screenspace = vec2(-dir_screenspace.y, dir_screenspace.x);
 
@@ -48,7 +45,7 @@ void main(void) {
   vec4 source = project_position_to_clipspace(instanceSourcePositions, instanceSourcePositions64Low, vec3(0.), source_commonspace);
   vec4 target = project_position_to_clipspace(instanceTargetPositions, instanceTargetPositions64Low, vec3(0.), target_commonspace);
 
-  float widthPixels = instanceWidths * thicknessUnit;
+  float widthPixels = instanceWidths * animatedFlowLines.thicknessUnit;
   
   
   // linear interpolation of source & target to pick right coord
@@ -70,9 +67,9 @@ void main(void) {
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   // Color
-  vColor = vec4(instanceColors.rgb, instanceColors.a * opacity) / 255.;
+  vColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
   DECKGL_FILTER_COLOR(vColor, geometry);
 
-  sourceToTarget = positions.x * length(source - target) * NUM_PARTS - currentTime * SPEED + instanceStaggering; 
+  sourceToTarget = positions.x * length(source - target) * NUM_PARTS - animatedFlowLines.currentTime * SPEED + instanceStaggering; 
 }
 `;

@@ -5,12 +5,12 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import GL from '@luma.gl/constants';
-import {Geometry, Model} from '@luma.gl/core';
+import {Geometry, Model} from '@luma.gl/engine';
 import FragmentShader from './FlowCirclesLayerFragment.glsl';
 import VertexShader from './FlowCirclesLayerVertex.glsl';
 import {FlowCirclesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
+import {flowCirclesUniforms} from './FlowCirclesLayerUniforms';
 
 export type FlowCirclesDatum = Record<string, unknown>;
 
@@ -35,6 +35,10 @@ const DEFAULT_OUTLINE_EMPTY_MIX = 0.4;
 class FlowCirclesLayer extends Layer {
   static layerName = 'FlowCirclesLayer';
 
+  state!: {
+    model?: Model;
+  };
+
   static defaultProps = {
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
     emptyColor: {type: 'accessor', value: DEFAULT_EMPTY_COLOR},
@@ -56,15 +60,15 @@ class FlowCirclesLayer extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking],
+      modules: [project32, picking, flowCirclesUniforms],
     });
   }
 
   initializeState() {
-    this.getAttributeManager().addInstanced({
+    this.getAttributeManager()!.addInstanced({
       instancePositions: {
         size: 3,
-        type: GL.DOUBLE,
+        type: 'float64',
         fp64: this.use64bitPositions(),
         transition: true,
         accessor: 'getPosition',
@@ -84,54 +88,64 @@ class FlowCirclesLayer extends Layer {
       instanceColors: {
         size: 4,
         transition: true,
-        type: GL.UNSIGNED_BYTE,
+        type: 'unorm8',
         accessor: 'getColor',
         defaultValue: DEFAULT_COLOR,
       },
     });
+    this.setState({model: this._getModel()});
   }
 
-  updateState({props, oldProps, changeFlags}: any) {
-    super.updateState({props, oldProps, changeFlags});
-    if (changeFlags.extensionsChanged) {
-      const {gl} = this.context;
-      if (this.state.model) {
-        this.state.model.delete();
-      }
-      this.setState({model: this._getModel(gl)});
-      this.getAttributeManager().invalidateAll();
+  updateState(params: any) {
+    super.updateState(params);
+    const {changeFlags} = params;
+    if (!this.state.model || changeFlags.extensionsChanged) {
+      this.state.model?.destroy();
+      this.setState({model: this._getModel()});
+      this.getAttributeManager()!.invalidateAll();
     }
   }
 
-  draw({uniforms}: any) {
-    const {emptyColor, outlineEmptyMix} = this.props;
-    this.state.model
-      .setUniforms({
-        ...uniforms,
-        emptyColor,
+  draw() {
+    const {
+      emptyColor = DEFAULT_EMPTY_COLOR,
+      outlineEmptyMix = DEFAULT_OUTLINE_EMPTY_MIX,
+    } = this.props as unknown as Props;
+    const model = this.state.model;
+    if (!model) {
+      return;
+    }
+    model.shaderInputs.setProps({
+      flowCircles: {
+        emptyColor: emptyColor.map((x: number) => x / 255) as [
+          number,
+          number,
+          number,
+          number,
+        ],
         outlineEmptyMix,
-      })
-      .draw();
+      },
+    });
+    model.draw(this.context.renderPass as any);
   }
 
-  _getModel(gl: WebGLRenderingContext) {
+  _getModel(): Model {
+    const {id} = this.props as unknown as Props;
     // a square that minimally cover the unit circle
-    const positions = [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0];
+    const positions = [-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0];
 
-    return new Model(
-      gl,
-      Object.assign(this.getShaders(), {
-        id: this.props.id,
-        geometry: new Geometry({
-          drawMode: GL.TRIANGLE_FAN,
-          vertexCount: 4,
-          attributes: {
-            positions: {size: 3, value: new Float32Array(positions)},
-          },
-        }),
-        isInstanced: true,
+    return new Model(this.context.device as any, {
+      ...this.getShaders(),
+      id,
+      bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
+      geometry: new Geometry({
+        topology: 'triangle-strip',
+        attributes: {
+          positions: {size: 3, value: new Float32Array(positions)},
+        },
       }),
-    );
+      isInstanced: true,
+    });
   }
 }
 

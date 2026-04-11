@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/react-worker-app",
   "private": true,
-  "version": "8.0.2",
+  "version": "9.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,10 +11,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.0.0",
+    "@deck.gl/layers": "^9.0.0",
+    "@deck.gl/react": "^9.0.0",
+    "@deck.gl/widgets": "^9.0.0",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
-    "@loaders.gl/core": "^3.4.14",
-    "@loaders.gl/csv": "^3.4.14",
+    "@loaders.gl/core": "^4.3.4",
+    "@loaders.gl/csv": "^4.3.4",
+    "@luma.gl/core": "^9.0.0",
+    "@luma.gl/engine": "^9.0.0",
     "comlink": "^4.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

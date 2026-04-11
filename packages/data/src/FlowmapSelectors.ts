@@ -1190,11 +1190,12 @@ export default class FlowmapSelectors<
     );
 
     // Using a generator here helps to avoid creating intermediary arrays
-    const circlePositions = Float32Array.from(
+    const circlePositions = Float64Array.from(
       (function* () {
         for (const location of locations) {
           yield getLocationLon(location);
           yield getLocationLat(location);
+          yield 0;
         }
       })(),
     );
@@ -1229,21 +1230,23 @@ export default class FlowmapSelectors<
       })(),
     );
 
-    const sourcePositions = Float32Array.from(
+    const sourcePositions = Float64Array.from(
       (function* () {
         for (const flow of flows) {
           const loc = locationsById?.get(getFlowOriginId(flow));
           yield loc ? getLocationLon(loc) : 0;
           yield loc ? getLocationLat(loc) : 0;
+          yield 0;
         }
       })(),
     );
-    const targetPositions = Float32Array.from(
+    const targetPositions = Float64Array.from(
       (function* () {
         for (const flow of flows) {
           const loc = locationsById?.get(getFlowDestId(flow));
           yield loc ? getLocationLon(loc) : 0;
           yield loc ? getLocationLat(loc) : 0;
+          yield 0;
         }
       })(),
     );
@@ -1289,7 +1292,7 @@ export default class FlowmapSelectors<
       circleAttributes: {
         length: locations.length,
         attributes: {
-          getPosition: {value: circlePositions, size: 2},
+          getPosition: {value: circlePositions, size: 3},
           getColor: {value: circleColors, size: 4},
           getInRadius: {value: inCircleRadii, size: 1},
           getOutRadius: {value: outCircleRadii, size: 1},
@@ -1298,8 +1301,8 @@ export default class FlowmapSelectors<
       lineAttributes: {
         length: flows.length,
         attributes: {
-          getSourcePosition: {value: sourcePositions, size: 2},
-          getTargetPosition: {value: targetPositions, size: 2},
+          getSourcePosition: {value: sourcePositions, size: 3},
+          getTargetPosition: {value: targetPositions, size: 3},
           getThickness: {value: thicknesses, size: 1},
           getColor: {value: flowLineColors, size: 4},
           getEndpointOffsets: {value: endpointOffsets, size: 2},
@@ -1488,7 +1491,8 @@ export function getLocationCoordsByIndex(
   index: number,
 ): [number, number] {
   const {getPosition} = circleAttributes.attributes;
-  return [getPosition.value[index * 2], getPosition.value[index * 2 + 1]];
+  const offset = index * getPosition.size;
+  return [getPosition.value[offset], getPosition.value[offset + 1]];
 }
 
 export function getFlowLineAttributesByIndex(
@@ -1515,12 +1519,18 @@ export function getFlowLineAttributesByIndex(
         size: 2,
       },
       getSourcePosition: {
-        value: getSourcePosition.value.subarray(index * 2, (index + 1) * 2),
-        size: 2,
+        value: getSourcePosition.value.subarray(
+          index * getSourcePosition.size,
+          (index + 1) * getSourcePosition.size,
+        ),
+        size: getSourcePosition.size,
       },
       getTargetPosition: {
-        value: getTargetPosition.value.subarray(index * 2, (index + 1) * 2),
-        size: 2,
+        value: getTargetPosition.value.subarray(
+          index * getTargetPosition.size,
+          (index + 1) * getTargetPosition.size,
+        ),
+        size: getTargetPosition.size,
       },
       getThickness: {
         value: getThickness.value.subarray(index, index + 1),

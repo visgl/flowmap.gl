@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/react-app",
   "private": true,
-  "version": "8.0.2",
+  "version": "9.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,9 +11,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@deck.gl/react": "^8.9.28",
+    "@deck.gl/core": "^9.0.0",
+    "@deck.gl/layers": "^9.0.0",
+    "@deck.gl/react": "^9.0.0",
+    "@deck.gl/widgets": "^9.0.0",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
+    "@loaders.gl/core": "^4.3.4",
+    "@luma.gl/core": "^9.0.0",
+    "@luma.gl/engine": "^9.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.1.6"

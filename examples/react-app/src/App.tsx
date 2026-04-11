@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import DeckGL from '@deck.gl/react/typed';
+import DeckGL from '@deck.gl/react';
 import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
 import {
   fetchData,

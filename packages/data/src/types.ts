@@ -144,7 +144,7 @@ export enum LocationFilterMode {
 export interface FlowCirclesLayerAttributes {
   length: number;
   attributes: {
-    getPosition: LayersDataAttrValues<Float32Array>;
+    getPosition: LayersDataAttrValues<Float64Array>;
     getColor: LayersDataAttrValues<Uint8Array>;
     getInRadius: LayersDataAttrValues<Float32Array>;
     getOutRadius: LayersDataAttrValues<Float32Array>;
@@ -154,8 +154,8 @@ export interface FlowCirclesLayerAttributes {
 export interface FlowLinesLayerAttributes {
   length: number;
   attributes: {
-    getSourcePosition: LayersDataAttrValues<Float32Array>;
-    getTargetPosition: LayersDataAttrValues<Float32Array>;
+    getSourcePosition: LayersDataAttrValues<Float64Array>;
+    getTargetPosition: LayersDataAttrValues<Float64Array>;
     getThickness: LayersDataAttrValues<Float32Array>;
     getColor: LayersDataAttrValues<Uint8Array>;
     getEndpointOffsets: LayersDataAttrValues<Float32Array>;

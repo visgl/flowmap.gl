@@ -137,12 +137,16 @@ export default class FlowmapLayer<
     maxTopFlowsDisplayNum: 5000,
     flowEndpointsInViewportMode: 'any',
   };
-  state: State<L, F> | undefined;
+  state!: State<L, F>;
+
+  private get typedProps(): FlowmapLayerProps<L, F> {
+    return this.props as unknown as FlowmapLayerProps<L, F>;
+  }
 
   public constructor(props: FlowmapLayerProps<L, F>) {
     super({
       ...props,
-      onHover: (info: PickingInfo<any>, event: SourceEvent) => {
+      onHover: ((info: PickingInfo<any>, event: SourceEvent) => {
         const startTime = Date.now();
         this.setState({
           highlightedObject: this._getHighlightedObject(info),
@@ -160,8 +164,8 @@ export default class FlowmapLayer<
             }
           });
         }
-      },
-      onClick: (info: PickingInfo<any>, event: SourceEvent) => {
+      }) as any,
+      onClick: ((info: PickingInfo<any>, event: SourceEvent) => {
         const {onClick} = props;
         const startTime = Date.now();
         this.setState({
@@ -179,13 +183,15 @@ export default class FlowmapLayer<
             }
           });
         }
-      },
-    });
+      }) as any,
+    } as any);
   }
 
   initializeState() {
     this.state = {
-      accessors: new FlowmapAggregateAccessors<L, F>(this.props),
+      accessors: new FlowmapAggregateAccessors<L, F>(
+        this.typedProps as FlowmapDataAccessors<L, F>,
+      ),
       dataProvider: this._getOrMakeDataProvider(),
       layersData: undefined,
       highlightedObject: undefined,
@@ -216,11 +222,13 @@ export default class FlowmapLayer<
   // }
 
   private _getOrMakeDataProvider() {
-    const {data, dataProvider} = this.props;
-    if (isFlowmapDataProvider<L, F>(dataProvider)) {
+    const {data, dataProvider} = this.typedProps;
+    if (dataProvider && isFlowmapDataProvider<L, F>(dataProvider as any)) {
       return dataProvider;
-    } else if (isFlowmapData<L, F>(data)) {
-      const dataProvider = new LocalFlowmapDataProvider<L, F>(this.props);
+    } else if (data && isFlowmapData<L, F>(data as any)) {
+      const dataProvider = new LocalFlowmapDataProvider<L, F>(
+        this.typedProps as FlowmapDataAccessors<L, F>,
+      );
       dataProvider.setFlowmapData(data);
       return dataProvider;
     }
@@ -233,7 +241,7 @@ export default class FlowmapLayer<
     this.setState({dataProvider: this._getOrMakeDataProvider()});
   }
 
-  shouldUpdateState(params: Record<string, any>): boolean {
+  shouldUpdateState(params: any): boolean {
     const {changeFlags} = params;
     // if (this._viewportChanged()) {
     //   return true;
@@ -246,7 +254,9 @@ export default class FlowmapLayer<
     // (e.g. ignore viewport changes when adaptiveScalesEnabled and clustering are false)
   }
 
-  updateState({oldProps, props, changeFlags}: Record<string, any>): void {
+  updateState(params: any): void {
+    super.updateState(params);
+    const {oldProps, props, changeFlags} = params;
     if (changeFlags.propsChanged) {
       // this._updateAccessors();
     }
@@ -276,6 +286,8 @@ export default class FlowmapLayer<
   }
 
   private _getSettingsState() {
+    const props = this.typedProps;
+    const defaults = FlowmapLayer.defaultProps;
     const {
       locationsEnabled,
       locationTotalsEnabled,
@@ -293,31 +305,37 @@ export default class FlowmapLayer<
       highlightColor,
       maxTopFlowsDisplayNum,
       flowEndpointsInViewportMode,
-    } = this.props;
+    } = props;
     return {
-      locationsEnabled,
-      locationTotalsEnabled,
-      locationLabelsEnabled,
-      adaptiveScalesEnabled,
-      animationEnabled,
-      clusteringEnabled,
+      locationsEnabled: locationsEnabled ?? defaults.locationsEnabled,
+      locationTotalsEnabled:
+        locationTotalsEnabled ?? defaults.locationTotalsEnabled,
+      locationLabelsEnabled:
+        locationLabelsEnabled ?? defaults.locationLabelsEnabled,
+      adaptiveScalesEnabled:
+        adaptiveScalesEnabled ?? defaults.adaptiveScalesEnabled,
+      animationEnabled: animationEnabled ?? defaults.animationEnabled,
+      clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
       clusteringLevel,
-      fadeEnabled,
-      fadeOpacityEnabled,
-      clusteringAuto,
-      darkMode,
-      fadeAmount,
+      fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
+      fadeOpacityEnabled: fadeOpacityEnabled ?? defaults.fadeOpacityEnabled,
+      clusteringAuto: clusteringAuto ?? defaults.clusteringAuto,
+      darkMode: darkMode ?? defaults.darkMode,
+      fadeAmount: fadeAmount ?? defaults.fadeAmount,
       colorScheme,
-      highlightColor,
-      maxTopFlowsDisplayNum,
-      flowEndpointsInViewportMode,
+      highlightColor: highlightColor ?? defaults.highlightColor,
+      maxTopFlowsDisplayNum:
+        maxTopFlowsDisplayNum ?? defaults.maxTopFlowsDisplayNum,
+      flowEndpointsInViewportMode: (flowEndpointsInViewportMode ??
+        defaults.flowEndpointsInViewportMode) as FlowEndpointsInViewportMode,
     };
   }
 
   private _getFlowmapState() {
+    const props = this.typedProps;
     return {
       viewport: pickViewportProps(this.context.viewport),
-      filter: this.props.filter,
+      filter: props.filter,
       settings: this._getSettingsState(),
     };
   }
@@ -410,7 +428,7 @@ export default class FlowmapLayer<
       const {lineAttributes} = this.state?.layersData || {};
       if (lineAttributes) {
         let attrs = getFlowLineAttributesByIndex(lineAttributes, index);
-        if (this.props.fadeOpacityEnabled) {
+        if (this.typedProps.fadeOpacityEnabled) {
           attrs = {
             ...attrs,
             attributes: {
@@ -444,6 +462,9 @@ export default class FlowmapLayer<
   }
 
   renderLayers(): Array<any> {
+    const props = this.typedProps;
+    const highlightColor =
+      props.highlightColor ?? FlowmapLayer.defaultProps.highlightColor;
     const layers = [];
     if (this.state?.layersData) {
       const {layersData, highlightedObject} = this.state;
@@ -452,17 +473,18 @@ export default class FlowmapLayer<
       if (circleAttributes && lineAttributes) {
         const flowmapColors = getFlowmapColors(this._getSettingsState());
         const outlineColor = colorAsRgba(
-          flowmapColors.outlineColor || (this.props.darkMode ? '#000' : '#fff'),
+          flowmapColors.outlineColor || (props.darkMode ? '#000' : '#fff'),
         );
         const commonLineLayerProps = {
           data: lineAttributes,
           parameters: {
-            ...this.props.parameters,
+            ...((props.parameters as Record<string, unknown> | undefined) ??
+              {}),
             // prevent z-fighting at non-zero bearing/pitch
             depthTest: false,
           },
         };
-        if (this.props.animationEnabled) {
+        if (props.animationEnabled) {
           layers.push(
             // @ts-ignore
             new AnimatedFlowLinesLayer({
@@ -491,7 +513,7 @@ export default class FlowmapLayer<
             this.getSubLayerProps({
               id: 'circles',
               data: circleAttributes,
-              emptyColor: this.props.darkMode
+              emptyColor: props.darkMode
                 ? [0, 0, 0, 255]
                 : [255, 255, 255, 255],
               outlineEmptyMix: 0.4,
@@ -514,7 +536,7 @@ export default class FlowmapLayer<
                     getLineWidth: 2,
                     radiusUnits: 'pixels',
                     getRadius: (d: HighlightedLocationObject) => d.radius,
-                    getLineColor: colorAsRgba(this.props.highlightColor),
+                    getLineColor: colorAsRgba(highlightColor),
                     getPosition: (d: HighlightedLocationObject) => d.coords,
                   }),
                 }),
@@ -528,7 +550,7 @@ export default class FlowmapLayer<
                     data: highlightedObject.lineAttributes,
                     drawOutline: true,
                     pickable: false,
-                    outlineColor: colorAsRgba(this.props.highlightColor),
+                    outlineColor: colorAsRgba(highlightColor),
                     outlineThickness: 1,
                     parameters: {
                       depthTest: false,

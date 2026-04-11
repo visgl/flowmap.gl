@@ -19,8 +19,13 @@ import {
 } from '@flowmap.gl/data';
 import {load} from '@loaders.gl/core';
 import {CSVLoader} from '@loaders.gl/csv';
+import type {ArrayRowTable, ObjectRowTable} from '@loaders.gl/schema';
 
 const LOADERS = [CSVLoader];
+
+function getRows(table: ObjectRowTable | ArrayRowTable) {
+  return table.data as Array<Record<string, unknown>>;
+}
 
 export type WorkerDataProviderProps = {
   flows: {
@@ -50,7 +55,6 @@ export default class WorkerFlowmapDataProvider
 {
   private props: WorkerDataProviderProps;
   private localProvider: LocalFlowmapDataProvider<LocationDatum, FlowDatum>;
-  private flowmapState: FlowmapState | undefined;
 
   constructor(props: WorkerDataProviderProps) {
     this.props = props;
@@ -68,7 +72,6 @@ export default class WorkerFlowmapDataProvider
       getLocationId: (location) =>
         location[props.locations.columns.id] as string,
     });
-    this.flowmapState = undefined;
   }
 
   async loadData() {
@@ -76,15 +79,18 @@ export default class WorkerFlowmapDataProvider
       load(this.props.locations.url, LOADERS),
       load(this.props.flows.url, LOADERS),
     ]);
-    this.localProvider.setFlowmapData({locations, flows});
+    this.localProvider.setFlowmapData({
+      locations: getRows(locations) as LocationDatum[],
+      flows: getRows(flows) as FlowDatum[],
+    });
   }
 
-  setAccessors(accessors: FlowmapDataAccessors<LocationDatum, FlowDatum>) {
+  setAccessors(_accessors: FlowmapDataAccessors<LocationDatum, FlowDatum>) {
     throw new Error('Not supported');
   }
 
   async setFlowmapData(
-    flowmapData: FlowmapData<LocationDatum, FlowDatum>,
+    _flowmapData: FlowmapData<LocationDatum, FlowDatum>,
   ): Promise<void> {
     throw new Error('Not supported');
   }

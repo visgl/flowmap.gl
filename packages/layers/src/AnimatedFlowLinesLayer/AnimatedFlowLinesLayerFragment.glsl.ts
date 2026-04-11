@@ -5,21 +5,22 @@
  */
 
 export default `\
+#version 300 es
 #define SHADER_NAME animated-flow-lines-layer-fragment-shader
 
 precision highp float;
 
-uniform float animationTailLength;
+in vec4 vColor;
+in float sourceToTarget;
+in vec2 uv;
 
-varying vec4 vColor;
-varying float sourceToTarget;
-varying vec2 uv;
+out vec4 fragColor;
                                    
 void main(void) {
   geometry.uv = uv;
 
-  gl_FragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animationTailLength, 1.0, fract(sourceToTarget)));
+  fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(sourceToTarget)));
 
-  DECKGL_FILTER_COLOR(gl_FragColor, geometry);
+  DECKGL_FILTER_COLOR(fragColor, geometry);
 }
 `;

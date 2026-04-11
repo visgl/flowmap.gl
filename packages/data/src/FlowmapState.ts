@@ -28,7 +28,7 @@ export interface SettingsState {
   darkMode: boolean;
   fadeAmount: number;
   colorScheme: string | string[] | undefined;
-  highlightColor: string;
+  highlightColor: string | number[];
   maxTopFlowsDisplayNum: number;
   flowEndpointsInViewportMode: FlowEndpointsInViewportMode;
 }
