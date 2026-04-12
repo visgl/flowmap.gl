@@ -5,12 +5,12 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import GL from '@luma.gl/constants';
-import {Geometry, Model} from '@luma.gl/core';
+import {Geometry, Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
+import {animatedFlowLinesUniforms} from './AnimatedFlowLinesLayerUniforms';
 export interface Props<F> extends LayerProps {
   id: string;
   opacity?: number;
@@ -45,6 +45,10 @@ const animationSpeed = 20;
 const loopTime = loopLength / animationSpeed;
 
 export default class AnimatedFlowLinesLayer<F> extends Layer {
+  state!: {
+    model?: Model;
+  };
+
   static defaultProps = {
     currentTime: 0,
     animationTailLength: 0.7,
@@ -71,31 +75,27 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking],
-      shaderCache: this.context.shaderCache,
+      modules: [project32, picking, animatedFlowLinesUniforms],
     });
   }
 
   initializeState(): void {
-    const attributeManager = this.getAttributeManager();
-
-    /* eslint-disable max-len */
-    attributeManager.addInstanced({
+    this.getAttributeManager()!.addInstanced({
       instanceSourcePositions: {
         size: 3,
-        type: GL.DOUBLE,
+        type: 'float64',
         transition: true,
         accessor: 'getSourcePosition',
       },
       instanceTargetPositions: {
         size: 3,
-        type: GL.DOUBLE,
+        type: 'float64',
         transition: true,
         accessor: 'getTargetPosition',
       },
       instanceColors: {
         size: 4,
-        type: GL.UNSIGNED_BYTE,
+        type: 'unorm8',
         transition: true,
         accessor: 'getColor',
         defaultValue: [0, 0, 0, 255],
@@ -117,40 +117,46 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
         transition: false,
       },
     });
-    /* eslint-enable max-len */
+    this.setState({model: this._getModel()});
   }
 
-  getNeedsRedraw(): boolean {
-    return true;
+  getNeedsRedraw(): string | false {
+    return 'animation';
   }
 
-  updateState({props, oldProps, changeFlags}: Record<string, any>): void {
-    super.updateState({props, oldProps, changeFlags});
+  updateState(params: any): void {
+    super.updateState(params);
+    const {changeFlags} = params;
 
-    if (changeFlags.extensionsChanged) {
-      const {gl} = this.context;
-      this.state.model?.delete();
-      this.state.model = this._getModel(gl);
-      this.getAttributeManager().invalidateAll();
+    if (!this.state.model || changeFlags.extensionsChanged) {
+      this.state.model?.destroy();
+      this.setState({model: this._getModel()});
+      this.getAttributeManager()!.invalidateAll();
     }
   }
 
-  draw({uniforms}: Record<string, any>): void {
-    const {thicknessUnit, animationTailLength} = this.props;
+  draw(): void {
+    const {thicknessUnit = 15 * 2, animationTailLength = 0.7} = this
+      .props as unknown as Props<F>;
     const timestamp = Date.now() / 1000;
     const animationTime = ((timestamp % loopTime) / loopTime) * loopLength;
 
-    this.state.model
-      .setUniforms({
-        ...uniforms,
+    const model = this.state.model;
+    if (!model) {
+      return;
+    }
+    model.shaderInputs.setProps({
+      animatedFlowLines: {
         thicknessUnit: thicknessUnit * 4,
         animationTailLength,
         currentTime: animationTime,
-      })
-      .draw();
+      },
+    });
+    model.draw(this.context.renderPass as any);
   }
 
-  _getModel(gl: WebGLRenderingContext): Record<string, unknown> {
+  _getModel(): Model {
+    const {id} = this.props as unknown as Props<F>;
     /*
      *  (0, -1)-------------_(1, -1)
      *       |          _,-"  |
@@ -160,18 +166,17 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
      */
     const positions = [0, -1, 0, 0, 1, 0, 1, -1, 0, 1, 1, 0];
 
-    return new Model(
-      gl,
-      Object.assign({}, this.getShaders(), {
-        id: this.props.id,
-        geometry: new Geometry({
-          drawMode: GL.TRIANGLE_STRIP,
-          attributes: {
-            positions: new Float32Array(positions),
-          },
-        }),
-        isInstanced: true,
+    return new Model(this.context.device as any, {
+      ...this.getShaders(),
+      id,
+      bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
+      geometry: new Geometry({
+        topology: 'triangle-strip',
+        attributes: {
+          positions: {size: 3, value: new Float32Array(positions)},
+        },
       }),
-    );
+      isInstanced: true,
+    });
   }
 }

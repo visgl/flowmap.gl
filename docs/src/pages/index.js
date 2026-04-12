@@ -1,10 +1,10 @@
-import React from 'react';
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import screenshotUrl from './assets/screenshot-1024.jpg';
+import clsx from 'clsx';
+import React from 'react';
 import LogoSvg from '../../static/img/logo.svg';
+import screenshotUrl from './assets/screenshot-1024.jpg';
 
 import styles from './index.module.css';
 
@@ -21,7 +21,7 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="https://visgl.github.io/flowmap.gl/"
+            to="https://flowmap-gl.netlify.app"
           >
             Live Demo
           </Link>
@@ -95,7 +95,7 @@ export default function Home() {
               </p>
             </div>
             <div className="col col--6">
-              <Link to={'https://visgl.github.io/flowmap.gl/'}>
+              <Link to={'https://flowmap-gl.netlify.app'}>
                 <img src={screenshotUrl} alt="Flowmap.gl example" />
               </Link>
             </div>

@@ -5,12 +5,12 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import GL from '@luma.gl/constants';
-import {Geometry, Model} from '@luma.gl/core';
-import FragmentShader from './FlowLinesLayerFragment.glsl';
-import VertexShader from './FlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
+import {Geometry, Model} from '@luma.gl/engine';
 import {LayerProps} from '../types';
+import FragmentShader from './FlowLinesLayerFragment.glsl';
+import {flowLinesUniforms} from './FlowLinesLayerUniforms';
+import VertexShader from './FlowLinesLayerVertex.glsl';
 
 export interface Props<F> extends LayerProps {
   id: string;
@@ -31,7 +31,6 @@ export interface Props<F> extends LayerProps {
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
-const INNER_SIDE_OUTLINE_THICKNESS = 1;
 
 // source_target_mix, perpendicular_offset_in_thickness_units, direction_of_travel_offset_in_thickness_units
 // prettier-ignore
@@ -65,41 +64,89 @@ const POSITIONS = [
     4 ························································  0
 
  */
+const INNER_SIDE_OUTLINE_THICKNESS = 0.5;
 
-function getOutlinePixelOffsets(tout: number, tin: number) {
-  // perpendicular_offset_in_pixels, direction_of_travel_offset_in_pixels, fill_outline_color_mix
-  // prettier-ignore
-  return ([
+// Base per-vertex pixel offsets for the fill shape.
+const PIXEL_OFFSETS = new Float32Array(9 * 2);
 
-    -tin, 2*tout, 1,   // 0
-    2*tout, -tout, 1,  // 1
-    tout, -tout, 1,   // 2
-
-    -tin, 2*tout, 1, // 0
-    tout, -tout, 1,  // 2
-    tout, -tout, 1,  // 3
-
-    -tin, 2*tout, 1, // 0
-    tout, -tout, 1,  // 3
-    -tin, -tout, 1,  // 4
-  ]);
-}
-
+// Coefficients for the extra per-vertex expansion when outline rendering is enabled.
+// Multiplied by `outlineThickness` in the vertex shader.
 // prettier-ignore
-const ZEROES = [
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
-];
+const OUTLINE_OFFSET_COEFFICIENTS = new Float32Array([
+  0, 2,
+  2, -1,
+  1, -1,
+
+  0, 2,
+  1, -1,
+  1, -1,
+
+  0, 2,
+  1, -1,
+  0, -1,
+]);
+
+// Constant pixel tweaks applied regardless of outline thickness to keep the
+// leading arrowhead from visually swallowing the opposite edge.
+// prettier-ignore
+const OUTLINE_OFFSET_CONSTANTS = new Float32Array([
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  0, 0,
+
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  0, 0,
+
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+  0, 0,
+  -INNER_SIDE_OUTLINE_THICKNESS, 0,
+]);
+
+// One barycentric basis per triangle. After interpolation in the fragment shader,
+// each component goes to 0 on the edge opposite its vertex, which lets us compute
+// a stable pixel distance to each triangle edge using `fwidth`.
+// prettier-ignore
+const BARYCENTRICS = new Float32Array([
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1,
+]);
+
+// Each component maps to the edge opposite the matching barycentric component.
+// A value of 1 means "this is a real polygon boundary edge that may receive the
+// inset outline"; 0 means "ignore this edge" so the fragment shader does not draw
+// seams along the internal triangle splits used to build the arrow shape.
+// prettier-ignore
+const EDGE_MASKS = new Float32Array([
+  1, 0, 1,
+  1, 0, 1,
+  1, 0, 1,
+
+  1, 0, 0,
+  1, 0, 0,
+  1, 0, 0,
+
+  1, 1, 0,
+  1, 1, 0,
+  1, 1, 0,
+]);
 
 class FlowLinesLayer<F> extends Layer {
   static layerName = 'FlowLinesLayer';
+
+  state!: {
+    model?: Model;
+  };
+
   static defaultProps = {
     getSourcePosition: {type: 'accessor', value: (d: any) => [0, 0]},
     getTargetPosition: {type: 'accessor', value: (d: any) => [0, 0]},
@@ -124,26 +171,23 @@ class FlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking],
-      shaderCache: this.context.shaderCache,
+      modules: [project32, picking, flowLinesUniforms],
     });
   }
 
   initializeState(): void {
-    const {attributeManager} = this.state;
-
-    attributeManager.addInstanced({
+    this.getAttributeManager()!.addInstanced({
       instanceSourcePositions: {
         accessor: 'getSourcePosition',
         size: 3,
         transition: false,
-        type: GL.DOUBLE,
+        type: 'float64',
       },
       instanceTargetPositions: {
         accessor: 'getTargetPosition',
         size: 3,
         transition: false,
-        type: GL.DOUBLE,
+        type: 'float64',
       },
       instanceThickness: {
         accessor: 'getThickness',
@@ -158,7 +202,7 @@ class FlowLinesLayer<F> extends Layer {
       instanceColors: {
         accessor: 'getColor',
         size: 4,
-        type: GL.UNSIGNED_BYTE,
+        type: 'unorm8',
         transition: false,
       },
       instancePickable: {
@@ -167,64 +211,73 @@ class FlowLinesLayer<F> extends Layer {
         transition: false,
       },
     });
+    this.setState({model: this._getModel()});
   }
 
-  updateState({props, oldProps, changeFlags}: Record<string, any>): void {
-    super.updateState({props, oldProps, changeFlags});
+  updateState(params: any): void {
+    super.updateState(params);
+    const {changeFlags} = params;
 
-    if (changeFlags.extensionsChanged) {
-      const {gl} = this.context;
-      if (this.state.model) {
-        this.state.model.delete();
-      }
-      this.setState({model: this._getModel(gl)});
-      this.getAttributeManager().invalidateAll();
+    if (!this.state.model || changeFlags.extensionsChanged) {
+      this.state.model?.destroy();
+      this.setState({model: this._getModel()});
+      this.getAttributeManager()!.invalidateAll();
     }
   }
 
-  draw({uniforms}: Record<string, any>): void {
-    const {gl} = this.context;
-    const {outlineColor, thicknessUnit} = this.props;
-    gl.lineWidth(1);
-    this.state.model
-      .setUniforms({
-        ...uniforms,
-        outlineColor: outlineColor.map((x: number) => x / 255),
-        // outlineColor: [1, 0, 0, 1],
+  draw(): void {
+    const {
+      drawOutline = true,
+      outlineColor = [255, 255, 255, 255],
+      outlineThickness = 1,
+      thicknessUnit = 12,
+    } = this.props as unknown as Props<F>;
+    const model = this.state.model;
+    if (!model) {
+      return;
+    }
+    model.shaderInputs.setProps({
+      flowLines: {
+        outlineColor: outlineColor.map((x: number) => x / 255) as [
+          number,
+          number,
+          number,
+          number,
+        ],
         thicknessUnit: thicknessUnit * 2.0,
+        outlineThickness,
+        drawOutline: drawOutline ? 1 : 0,
         gap: 0.5,
-      })
-      .draw();
+      },
+    });
+    model.draw(this.context.renderPass as any);
   }
 
-  _getModel(gl: WebGLRenderingContext): Record<string, any> {
-    let positions: number[] = [];
-    let pixelOffsets: number[] = [];
+  _getModel(): Model {
+    const {id} = this.props as unknown as Props<F>;
 
-    const {drawOutline, outlineThickness} = this.props;
-    if (drawOutline) {
-      // source_target_mix, perpendicular_offset_in_thickness_units, direction_of_travel_offset_in_thickness_units
-      positions = positions.concat(POSITIONS);
-      const tout = outlineThickness;
-      const tin = INNER_SIDE_OUTLINE_THICKNESS; // the outline shouldn't cover the opposite arrow
-      pixelOffsets = pixelOffsets.concat(getOutlinePixelOffsets(tout, tin));
-    }
-
-    positions = positions.concat(POSITIONS);
-    pixelOffsets = pixelOffsets.concat(ZEROES);
-
-    return new Model(gl, {
-      id: this.props.id,
+    return new Model(this.context.device as any, {
+      id,
       ...this.getShaders(),
+      bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
       geometry: new Geometry({
-        drawMode: GL.TRIANGLES,
+        topology: 'triangle-list',
         attributes: {
-          positions: new Float32Array(positions),
-          normals: new Float32Array(pixelOffsets),
+          positions: {size: 3, value: new Float32Array(POSITIONS)},
+          pixelOffsets: {size: 2, value: PIXEL_OFFSETS},
+          outlineOffsetCoefficients: {
+            size: 2,
+            value: OUTLINE_OFFSET_COEFFICIENTS,
+          },
+          outlineOffsetConstants: {
+            size: 2,
+            value: OUTLINE_OFFSET_CONSTANTS,
+          },
+          barycentrics: {size: 3, value: BARYCENTRICS},
+          edgeMasks: {size: 3, value: EDGE_MASKS},
         },
       }),
       isInstanced: true,
-      shaderCache: this.context.shaderCache,
     });
   }
 }

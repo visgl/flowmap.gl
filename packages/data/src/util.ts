@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {createSelectorCreator, defaultMemoize} from 'reselect';
+import {createSelectorCreator, lruMemoize} from 'reselect';
 
-export const createDebugSelector = createSelectorCreator(defaultMemoize, {
+export const createDebugSelector = createSelectorCreator(lruMemoize, {
   equalityCheck: (previousVal: any, currentVal: any) => {
     const rv = currentVal === previousVal;
     if (!rv) {

@@ -14,10 +14,9 @@
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "downlevelIteration": true
+    "isolatedModules": true
   },
   "exclude": ["**/node_modules", "**/dist/**/*"]
 }

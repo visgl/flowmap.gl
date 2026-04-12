@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import DeckGL from '@deck.gl/react/typed';
+import DeckGL from '@deck.gl/react';
 import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
 import {
   fetchData,
@@ -21,7 +21,7 @@ import {
 } from '@flowmap.gl/layers';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import {ReactNode, useEffect, useState} from 'react';
-import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl';
+import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl/mapbox';
 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';

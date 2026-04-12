@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import * as React from 'react';
 import {ReactNode, useEffect, useState} from 'react';
 import DeckGL from '@deck.gl/react';
 import {

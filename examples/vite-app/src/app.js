@@ -12,7 +12,7 @@ import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// eslint-disable-next-line no-undef
+ 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
 
@@ -23,7 +23,7 @@ fetchData().then((data) => {
   initLilGui(gui);
 
   const {locations, flows} = data;
-  // eslint-disable-next-line no-undef
+   
   const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
   const INITIAL_VIEW_STATE = getViewStateForLocations(
     locations,

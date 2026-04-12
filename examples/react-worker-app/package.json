@@ -1,7 +1,7 @@
 {
   "name": "@flowmap.gl/react-worker-app",
   "private": true,
-  "version": "8.0.2",
+  "version": "9.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,25 +11,31 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.2.11",
+    "@deck.gl/layers": "^9.2.11",
+    "@deck.gl/react": "^9.2.11",
+    "@deck.gl/widgets": "^9.2.11",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
-    "@loaders.gl/core": "^3.4.14",
-    "@loaders.gl/csv": "^3.4.14",
-    "comlink": "^4.4.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-map-gl": "^7.1.6"
+    "@loaders.gl/core": "^4.4.1",
+    "@loaders.gl/csv": "^4.4.1",
+    "@luma.gl/core": "9.2.6",
+    "@luma.gl/engine": "9.2.6",
+    "comlink": "^4.4.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-map-gl": "^8.1.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.18",
-    "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.2.1",
-    "@typescript-eslint/parser": "^6.2.1",
-    "@vitejs/plugin-react": "^4.0.4",
-    "eslint": "^8.46.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "typescript": "^5.0.2",
-    "vite": "^7.3.1"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
   }
 }
