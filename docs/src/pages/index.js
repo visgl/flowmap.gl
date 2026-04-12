@@ -21,7 +21,7 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="https://flowmap-gl-demo.netlify.app"
+            to="https://flowmap-layer-demo.netlify.app"
           >
             Live Demo
           </Link>
@@ -95,7 +95,7 @@ export default function Home() {
               </p>
             </div>
             <div className="col col--6">
-              <Link to={'https://flowmap-gl-demo.netlify.app'}>
+              <Link to={'https://flowmap-layer-demo.netlify.app'}>
                 <img src={screenshotUrl} alt="Flowmap.gl example" />
               </Link>
             </div>

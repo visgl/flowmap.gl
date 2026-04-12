@@ -1,12 +1,12 @@
 # Flowmap.gl
 
-<a href=https://flowmap-gl-demo.netlify.app><img alt=flowmap-gl src=https://user-images.githubusercontent.com/351828/147912794-36eab3ce-7ce3-40d6-ad24-4a11c1bda924.jpg width=400></a>
+<a href=https://flowmap-layer-demo.netlify.app><img alt=flowmap-gl src=https://user-images.githubusercontent.com/351828/147912794-36eab3ce-7ce3-40d6-ad24-4a11c1bda924.jpg width=400></a>
 
 [Flow map](https://en.wikipedia.org/wiki/Flow_map) drawing layer for [deck.gl](http://deck.gl). Can be used for visualizing movement of people (e.g. migration) or objects between geographic locations. The layer is rendered in WebGL and can handle large numbers of flows with a relatively good rendering performance.
 
 Try [FlowmapBlue](https://flowmap.blue/) and [Flowmap City](https://flowmap.city/) for an easy way of publishing flow maps (no programming skills required).
 
-Run the [LIVE EXAMPLE](https://flowmap-gl-demo.netlify.app) or
+Run the [LIVE EXAMPLE](https://flowmap-layer-demo.netlify.app) or
 check the source code of the following examples:
 
 - [Minimal Pure js example](https://github.com/ilyabo/flowmap.gl-purejs-example)
