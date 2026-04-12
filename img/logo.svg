@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="-20 -20 432 432" xmlns="http://www.w3.org/2000/svg">
+    <path
+        d="M265.5 199.045h42.545L216.5 320.411V84.5h49v114.545zM135.5 202.955H92.955L184.5 81.589V317.5h-49V202.955z"
+        stroke-opacity="0.9"
+        stroke="#FFF"
+        stroke-width="13"
+        stroke-linejoin="round"
+        fill="none" fill-rule="evenodd"
+    />
+</svg>
