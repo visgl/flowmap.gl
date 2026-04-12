@@ -55,7 +55,7 @@ const layer = new FlowmapLayer({
 
 ## Live Demo
 
-Try the [interactive demo](https://flowmap-gl.netlify.app) to see flowmap.gl in action.
+Try the [interactive demo](https://flowmap-gl-demo.netlify.app) to see flowmap.gl in action.
 
 ## No-Code Options
 
