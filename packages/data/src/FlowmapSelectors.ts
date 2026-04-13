@@ -32,7 +32,6 @@ import {
   addClusterNames,
   getFlowThicknessScale,
   getViewportBoundingBox,
-  makeViewportProjector,
 } from './selector-functions';
 import {
   TimeGranularityKey,
@@ -1609,9 +1608,9 @@ function calculateCurveOffsets<L, F>(
   getLocationLon: (location: L | ClusterNode) => number,
   getLocationLat: (location: L | ClusterNode) => number,
 ): Float32Array {
-  const project = makeViewportProjector(viewport);
   const curveOffsets = new Float32Array(flows.length);
   const corridorBuckets = new Map<string, FlowLineScreenGeometry[]>();
+  const worldScale = 512 * Math.pow(2, viewport.zoom ?? 0);
 
   flows.forEach((flow, index) => {
     const originId = getFlowOriginId(flow);
@@ -1622,22 +1621,38 @@ function calculateCurveOffsets<L, F>(
       return;
     }
 
-    let [sx, sy] = project([getLocationLon(origin), getLocationLat(origin)]);
-    let [tx, ty] = project([getLocationLon(dest), getLocationLat(dest)]);
-    if (sx > tx || (sx === tx && sy > ty)) {
-      [sx, tx] = [tx, sx];
-      [sy, ty] = [ty, sy];
+    const sourceLon = getLocationLon(origin);
+    const sourceLat = getLocationLat(origin);
+    const targetLon = getLocationLon(dest);
+    const targetLat = getLocationLat(dest);
+    const sx = lngX(sourceLon) * worldScale;
+    const sy = latY(sourceLat) * worldScale;
+    const tx = lngX(targetLon) * worldScale;
+    const ty = latY(targetLat) * worldScale;
+
+    let corridorSourceX = sx;
+    let corridorSourceY = sy;
+    let corridorTargetX = tx;
+    let corridorTargetY = ty;
+    if (
+      corridorSourceX > corridorTargetX ||
+      (corridorSourceX === corridorTargetX && corridorSourceY > corridorTargetY)
+    ) {
+      [corridorSourceX, corridorTargetX] = [corridorTargetX, corridorSourceX];
+      [corridorSourceY, corridorTargetY] = [corridorTargetY, corridorSourceY];
     }
 
-    const dx = tx - sx;
-    const dy = ty - sy;
+    const dx = corridorTargetX - corridorSourceX;
+    const dy = corridorTargetY - corridorSourceY;
     const chordLengthPx = Math.hypot(dx, dy);
     if (!isFinite(chordLengthPx) || chordLengthPx < 1) {
       return;
     }
 
     const angle = ((Math.atan2(dy, dx) % Math.PI) + Math.PI) % Math.PI;
-    const signedDistance = (sx * ty - sy * tx) / chordLengthPx;
+    const signedDistance =
+      (corridorSourceX * corridorTargetY - corridorSourceY * corridorTargetX) /
+      chordLengthPx;
     const key = [
       Math.round(angle / ((6 * Math.PI) / 180)),
       Math.round(signedDistance / 18),
@@ -1659,14 +1674,10 @@ function calculateCurveOffsets<L, F>(
         return a.index - b.index;
       })
       .forEach((entry, bucketIndex) => {
-        const laneIndex =
-          bucketIndex === 0
-            ? 0
-            : Math.ceil(bucketIndex / 2) * (bucketIndex % 2 === 1 ? 1 : -1);
         const maxOffsetPx = Math.min(72, entry.chordLengthPx * 0.35);
-        curveOffsets[entry.index] = Math.max(
-          -maxOffsetPx,
-          Math.min(maxOffsetPx, laneIndex * 18),
+        curveOffsets[entry.index] = Math.min(
+          maxOffsetPx,
+          (bucketIndex + 1) * 18,
         );
       });
   });

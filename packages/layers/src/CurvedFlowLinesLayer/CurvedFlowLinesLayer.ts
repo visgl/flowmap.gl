@@ -205,12 +205,12 @@ function buildGeometry(): GeometryBuffers {
   }
 
   pushTriangle([1, 0, 0], [1, 2, -3], [1, 1, -3], [1, 0, 1]);
-  pushTriangle([1, 0, 0], [1, 1, -3], [HEAD_START_T, 1, 0], [1, 1, 0]);
+  pushTriangle([1, 0, 0], [1, 1, -3], [HEAD_START_T, 1, 0], [1, 0, 0]);
   pushTriangle(
     [1, 0, 0],
     [HEAD_START_T, 1, 0],
     [HEAD_START_T, 0, 0],
-    [0, 1, 0],
+    [1, 1, 0],
   );
 
   return {

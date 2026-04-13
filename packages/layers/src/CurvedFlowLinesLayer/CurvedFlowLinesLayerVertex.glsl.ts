@@ -3,6 +3,8 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
+const HEAD_START_T = (1 - 1 / 24).toFixed(8);
+
 export default `\
 #version 300 es
 #define SHADER_NAME curved-flow-line-layer-vertex-shader
@@ -70,8 +72,16 @@ void main(void) {
     0.35
   );
   endTrim = max(startTrim + 0.05, endTrim);
+  float headBacktrackT = clamp(
+    project_pixel_size(instanceThickness * 3.0 * flowLines.thicknessUnit) / chordLengthCommon,
+    0.02,
+    0.25
+  );
+  float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
-  float curveT = mix(startTrim, endTrim, positions.x);
+  float curveT = positions.x < 1.0
+    ? mix(startTrim, shaftEndTrim, positions.x / ${HEAD_START_T})
+    : endTrim;
   vec2 curveNormal = normalize(vec2(-chord.y, chord.x));
   if (length(curveNormal) < 1e-6) {
     curveNormal = vec2(0.0, 1.0);
@@ -81,7 +91,7 @@ void main(void) {
     target_commonspace.xyz,
     0.5
   );
-  control_commonspace.xy += curveNormal * project_pixel_size(instanceCurveOffset);
+  control_commonspace.xy += curveNormal * project_pixel_size(abs(instanceCurveOffset));
 
   vec3 curvePoint = quadraticBezier(
     source_commonspace.xyz,
