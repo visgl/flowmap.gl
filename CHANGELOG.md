@@ -1,5 +1,10 @@
 # Change log
 
+## [9.1.0] - 2026-04-13
+
+- Curved flow line layer
+
+
 ## [9.0.0] - 2026-04-11
 
 - Upgrade to deck.gl v9
