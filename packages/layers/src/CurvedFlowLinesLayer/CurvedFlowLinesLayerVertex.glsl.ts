@@ -12,6 +12,7 @@ export default `\
 in vec3 positions;
 in vec3 barycentrics;
 in vec3 edgeMasks;
+in float headFlags;
 in vec4 instanceColors;
 in float instanceThickness;
 in vec3 instanceSourcePositions;
@@ -72,11 +73,14 @@ void main(void) {
     0.35
   );
   endTrim = max(startTrim + 0.05, endTrim);
-  float headBacktrackT = clamp(
-    project_pixel_size(instanceThickness * 3.0 * flowLines.thicknessUnit) / chordLengthCommon,
-    0.02,
-    0.25
-  );
+  float baseHeadBacktrackT = project_pixel_size(
+    instanceThickness * 3.0 * flowLines.thicknessUnit
+  ) / chordLengthCommon;
+  float availableSpanT = max(endTrim - startTrim, 0.0);
+  float headBacktrackT = min(baseHeadBacktrackT, availableSpanT * 0.45);
+  float headScale = baseHeadBacktrackT > 1e-6
+    ? clamp(headBacktrackT / baseHeadBacktrackT, 0.0, 1.0)
+    : 1.0;
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
   float curveT = positions.x < 1.0
@@ -111,13 +115,18 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
+  float geometryScale = mix(1.0, headScale, headFlags);
   float normalDistanceCommon = clamp(
-    project_pixel_size(instanceThickness * positions.y * flowLines.thicknessUnit),
+    project_pixel_size(
+      instanceThickness * positions.y * geometryScale * flowLines.thicknessUnit
+    ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
   );
   float tangentDistanceCommon = clamp(
-    project_pixel_size(instanceThickness * positions.z * flowLines.thicknessUnit),
+    project_pixel_size(
+      instanceThickness * positions.z * geometryScale * flowLines.thicknessUnit
+    ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
   );
