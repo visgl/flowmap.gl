@@ -19,16 +19,17 @@ import {
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import {ReactNode, useEffect, useState} from 'react';
 import {
   Map as ReactMapGl,
   ViewState as ViewportProps,
-} from 'react-map-gl/mapbox';
+} from 'react-map-gl/maplibre';
 
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
-const MAPBOX_STYLE_DARK = MAPBOX_STYLE_LIGHT;
+const MAP_STYLE_LIGHT =
+  'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const MAP_STYLE_DARK =
+  'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 type TooltipState = {
   position: {left: number; top: number};
@@ -125,8 +126,7 @@ function App() {
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
         <ReactMapGl
-          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-          mapStyle={config.darkMode ? MAPBOX_STYLE_DARK : MAPBOX_STYLE_LIGHT}
+          mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
         />
       </DeckGL>
       {tooltip && (

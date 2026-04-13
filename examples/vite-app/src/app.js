@@ -5,15 +5,15 @@
  */
 
 import {Deck} from '@deck.gl/core';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import {FlowmapLayer} from '@flowmap.gl/layers';
 import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
+const MAP_STYLE_DARK =
+  'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 const config = {...UI_INITIAL};
 
@@ -31,11 +31,9 @@ fetchData().then((data) => {
     {pad: 0.3},
   );
 
-  const map = new mapboxgl.Map({
+  const map = new maplibregl.Map({
     container: 'map',
-    accessToken: MAPBOX_ACCESS_TOKEN,
-    style: MAPBOX_STYLE_DARK,
-    // Note: deck.gl will be in charge of interaction and event handling
+    style: MAP_STYLE_DARK,
     interactive: false,
     center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
     zoom: INITIAL_VIEW_STATE.zoom,
