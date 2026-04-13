@@ -59,7 +59,7 @@ Filter state to control which flows are displayed:
 ```typescript
 interface FilterState {
   selectedLocations?: (string | number)[];
-  locationFilterMode?: LocationFilterMode;  // 'ALL' | 'INCOMING' | 'OUTGOING' | 'BETWEEN'
+  locationFilterMode?: LocationFilterMode; // 'ALL' | 'INCOMING' | 'OUTGOING' | 'BETWEEN'
   selectedTimeRange?: [Date, Date];
 }
 ```
@@ -82,10 +82,18 @@ The color scheme for flows. Can be a preset name (see [Color Schemes](/docs/api/
 
 ```typescript
 // Use a preset
-colorScheme: 'Blues'
+colorScheme: 'Blues';
 
 // Use a custom scheme
-colorScheme: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c']
+colorScheme: [
+  '#f7fbff',
+  '#deebf7',
+  '#c6dbef',
+  '#9ecae1',
+  '#6baed6',
+  '#3182bd',
+  '#08519c',
+];
 ```
 
 #### `fadeAmount`
@@ -103,8 +111,8 @@ Controls how much lower-magnitude flows fade compared to higher ones. Range: 0-1
 Color used for highlighting hovered elements. Can be a CSS color string or RGBA array:
 
 ```typescript
-highlightColor: 'orange'
-highlightColor: [255, 165, 0, 255]
+highlightColor: 'orange';
+highlightColor: [255, 165, 0, 255];
 ```
 
 #### `opacity`
@@ -137,12 +145,16 @@ Whether to show incoming/outgoing totals as concentric circles at each location.
 
 Whether to show text labels at locations.
 
-#### `animationEnabled`
+#### `flowLinesRenderingMode`
 
-- Type: `boolean`
-- Default: `false`
+- Type: `'straight' | 'animated-straight' | 'curved'`
+- Default: `'straight'`
 
-Whether to animate the flows with moving particles along the lines.
+Controls how flow lines are rendered.
+
+- `'straight'`: static straight half-barbed arrows
+- `'animated-straight'`: animated straight flow lines
+- `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
 #### `clusteringEnabled`
 
@@ -201,6 +213,7 @@ Maximum number of flows to display. Flows are sorted by magnitude and only the t
 - Default: `'any'`
 
 Controls when a flow is considered visible based on endpoint locations:
+
 - `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport
 - `'both'`: Show flows only if both endpoints (origin AND destination) are in viewport
 
@@ -223,12 +236,17 @@ onHover: (info) => {
         console.log('Totals:', info.object.totals);
         break;
       case 'flow':
-        console.log('Hovered flow:', info.object.origin.id, '→', info.object.dest.id);
+        console.log(
+          'Hovered flow:',
+          info.object.origin.id,
+          '→',
+          info.object.dest.id,
+        );
         console.log('Count:', info.object.count);
         break;
     }
   }
-}
+};
 ```
 
 #### `onClick`
@@ -242,7 +260,7 @@ onClick: (info) => {
   if (info.object?.type === 'location') {
     console.log('Clicked location:', info.object.id);
   }
-}
+};
 ```
 
 ### Accessor Props
@@ -251,20 +269,20 @@ These functions tell the layer how to read your data:
 
 #### Location Accessors
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `getLocationId` | `(loc: L) => string \| number` | Yes | Returns unique location identifier |
-| `getLocationLat` | `(loc: L) => number` | Yes | Returns latitude |
-| `getLocationLon` | `(loc: L) => number` | Yes | Returns longitude |
-| `getLocationName` | `(loc: L) => string` | No | Returns display name |
+| Prop              | Type                           | Required | Description                        |
+| ----------------- | ------------------------------ | -------- | ---------------------------------- |
+| `getLocationId`   | `(loc: L) => string \| number` | Yes      | Returns unique location identifier |
+| `getLocationLat`  | `(loc: L) => number`           | Yes      | Returns latitude                   |
+| `getLocationLon`  | `(loc: L) => number`           | Yes      | Returns longitude                  |
+| `getLocationName` | `(loc: L) => string`           | No       | Returns display name               |
 
 #### Flow Accessors
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `getFlowOriginId` | `(flow: F) => string \| number` | Yes | Returns origin location ID |
-| `getFlowDestId` | `(flow: F) => string \| number` | Yes | Returns destination location ID |
-| `getFlowMagnitude` | `(flow: F) => number` | Yes | Returns flow magnitude/count |
+| Prop               | Type                            | Required | Description                     |
+| ------------------ | ------------------------------- | -------- | ------------------------------- |
+| `getFlowOriginId`  | `(flow: F) => string \| number` | Yes      | Returns origin location ID      |
+| `getFlowDestId`    | `(flow: F) => string \| number` | Yes      | Returns destination location ID |
+| `getFlowMagnitude` | `(flow: F) => number`           | Yes      | Returns flow magnitude/count    |
 
 ## PickingInfo Types
 
@@ -275,15 +293,15 @@ The `onHover` and `onClick` callbacks receive a `FlowmapLayerPickingInfo` object
 ```typescript
 {
   type: 'location';
-  location: L;              // Original location object
-  id: string | number;      // Location ID
-  name: string;             // Location name
+  location: L; // Original location object
+  id: string | number; // Location ID
+  name: string; // Location name
   totals: {
-    incomingCount: number;  // Total incoming flow
-    outgoingCount: number;  // Total outgoing flow
-    internalCount: number;  // Internal/self flows
-  };
-  circleRadius: number;     // Rendered circle radius in pixels
+    incomingCount: number; // Total incoming flow
+    outgoingCount: number; // Total outgoing flow
+    internalCount: number; // Internal/self flows
+  }
+  circleRadius: number; // Rendered circle radius in pixels
 }
 ```
 
@@ -292,17 +310,21 @@ The `onHover` and `onClick` callbacks receive a `FlowmapLayerPickingInfo` object
 ```typescript
 {
   type: 'flow';
-  flow: F;                  // Original flow object
-  origin: L;                // Origin location object
-  dest: L;                  // Destination location object
-  count: number;            // Flow magnitude
+  flow: F; // Original flow object
+  origin: L; // Origin location object
+  dest: L; // Destination location object
+  count: number; // Flow magnitude
 }
 ```
 
 ## Full Example
 
 ```typescript
-import {FlowmapLayer, FlowmapLayerPickingInfo, PickingType} from '@flowmap.gl/layers';
+import {
+  FlowmapLayer,
+  FlowmapLayerPickingInfo,
+  PickingType,
+} from '@flowmap.gl/layers';
 
 const layer = new FlowmapLayer({
   id: 'flowmap-layer',
@@ -325,7 +347,7 @@ const layer = new FlowmapLayer({
   highlightColor: 'orange',
 
   // Features
-  animationEnabled: false,
+  flowLinesRenderingMode: 'straight',
   clusteringEnabled: true,
   clusteringAuto: true,
   locationTotalsEnabled: true,

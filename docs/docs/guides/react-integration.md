@@ -35,7 +35,7 @@ function App() {
 
   const data = {
     locations: [
-      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.0060},
+      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.006},
       {id: 'LA', name: 'Los Angeles', lat: 34.0522, lon: -118.2437},
       {id: 'CHI', name: 'Chicago', lat: 41.8781, lon: -87.6298},
     ],
@@ -99,7 +99,7 @@ function App() {
         data.locations,
         (loc) => [loc.lon, loc.lat],
         [width, height],
-        {pad: 0.3}  // 30% padding around the bounds
+        {pad: 0.3}, // 30% padding around the bounds
       );
 
       setViewState(initialViewState);
@@ -192,7 +192,10 @@ function TooltipContent({object}) {
     case PickingType.FLOW:
       return (
         <div>
-          <div>{object.origin.name || object.origin.id} → {object.dest.name || object.dest.id}</div>
+          <div>
+            {object.origin.name || object.origin.id} →{' '}
+            {object.dest.name || object.dest.id}
+          </div>
           <div>{object.count.toLocaleString()}</div>
         </div>
       );
@@ -225,7 +228,8 @@ function App() {
   // Settings
   const [darkMode, setDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState('Teal');
-  const [animationEnabled, setAnimationEnabled] = useState(false);
+  const [flowLinesRenderingMode, setFlowLinesRenderingMode] =
+    useState('straight');
   const [clusteringEnabled, setClusteringEnabled] = useState(true);
 
   useEffect(() => {
@@ -233,11 +237,10 @@ function App() {
       setData(data);
       const [width, height] = [window.innerWidth, window.innerHeight];
       setViewState(
-        getViewStateForLocations(
-          data.locations,
-          (loc) => [loc.lon, loc.lat],
-          [width, height]
-        )
+        getViewStateForLocations(data.locations, (loc) => [loc.lon, loc.lat], [
+          width,
+          height,
+        ]),
       );
     });
   }, []);
@@ -254,7 +257,7 @@ function App() {
         // Display settings
         darkMode,
         colorScheme,
-        animationEnabled,
+        flowLinesRenderingMode,
         clusteringEnabled,
         fadeAmount: 50,
         highlightColor: 'orange',
@@ -270,18 +273,23 @@ function App() {
 
         // Events
         onHover: (info) => {
-          setTooltip(info?.object ? {x: info.x, y: info.y, object: info.object} : null);
+          setTooltip(
+            info?.object ? {x: info.x, y: info.y, object: info.object} : null,
+          );
         },
       }),
     ];
-  }, [data, darkMode, colorScheme, animationEnabled, clusteringEnabled]);
+  }, [data, darkMode, colorScheme, flowLinesRenderingMode, clusteringEnabled]);
 
   if (!viewState || !data) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className={darkMode ? 'dark' : 'light'} style={{position: 'relative', width: '100vw', height: '100vh'}}>
+    <div
+      className={darkMode ? 'dark' : 'light'}
+      style={{position: 'relative', width: '100vw', height: '100vh'}}
+    >
       <DeckGL
         viewState={viewState}
         onViewStateChange={({viewState}) => {
@@ -294,38 +302,51 @@ function App() {
       >
         <Map
           mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle={darkMode
-            ? 'mapbox://styles/mapbox/dark-v10'
-            : 'mapbox://styles/mapbox/light-v10'
+          mapStyle={
+            darkMode
+              ? 'mapbox://styles/mapbox/dark-v10'
+              : 'mapbox://styles/mapbox/light-v10'
           }
         />
       </DeckGL>
 
       {/* Controls */}
-      <div style={{position: 'absolute', top: 10, left: 10, background: 'rgba(0,0,0,0.8)', padding: 10, borderRadius: 4}}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 10,
+          left: 10,
+          background: 'rgba(0,0,0,0.8)',
+          padding: 10,
+          borderRadius: 4,
+        }}
+      >
         <label style={{display: 'block', color: 'white', marginBottom: 8}}>
           <input
             type="checkbox"
             checked={darkMode}
             onChange={(e) => setDarkMode(e.target.checked)}
-          />
-          {' '}Dark Mode
+          />{' '}
+          Dark Mode
         </label>
         <label style={{display: 'block', color: 'white', marginBottom: 8}}>
-          <input
-            type="checkbox"
-            checked={animationEnabled}
-            onChange={(e) => setAnimationEnabled(e.target.checked)}
-          />
-          {' '}Animation
+          Flow Lines:{' '}
+          <select
+            value={flowLinesRenderingMode}
+            onChange={(e) => setFlowLinesRenderingMode(e.target.value)}
+          >
+            <option value="straight">Straight</option>
+            <option value="animated-straight">Animated Straight</option>
+            <option value="curved">Curved</option>
+          </select>
         </label>
         <label style={{display: 'block', color: 'white', marginBottom: 8}}>
           <input
             type="checkbox"
             checked={clusteringEnabled}
             onChange={(e) => setClusteringEnabled(e.target.checked)}
-          />
-          {' '}Clustering
+          />{' '}
+          Clustering
         </label>
         <label style={{display: 'block', color: 'white'}}>
           Color Scheme:{' '}
@@ -361,12 +382,18 @@ function App() {
           {tooltip.object.type === PickingType.LOCATION ? (
             <>
               <div style={{fontWeight: 'bold'}}>{tooltip.object.name}</div>
-              <div>In: {tooltip.object.totals.incomingCount.toLocaleString()}</div>
-              <div>Out: {tooltip.object.totals.outgoingCount.toLocaleString()}</div>
+              <div>
+                In: {tooltip.object.totals.incomingCount.toLocaleString()}
+              </div>
+              <div>
+                Out: {tooltip.object.totals.outgoingCount.toLocaleString()}
+              </div>
             </>
           ) : tooltip.object.type === PickingType.FLOW ? (
             <>
-              <div>{tooltip.object.origin.name} → {tooltip.object.dest.name}</div>
+              <div>
+                {tooltip.object.origin.name} → {tooltip.object.dest.name}
+              </div>
               <div>{tooltip.object.count.toLocaleString()}</div>
             </>
           ) : null}
@@ -380,7 +407,7 @@ async function fetchData() {
   // Replace with your data loading logic
   return {
     locations: [
-      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.0060},
+      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.006},
       {id: 'LA', name: 'Los Angeles', lat: 34.0522, lon: -118.2437},
       {id: 'CHI', name: 'Chicago', lat: 41.8781, lon: -87.6298},
     ],
@@ -427,10 +454,7 @@ import {
   PickingType,
 } from '@flowmap.gl/layers';
 
-import {
-  FlowmapData,
-  ViewState,
-} from '@flowmap.gl/data';
+import {FlowmapData, ViewState} from '@flowmap.gl/data';
 
 // Define your data types
 interface Location {

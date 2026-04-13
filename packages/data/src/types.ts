@@ -21,6 +21,10 @@ export interface ViewState {
 
 export type FlowAccessor<F, T> = (flow: F) => T; // objectInfo?: AccessorObjectInfo,
 export type LocationAccessor<L, T> = (location: L) => T;
+export type FlowLinesRenderingMode =
+  | 'straight'
+  | 'animated-straight'
+  | 'curved';
 
 export interface FlowAccessors<F> {
   getFlowOriginId: FlowAccessor<F, string | number>;
@@ -160,6 +164,7 @@ export interface FlowLinesLayerAttributes {
     getColor: LayersDataAttrValues<Uint8Array>;
     getEndpointOffsets: LayersDataAttrValues<Float32Array>;
     getStaggering?: LayersDataAttrValues<Float32Array>;
+    getCurveOffset?: LayersDataAttrValues<Float32Array>;
   };
 }
 

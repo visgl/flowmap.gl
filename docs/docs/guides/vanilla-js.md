@@ -21,34 +21,37 @@ Create an HTML file with a canvas for deck.gl and a container for the map:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Flowmap.gl</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-    }
-    #map {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-    }
-    #deck-canvas {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      mix-blend-mode: screen;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <canvas id="deck-canvas"></canvas>
-  <script type="module" src="./app.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Flowmap.gl</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+      #deck-canvas {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        mix-blend-mode: screen;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <canvas id="deck-canvas"></canvas>
+    <script type="module" src="./app.js"></script>
+  </body>
 </html>
 ```
 
@@ -65,7 +68,7 @@ const MAPBOX_TOKEN = 'your-mapbox-token';
 // Sample data
 const data = {
   locations: [
-    {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.0060},
+    {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.006},
     {id: 'LA', name: 'Los Angeles', lat: 34.0522, lon: -118.2437},
     {id: 'CHI', name: 'Chicago', lat: 41.8781, lon: -87.6298},
   ],
@@ -82,7 +85,7 @@ const INITIAL_VIEW_STATE = getViewStateForLocations(
   data.locations,
   (loc) => [loc.lon, loc.lat],
   [width, height],
-  {pad: 0.3}
+  {pad: 0.3},
 );
 
 // Initialize Mapbox
@@ -90,7 +93,7 @@ const map = new mapboxgl.Map({
   container: 'map',
   accessToken: MAPBOX_TOKEN,
   style: 'mapbox://styles/mapbox/dark-v10',
-  interactive: false,  // deck.gl will handle interaction
+  interactive: false, // deck.gl will handle interaction
   center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
   zoom: INITIAL_VIEW_STATE.zoom,
   bearing: INITIAL_VIEW_STATE.bearing || 0,
@@ -230,7 +233,7 @@ const config = {
   darkMode: true,
   colorScheme: 'Teal',
   fadeAmount: 50,
-  animationEnabled: false,
+  flowLinesRenderingMode: 'straight',
   clusteringEnabled: true,
   clusteringAuto: true,
 };
@@ -249,7 +252,7 @@ async function init() {
     data.locations,
     (loc) => [loc.lon, loc.lat],
     [width, height],
-    {pad: 0.3}
+    {pad: 0.3},
   );
 
   // Initialize map
@@ -294,7 +297,7 @@ function updateDeck() {
         darkMode: config.darkMode,
         colorScheme: config.colorScheme,
         fadeAmount: config.fadeAmount,
-        animationEnabled: config.animationEnabled,
+        flowLinesRenderingMode: config.flowLinesRenderingMode,
         clusteringEnabled: config.clusteringEnabled,
         clusteringAuto: config.clusteringAuto,
         getLocationId: (loc) => loc.id,
@@ -313,15 +316,19 @@ function setupControls() {
   // Dark mode toggle
   document.getElementById('darkMode').addEventListener('change', (e) => {
     config.darkMode = e.target.checked;
-    map.setStyle(`mapbox://styles/mapbox/${config.darkMode ? 'dark' : 'light'}-v10`);
+    map.setStyle(
+      `mapbox://styles/mapbox/${config.darkMode ? 'dark' : 'light'}-v10`,
+    );
     updateDeck();
   });
 
-  // Animation toggle
-  document.getElementById('animation').addEventListener('change', (e) => {
-    config.animationEnabled = e.target.checked;
-    updateDeck();
-  });
+  // Flow line rendering mode
+  document
+    .getElementById('flowLinesRenderingMode')
+    .addEventListener('change', (e) => {
+      config.flowLinesRenderingMode = e.target.value;
+      updateDeck();
+    });
 
   // Clustering toggle
   document.getElementById('clustering').addEventListener('change', (e) => {
@@ -340,7 +347,7 @@ async function fetchData() {
   // Replace with your data loading logic
   return {
     locations: [
-      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.0060},
+      {id: 'NYC', name: 'New York', lat: 40.7128, lon: -74.006},
       {id: 'LA', name: 'Los Angeles', lat: 34.0522, lon: -118.2437},
       {id: 'CHI', name: 'Chicago', lat: 41.8781, lon: -87.6298},
     ],

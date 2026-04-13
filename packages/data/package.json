@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/data",
-  "version": "9.0.0",
+  "version": "9.1.0",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -41,7 +41,7 @@
     "@types/mapbox__geo-viewport": "^0.5.3",
     "@types/seedrandom": "^3.0.8"
   },
-  "gitHead": "38b45c47b20c999970f53d01744eff24f66a1865",
+  "gitHead": "b4d4491e420c816e587bf23ad09ef392331679bf",
   "publishConfig": {
     "access": "public"
   }

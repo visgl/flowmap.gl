@@ -12,7 +12,6 @@ import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
- 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_DARK = 'mapbox://styles/mapbox/dark-v10';
 
@@ -23,7 +22,7 @@ fetchData().then((data) => {
   initLilGui(gui);
 
   const {locations, flows} = data;
-   
+
   const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
   const INITIAL_VIEW_STATE = getViewStateForLocations(
     locations,
@@ -83,7 +82,7 @@ fetchData().then((data) => {
           fadeOpacityEnabled: config.fadeOpacityEnabled,
           locationsEnabled: config.locationsEnabled,
           locationTotalsEnabled: config.locationTotalsEnabled,
-          animationEnabled: config.animationEnabled,
+          flowLinesRenderingMode: config.flowLinesRenderingMode,
           clusteringEnabled: config.clusteringEnabled,
           clusteringAuto: config.clusteringAuto,
           clusteringLevel: config.clusteringLevel,

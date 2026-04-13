@@ -35,6 +35,7 @@ import {scalePow, scaleSequential, scaleSequentialPow} from 'd3-scale';
 import {interpolateBasis, interpolateRgbBasis} from 'd3-interpolate';
 import {color as d3color, hcl, rgb as colorRgb} from 'd3-color';
 import {SettingsState} from './FlowmapState';
+import {FlowLinesRenderingMode} from './types';
 
 const DEFAULT_OUTLINE_COLOR = '#fff';
 const DEFAULT_DIMMED_OPACITY = 0.4;
@@ -347,8 +348,14 @@ export function getFlowmapColors(settings: SettingsState): Colors | DiffColors {
     settings.fadeEnabled,
     settings.fadeOpacityEnabled,
     settings.fadeAmount,
-    settings.animationEnabled,
+    isAnimatedFlowLinesMode(settings.flowLinesRenderingMode),
   );
+}
+
+function isAnimatedFlowLinesMode(
+  flowLinesRenderingMode: FlowLinesRenderingMode,
+): boolean {
+  return flowLinesRenderingMode === 'animated-straight';
 }
 
 export function getColors(

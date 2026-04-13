@@ -35,13 +35,15 @@ To add a map, you'll need a token from [Mapbox](https://www.mapbox.com/) or use 
 Try these optimizations:
 
 1. **Limit displayed flows** with `maxTopFlowsDisplayNum`:
+
    ```typescript
    new FlowmapLayer({
-     maxTopFlowsDisplayNum: 3000,  // Show only top 3000 flows
+     maxTopFlowsDisplayNum: 3000, // Show only top 3000 flows
    });
    ```
 
 2. **Enable clustering** (on by default):
+
    ```typescript
    new FlowmapLayer({
      clusteringEnabled: true,
@@ -50,9 +52,10 @@ Try these optimizations:
    ```
 
 3. **Disable animation** if not needed:
+
    ```typescript
    new FlowmapLayer({
-     animationEnabled: false,
+     flowLinesRenderingMode: 'straight',
    });
    ```
 
@@ -62,12 +65,12 @@ Try these optimizations:
 
 Performance depends on hardware, but typical guidelines:
 
-| Flow Count | Performance |
-|------------|-------------|
-| < 5,000 | Smooth on most devices |
-| 5,000 - 20,000 | Good with clustering enabled |
-| 20,000 - 100,000 | Consider Web Worker, limit displayed flows |
-| > 100,000 | Definitely use Web Worker, pre-compute clusters |
+| Flow Count       | Performance                                     |
+| ---------------- | ----------------------------------------------- |
+| < 5,000          | Smooth on most devices                          |
+| 5,000 - 20,000   | Good with clustering enabled                    |
+| 20,000 - 100,000 | Consider Web Worker, limit displayed flows      |
+| > 100,000        | Definitely use Web Worker, pre-compute clusters |
 
 ### Why does zooming feel sluggish?
 
@@ -75,7 +78,7 @@ This often happens when `adaptiveScalesEnabled: true` (default) recalculates sca
 
 ```typescript
 new FlowmapLayer({
-  adaptiveScalesEnabled: false,  // Use fixed scales
+  adaptiveScalesEnabled: false, // Use fixed scales
 });
 ```
 
@@ -86,12 +89,14 @@ new FlowmapLayer({
 Check these common issues:
 
 1. **Data format**: Ensure accessor functions match your data structure:
+
    ```typescript
    // If your data uses 'source' instead of 'origin':
    getFlowOriginId: (flow) => flow.source,  // Not flow.origin
    ```
 
 2. **Location coordinates**: Verify lat/lon are numbers, not strings:
+
    ```typescript
    // Wrong - strings from CSV
    {lat: "40.7128", lon: "-74.0060"}
@@ -112,7 +117,7 @@ The `darkMode` prop affects color scheme direction:
 ```typescript
 // If using a dark background map but colors seem inverted:
 new FlowmapLayer({
-  darkMode: true,  // Make sure this matches your map style
+  darkMode: true, // Make sure this matches your map style
 });
 ```
 
@@ -135,8 +140,8 @@ Enable location display:
 
 ```typescript
 new FlowmapLayer({
-  locationsEnabled: true,        // Show location circles
-  locationTotalsEnabled: true,   // Show in/out totals as concentric circles
+  locationsEnabled: true, // Show location circles
+  locationTotalsEnabled: true, // Show in/out totals as concentric circles
 });
 ```
 
@@ -162,7 +167,7 @@ onHover: (info) => {
   if (info?.object?.type === 'location') {
     const {incomingCount, outgoingCount, internalCount} = info.object.totals;
   }
-}
+};
 ```
 
 ### How do I filter flows by selected location?
@@ -181,6 +186,7 @@ new FlowmapLayer({
 ```
 
 Filter modes:
+
 - `ALL` - Show all flows
 - `INCOMING` - Only flows to selected locations
 - `OUTGOING` - Only flows from selected locations
@@ -217,16 +223,20 @@ When using automatic clustering, names are generated automatically. For custom n
 const data = {
   locations,
   flows,
-  clusterLevels: [{
-    zoom: 4,
-    nodes: [{
-      id: 'east-coast',
-      name: 'East Coast Region',  // Custom name
-      lat: 40.5,
-      lon: -73.5,
-      children: ['NYC', 'BOS', 'PHL'],
-    }],
-  }],
+  clusterLevels: [
+    {
+      zoom: 4,
+      nodes: [
+        {
+          id: 'east-coast',
+          name: 'East Coast Region', // Custom name
+          lat: 40.5,
+          lon: -73.5,
+          children: ['NYC', 'BOS', 'PHL'],
+        },
+      ],
+    },
+  ],
 };
 ```
 
@@ -267,7 +277,7 @@ onHover: (info: FlowmapLayerPickingInfo<Location, Flow> | undefined) => {
   if (info?.object?.type === PickingType.LOCATION) {
     // TypeScript knows info.object has location properties
   }
-}
+};
 ```
 
 ## Debugging
@@ -310,6 +320,7 @@ console.log('Layer state:', layer.state);
 ### Upgrading from v7 to v8
 
 Key changes in v8:
+
 - Updated to deck.gl 9.x
 - Package structure changed to `@flowmap.gl/layers` and `@flowmap.gl/data`
 - Import paths updated

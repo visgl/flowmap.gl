@@ -375,7 +375,7 @@ Add reactive controls using Svelte's built-in reactivity:
   let data = null;
   let darkMode = true;
   let colorScheme = 'Teal';
-  let animationEnabled = false;
+  let flowLinesRenderingMode = 'straight';
   let clusteringEnabled = true;
 
   onMount(async () => {
@@ -394,8 +394,12 @@ Add reactive controls using Svelte's built-in reactivity:
       Dark Mode
     </label>
     <label>
-      <input type="checkbox" bind:checked={animationEnabled} />
-      Animation
+      Flow Lines
+      <select bind:value={flowLinesRenderingMode}>
+        <option value="straight">Straight</option>
+        <option value="animated-straight">Animated Straight</option>
+        <option value="curved">Curved</option>
+      </select>
     </label>
     <label>
       <input type="checkbox" bind:checked={clusteringEnabled} />
@@ -417,7 +421,7 @@ Add reactive controls using Svelte's built-in reactivity:
       {data}
       {darkMode}
       {colorScheme}
-      {animationEnabled}
+      {flowLinesRenderingMode}
       {clusteringEnabled}
     />
   {/if}

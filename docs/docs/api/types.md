@@ -14,17 +14,19 @@ The main data structure for the FlowmapLayer:
 
 ```typescript
 interface FlowmapData<L, F> {
-  locations: Iterable<L>;           // Array or iterable of locations
-  flows: Iterable<F>;               // Array or iterable of flows
-  clusterLevels?: ClusterLevels;    // Optional pre-computed clusters
+  locations: Iterable<L>; // Array or iterable of locations
+  flows: Iterable<F>; // Array or iterable of flows
+  clusterLevels?: ClusterLevels; // Optional pre-computed clusters
 }
 ```
 
 **Type Parameters:**
+
 - `L` - The shape of your location objects
 - `F` - The shape of your flow objects
 
 **Example:**
+
 ```typescript
 interface MyLocation {
   id: string;
@@ -142,10 +144,10 @@ Enum for filtering flows by location:
 
 ```typescript
 enum LocationFilterMode {
-  ALL = 'ALL',           // Show all flows
+  ALL = 'ALL', // Show all flows
   INCOMING = 'INCOMING', // Only flows to selected locations
   OUTGOING = 'OUTGOING', // Only flows from selected locations
-  BETWEEN = 'BETWEEN',   // Flows between selected locations
+  BETWEEN = 'BETWEEN', // Flows between selected locations
 }
 ```
 
@@ -155,7 +157,7 @@ Display settings:
 
 ```typescript
 interface SettingsState {
-  animationEnabled: boolean;
+  flowLinesRenderingMode: 'straight' | 'animated-straight' | 'curved';
   fadeEnabled: boolean;
   fadeOpacityEnabled: boolean;
   locationsEnabled: boolean;
@@ -204,9 +206,9 @@ Aggregated flow totals for a location:
 
 ```typescript
 interface LocationTotals {
-  incomingCount: number;   // Total flow into location
-  outgoingCount: number;   // Total flow out of location
-  internalCount: number;   // Internal/self flows
+  incomingCount: number; // Total flow into location
+  outgoingCount: number; // Total flow out of location
+  internalCount: number; // Internal/self flows
 }
 ```
 
@@ -236,7 +238,9 @@ interface FlowPickingInfo<L, F> {
   // Plus standard deck.gl picking info: x, y, coordinate, etc.
 }
 
-type FlowmapLayerPickingInfo<L, F> = LocationPickingInfo<L> | FlowPickingInfo<L, F>;
+type FlowmapLayerPickingInfo<L, F> =
+  | LocationPickingInfo<L>
+  | FlowPickingInfo<L, F>;
 ```
 
 ## Clustering Types
@@ -261,7 +265,7 @@ A cluster containing multiple locations:
 ```typescript
 interface Cluster extends ClusterNode {
   name?: string;
-  children: (string | number)[];  // Child location/cluster IDs
+  children: (string | number)[]; // Child location/cluster IDs
 }
 ```
 

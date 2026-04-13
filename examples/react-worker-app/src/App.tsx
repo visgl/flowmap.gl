@@ -95,7 +95,7 @@ function App() {
         fadeOpacityEnabled: config.fadeOpacityEnabled,
         locationsEnabled: config.locationsEnabled,
         locationTotalsEnabled: config.locationTotalsEnabled,
-        animationEnabled: config.animationEnabled,
+        flowLinesRenderingMode: config.flowLinesRenderingMode,
         clusteringEnabled: config.clusteringEnabled,
         clusteringAuto: config.clusteringAuto,
         clusteringLevel: config.clusteringLevel,
