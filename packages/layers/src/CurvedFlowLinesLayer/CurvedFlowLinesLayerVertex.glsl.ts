@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 const HEAD_START_T = (1 - 1 / 24).toFixed(8);
+const MIN_HEAD_WIDTH_SCALE = '0.0';
+const MIN_HEAD_LENGTH_SCALE = '0.0';
+const MIN_HEAD_DEFORMATION_SCALE = '0.0';
 
 export default `\
 #version 300 es
@@ -80,11 +83,17 @@ void main(void) {
   float headScale = baseHeadBacktrackT > 1e-6
     ? clamp(headBacktrackT / baseHeadBacktrackT, 0.0, 1.0)
     : 1.0;
+  float headWidthScale = max(headScale, ${MIN_HEAD_WIDTH_SCALE});
+  float headLengthScale = max(headScale, ${MIN_HEAD_LENGTH_SCALE});
+  float headDeformation =
+    smoothstep(${MIN_HEAD_DEFORMATION_SCALE}, 1.0, headScale);
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
   float curveT = positions.x < 1.0
     ? mix(startTrim, shaftEndTrim, positions.x / ${HEAD_START_T})
     : endTrim;
+  float headWeight = smoothstep(${HEAD_START_T}, 1.0, positions.x);
+  float tangentT = mix(curveT, endTrim, headWeight);
   vec2 curveNormal = normalize(vec2(chord.y, -chord.x));
   if (length(curveNormal) < 1e-6) {
     curveNormal = vec2(0.0, 1.0);
@@ -106,7 +115,7 @@ void main(void) {
     source_commonspace.xyz,
     control_commonspace,
     target_commonspace.xyz,
-    curveT
+    tangentT
   );
   if (length(tangent.xy) < 1e-6) {
     tangent = target_commonspace.xyz - source_commonspace.xyz;
@@ -114,18 +123,20 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  float headWeight = smoothstep(${HEAD_START_T}, 1.0, positions.x);
-  float geometryScale = mix(1.0, headScale, headWeight);
+  float widthScale = mix(1.0, headWidthScale, headWeight);
+  float lengthScale = mix(1.0, headLengthScale, headWeight);
+  float shapeY = mix(min(positions.y, 1.0), positions.y, headDeformation);
+  float shapeZ = positions.z * headDeformation;
   float normalDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * positions.y * geometryScale * flowLines.thicknessUnit
+      instanceThickness * shapeY * widthScale * flowLines.thicknessUnit
     ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
   );
   float tangentDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * positions.z * geometryScale * flowLines.thicknessUnit
+      instanceThickness * shapeZ * lengthScale * flowLines.thicknessUnit
     ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
