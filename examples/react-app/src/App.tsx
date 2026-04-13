@@ -21,7 +21,10 @@ import {
 } from '@flowmap.gl/layers';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import {ReactNode, useEffect, useState} from 'react';
-import {Map as ReactMapGl, ViewState as ViewportProps} from 'react-map-gl/mapbox';
+import {
+  Map as ReactMapGl,
+  ViewState as ViewportProps,
+} from 'react-map-gl/mapbox';
 
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAPBOX_STYLE_LIGHT = 'mapbox://styles/mapbox/streets-v11';
@@ -81,7 +84,7 @@ function App() {
         locationsEnabled: config.locationsEnabled,
         locationTotalsEnabled: config.locationTotalsEnabled,
         locationLabelsEnabled: config.locationLabelsEnabled,
-        animationEnabled: config.animationEnabled,
+        flowLinesRenderingMode: config.flowLinesRenderingMode,
         clusteringEnabled: config.clusteringEnabled,
         clusteringAuto: config.clusteringAuto,
         clusteringLevel: config.clusteringLevel,

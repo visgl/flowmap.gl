@@ -30,6 +30,14 @@ export const getViewportBoundingBox = (
   return [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]];
 };
 
+export const makeViewportProjector = (viewport: ViewportProps) => {
+  const mercatorViewport = new WebMercatorViewport(viewport);
+  return (coords: [number, number]): [number, number] => {
+    const [x, y] = mercatorViewport.project(coords);
+    return [x, y];
+  };
+};
+
 export const getFlowThicknessScale = (
   magnitudeExtent: [number, number] | undefined,
 ) => {

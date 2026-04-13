@@ -9,6 +9,7 @@ import {
   FilterState,
   FlowEndpointsInViewportMode,
   FlowLinesLayerAttributes,
+  FlowLinesRenderingMode,
   FlowmapAggregateAccessors,
   FlowmapData,
   FlowmapDataAccessors,
@@ -25,6 +26,7 @@ import {
   isFlowmapDataProvider,
 } from '@flowmap.gl/data';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
+import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import FlowLinesLayer from './FlowLinesLayer';
 import {
@@ -45,6 +47,7 @@ export type FlowmapLayerProps<
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
+  flowLinesRenderingMode?: FlowLinesRenderingMode;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
   clusteringLevel?: number;
@@ -71,6 +74,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'locationTotalsEnabled',
   'locationLabelsEnabled',
   'adaptiveScalesEnabled',
+  'flowLinesRenderingMode',
   'animationEnabled',
   'clusteringEnabled',
   'clusteringLevel',
@@ -84,6 +88,8 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'maxTopFlowsDisplayNum',
   'flowEndpointsInViewportMode',
 ];
+
+const DEFAULT_FLOW_LINES_RENDERING_MODE: FlowLinesRenderingMode = 'straight';
 
 enum HighlightType {
   LOCATION = 'location',
@@ -119,13 +125,15 @@ export default class FlowmapLayer<
   L extends Record<string, any>,
   F extends Record<string, any>,
 > extends CompositeLayer {
+  private _didWarnAboutAnimationEnabledDeprecation = false;
+  private _didWarnAboutAnimationEnabledConflict = false;
+
   static defaultProps = {
     darkMode: true,
     fadeAmount: 50,
     locationsEnabled: true,
     locationTotalsEnabled: true,
     locationLabelsEnabled: false,
-    animationEnabled: false,
     clusteringEnabled: true,
     fadeEnabled: true,
     fadeOpacityEnabled: false,
@@ -293,7 +301,7 @@ export default class FlowmapLayer<
       locationTotalsEnabled,
       locationLabelsEnabled,
       adaptiveScalesEnabled,
-      animationEnabled,
+      flowLinesRenderingMode,
       clusteringEnabled,
       clusteringLevel,
       fadeEnabled,
@@ -314,7 +322,8 @@ export default class FlowmapLayer<
         locationLabelsEnabled ?? defaults.locationLabelsEnabled,
       adaptiveScalesEnabled:
         adaptiveScalesEnabled ?? defaults.adaptiveScalesEnabled,
-      animationEnabled: animationEnabled ?? defaults.animationEnabled,
+      flowLinesRenderingMode:
+        flowLinesRenderingMode ?? this._getResolvedFlowLinesRenderingMode(),
       clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
       clusteringLevel,
       fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
@@ -329,6 +338,32 @@ export default class FlowmapLayer<
       flowEndpointsInViewportMode: (flowEndpointsInViewportMode ??
         defaults.flowEndpointsInViewportMode) as FlowEndpointsInViewportMode,
     };
+  }
+
+  private _getResolvedFlowLinesRenderingMode(): FlowLinesRenderingMode {
+    const {animationEnabled, flowLinesRenderingMode} = this.typedProps;
+    if (flowLinesRenderingMode !== undefined) {
+      if (
+        animationEnabled !== undefined &&
+        !this._didWarnAboutAnimationEnabledConflict
+      ) {
+        this._didWarnAboutAnimationEnabledConflict = true;
+        console.warn(
+          'FlowmapLayer: `animationEnabled` is deprecated and ignored when `flowLinesRenderingMode` is provided.',
+        );
+      }
+      return flowLinesRenderingMode;
+    }
+    if (animationEnabled !== undefined) {
+      if (!this._didWarnAboutAnimationEnabledDeprecation) {
+        this._didWarnAboutAnimationEnabledDeprecation = true;
+        console.warn(
+          'FlowmapLayer: `animationEnabled` is deprecated; use `flowLinesRenderingMode` instead.',
+        );
+      }
+      return animationEnabled ? 'animated-straight' : 'straight';
+    }
+    return DEFAULT_FLOW_LINES_RENDERING_MODE;
   }
 
   private _getFlowmapState() {
@@ -360,7 +395,8 @@ export default class FlowmapLayer<
     };
     if (
       sourceLayer instanceof FlowLinesLayer ||
-      sourceLayer instanceof AnimatedFlowLinesLayer
+      sourceLayer instanceof AnimatedFlowLinesLayer ||
+      sourceLayer instanceof CurvedFlowLinesLayer
     ) {
       const flow =
         index === -1 ? undefined : await dataProvider.getFlowByIndex(index);
@@ -423,7 +459,8 @@ export default class FlowmapLayer<
     if (index < 0) return undefined;
     if (
       sourceLayer instanceof FlowLinesLayer ||
-      sourceLayer instanceof AnimatedFlowLinesLayer
+      sourceLayer instanceof AnimatedFlowLinesLayer ||
+      sourceLayer instanceof CurvedFlowLinesLayer
     ) {
       const {lineAttributes} = this.state?.layersData || {};
       if (lineAttributes) {
@@ -463,6 +500,7 @@ export default class FlowmapLayer<
 
   renderLayers(): Array<any> {
     const props = this.typedProps;
+    const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
     const highlightColor =
       props.highlightColor ?? FlowmapLayer.defaultProps.highlightColor;
     const layers = [];
@@ -484,29 +522,45 @@ export default class FlowmapLayer<
             depthTest: false,
           },
         };
-        if (props.animationEnabled) {
-          layers.push(
-            // @ts-ignore
-            new AnimatedFlowLinesLayer({
-              ...this.getSubLayerProps({
-                ...commonLineLayerProps,
-                id: 'animated-flow-lines',
-                drawOutline: false,
-                thicknessUnit: 20,
+        switch (flowLinesRenderingMode) {
+          case 'animated-straight':
+            layers.push(
+              // @ts-ignore
+              new AnimatedFlowLinesLayer({
+                ...this.getSubLayerProps({
+                  ...commonLineLayerProps,
+                  id: 'animated-flow-lines',
+                  drawOutline: false,
+                  thicknessUnit: 20,
+                }),
               }),
-            }),
-          );
-        } else {
-          layers.push(
-            new FlowLinesLayer({
-              ...this.getSubLayerProps({
-                ...commonLineLayerProps,
-                id: 'flow-lines',
-                drawOutline: true,
-                outlineColor: outlineColor,
+            );
+            break;
+          case 'curved':
+            layers.push(
+              new CurvedFlowLinesLayer({
+                ...this.getSubLayerProps({
+                  ...commonLineLayerProps,
+                  id: 'curved-flow-lines',
+                  drawOutline: true,
+                  outlineColor: outlineColor,
+                }),
               }),
-            }),
-          );
+            );
+            break;
+          case 'straight':
+          default:
+            layers.push(
+              new FlowLinesLayer({
+                ...this.getSubLayerProps({
+                  ...commonLineLayerProps,
+                  id: 'flow-lines',
+                  drawOutline: true,
+                  outlineColor: outlineColor,
+                }),
+              }),
+            );
+            break;
         }
         layers.push(
           new FlowCirclesLayer(
@@ -543,21 +597,39 @@ export default class FlowmapLayer<
               );
               break;
             case HighlightType.FLOW:
-              layers.push(
-                new FlowLinesLayer({
-                  ...this.getSubLayerProps({
-                    id: 'flow-highlight',
-                    data: highlightedObject.lineAttributes,
-                    drawOutline: true,
-                    pickable: false,
-                    outlineColor: colorAsRgba(highlightColor),
-                    outlineThickness: 1.5,
-                    parameters: {
-                      depthTest: false,
-                    },
+              if (flowLinesRenderingMode === 'curved') {
+                layers.push(
+                  new CurvedFlowLinesLayer({
+                    ...this.getSubLayerProps({
+                      id: 'flow-highlight',
+                      data: highlightedObject.lineAttributes,
+                      drawOutline: true,
+                      pickable: false,
+                      outlineColor: colorAsRgba(highlightColor),
+                      outlineThickness: 1.5,
+                      parameters: {
+                        depthTest: false,
+                      },
+                    }),
                   }),
-                }),
-              );
+                );
+              } else {
+                layers.push(
+                  new FlowLinesLayer({
+                    ...this.getSubLayerProps({
+                      id: 'flow-highlight',
+                      data: highlightedObject.lineAttributes,
+                      drawOutline: true,
+                      pickable: false,
+                      outlineColor: colorAsRgba(highlightColor),
+                      outlineThickness: 1.5,
+                      parameters: {
+                        depthTest: false,
+                      },
+                    }),
+                  }),
+                );
+              }
               break;
           }
         }

@@ -19,7 +19,7 @@ export const UI_INITIAL = {
   clusteringAuto: FlowmapLayer.defaultProps.clusteringAuto,
   clusteringLevel: 5,
   clusteringMethod: 'HCA',
-  animationEnabled: FlowmapLayer.defaultProps.animationEnabled,
+  flowLinesRenderingMode: 'straight',
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
@@ -32,7 +32,11 @@ export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'darkMode');
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
-  gui.add(UI_INITIAL, 'animationEnabled');
+  gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
+    'straight',
+    'animated-straight',
+    'curved',
+  ]);
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');

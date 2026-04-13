@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {LocationFilterMode, ViewportProps} from './types';
+import {
+  FlowLinesRenderingMode,
+  LocationFilterMode,
+  ViewportProps,
+} from './types';
 
 export type FlowEndpointsInViewportMode = 'any' | 'both';
 
@@ -15,7 +19,7 @@ export interface FilterState {
 }
 
 export interface SettingsState {
-  animationEnabled: boolean;
+  flowLinesRenderingMode: FlowLinesRenderingMode;
   fadeEnabled: boolean;
   fadeOpacityEnabled: boolean;
   locationsEnabled: boolean;

@@ -32,6 +32,7 @@ import {
   addClusterNames,
   getFlowThicknessScale,
   getViewportBoundingBox,
+  makeViewportProjector,
 } from './selector-functions';
 import {
   TimeGranularityKey,
@@ -48,11 +49,13 @@ import {
   FlowAccessors,
   FlowCirclesLayerAttributes,
   FlowLinesLayerAttributes,
+  FlowLinesRenderingMode,
   FlowmapData,
   FlowmapDataAccessors,
   LayersData,
   LocationFilterMode,
   LocationTotals,
+  ViewportProps,
   isLocationClusterNode,
 } from './types';
 
@@ -141,10 +144,15 @@ export default class FlowmapSelectors<
     props: FlowmapData<L, F>,
   ) => state.settings.fadeAmount;
 
-  getAnimate: Selector<L, F, boolean> = (
+  getFlowLinesRenderingMode: Selector<L, F, FlowLinesRenderingMode> = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
-  ) => state.settings.animationEnabled;
+  ) => state.settings.flowLinesRenderingMode;
+
+  getAnimate: Selector<L, F, boolean> = createSelector(
+    this.getFlowLinesRenderingMode,
+    (flowLinesRenderingMode) => flowLinesRenderingMode === 'animated-straight',
+  );
 
   getInvalidLocationIds: Selector<L, F, (string | number)[] | undefined> =
     createSelector(this.getLocationsFromProps, (locations) => {
@@ -1101,7 +1109,8 @@ export default class FlowmapSelectors<
     this.getInCircleSizeGetter,
     this.getOutCircleSizeGetter,
     this.getFlowThicknessScale,
-    this.getAnimate,
+    this.getViewport,
+    this.getFlowLinesRenderingMode,
     this.getLocationLabelsEnabled,
     (
       locations,
@@ -1112,7 +1121,8 @@ export default class FlowmapSelectors<
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
-      animationEnabled,
+      viewport,
+      flowLinesRenderingMode,
       locationLabelsEnabled,
     ) => {
       return this._prepareLayersData(
@@ -1124,7 +1134,8 @@ export default class FlowmapSelectors<
         getInCircleSize,
         getOutCircleSize,
         flowThicknessScale,
-        animationEnabled,
+        viewport,
+        flowLinesRenderingMode,
         locationLabelsEnabled,
       );
     },
@@ -1142,6 +1153,7 @@ export default class FlowmapSelectors<
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
     const locationLabelsEnabled = this.getLocationLabelsEnabled(state, props);
+    const viewport = this.getViewport(state, props);
     return this._prepareLayersData(
       locations,
       flows,
@@ -1151,7 +1163,8 @@ export default class FlowmapSelectors<
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
-      state.settings.animationEnabled,
+      viewport,
+      state.settings.flowLinesRenderingMode,
       locationLabelsEnabled,
     );
   }
@@ -1165,7 +1178,8 @@ export default class FlowmapSelectors<
     getInCircleSize: (locationId: string | number) => number,
     getOutCircleSize: (locationId: string | number) => number,
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
-    animationEnabled: boolean,
+    viewport: ViewportProps,
+    flowLinesRenderingMode: FlowLinesRenderingMode,
     locationLabelsEnabled: boolean,
   ): LayersData {
     if (!locations) locations = [];
@@ -1187,7 +1201,7 @@ export default class FlowmapSelectors<
     const flowColorScale = getFlowColorScale(
       flowmapColors,
       flowMagnitudeExtent,
-      false,
+      flowLinesRenderingMode === 'animated-straight',
     );
 
     // Using a generator here helps to avoid creating intermediary arrays
@@ -1278,16 +1292,30 @@ export default class FlowmapSelectors<
       })(),
     );
 
-    const staggeringValues = animationEnabled
-      ? Float32Array.from(
-          (function* () {
-            for (const f of flows) {
-              // @ts-ignore
-              yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
-            }
-          })(),
-        )
-      : undefined;
+    const staggeringValues =
+      flowLinesRenderingMode === 'animated-straight'
+        ? Float32Array.from(
+            (function* () {
+              for (const f of flows) {
+                // @ts-ignore
+                yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
+              }
+            })(),
+          )
+        : undefined;
+
+    const curveOffsets =
+      flowLinesRenderingMode === 'curved'
+        ? calculateCurveOffsets(
+            flows,
+            viewport,
+            locationsById,
+            getFlowOriginId,
+            getFlowDestId,
+            getLocationLon,
+            getLocationLat,
+          )
+        : undefined;
 
     return {
       circleAttributes: {
@@ -1309,6 +1337,9 @@ export default class FlowmapSelectors<
           getEndpointOffsets: {value: endpointOffsets, size: 2},
           ...(staggeringValues
             ? {getStaggering: {value: staggeringValues, size: 1}}
+            : {}),
+          ...(curveOffsets
+            ? {getCurveOffset: {value: curveOffsets, size: 1}}
             : {}),
         },
       },
@@ -1502,6 +1533,7 @@ export function getFlowLineAttributesByIndex(
 ): FlowLinesLayerAttributes {
   const {
     getColor,
+    getCurveOffset,
     getEndpointOffsets,
     getSourcePosition,
     getTargetPosition,
@@ -1545,6 +1577,110 @@ export function getFlowLineAttributesByIndex(
             },
           }
         : undefined),
+      ...(getCurveOffset
+        ? {
+            getCurveOffset: {
+              value: getCurveOffset.value.subarray(index, index + 1),
+              size: 1,
+            },
+          }
+        : undefined),
     },
   };
+}
+
+type FlowLineScreenGeometry = {
+  index: number;
+  originId: string | number;
+  destId: string | number;
+  sx: number;
+  sy: number;
+  tx: number;
+  ty: number;
+  chordLengthPx: number;
+};
+
+function calculateCurveOffsets<L, F>(
+  flows: (F | AggregateFlow)[],
+  viewport: ViewportProps,
+  locationsById: Map<string | number, L | ClusterNode> | undefined,
+  getFlowOriginId: (flow: F | AggregateFlow) => string | number,
+  getFlowDestId: (flow: F | AggregateFlow) => string | number,
+  getLocationLon: (location: L | ClusterNode) => number,
+  getLocationLat: (location: L | ClusterNode) => number,
+): Float32Array {
+  const project = makeViewportProjector(viewport);
+  const curveOffsets = new Float32Array(flows.length);
+  const corridorBuckets = new Map<string, FlowLineScreenGeometry[]>();
+
+  flows.forEach((flow, index) => {
+    const originId = getFlowOriginId(flow);
+    const destId = getFlowDestId(flow);
+    const origin = locationsById?.get(originId);
+    const dest = locationsById?.get(destId);
+    if (!origin || !dest) {
+      return;
+    }
+
+    let [sx, sy] = project([getLocationLon(origin), getLocationLat(origin)]);
+    let [tx, ty] = project([getLocationLon(dest), getLocationLat(dest)]);
+    if (sx > tx || (sx === tx && sy > ty)) {
+      [sx, tx] = [tx, sx];
+      [sy, ty] = [ty, sy];
+    }
+
+    const dx = tx - sx;
+    const dy = ty - sy;
+    const chordLengthPx = Math.hypot(dx, dy);
+    if (!isFinite(chordLengthPx) || chordLengthPx < 1) {
+      return;
+    }
+
+    const angle = ((Math.atan2(dy, dx) % Math.PI) + Math.PI) % Math.PI;
+    const signedDistance = (sx * ty - sy * tx) / chordLengthPx;
+    const key = [
+      Math.round(angle / ((6 * Math.PI) / 180)),
+      Math.round(signedDistance / 18),
+      Math.round(chordLengthPx / 24),
+    ].join(':');
+
+    const bucket = corridorBuckets.get(key) ?? [];
+    bucket.push({index, originId, destId, sx, sy, tx, ty, chordLengthPx});
+    corridorBuckets.set(key, bucket);
+  });
+
+  corridorBuckets.forEach((bucket) => {
+    bucket
+      .sort((a, b) => {
+        const originCompare = compareIds(a.originId, b.originId);
+        if (originCompare !== 0) return originCompare;
+        const destCompare = compareIds(a.destId, b.destId);
+        if (destCompare !== 0) return destCompare;
+        return a.index - b.index;
+      })
+      .forEach((entry, bucketIndex) => {
+        const laneIndex =
+          bucketIndex === 0
+            ? 0
+            : Math.ceil(bucketIndex / 2) * (bucketIndex % 2 === 1 ? 1 : -1);
+        const maxOffsetPx = Math.min(72, entry.chordLengthPx * 0.35);
+        curveOffsets[entry.index] = Math.max(
+          -maxOffsetPx,
+          Math.min(maxOffsetPx, laneIndex * 18),
+        );
+      });
+  });
+
+  return curveOffsets;
+}
+
+function compareIds(a: string | number, b: string | number): number {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a - b;
+  }
+  const aString = String(a);
+  const bString = String(b);
+  if (aString < bString) return -1;
+  if (aString > bString) return 1;
+  return 0;
 }

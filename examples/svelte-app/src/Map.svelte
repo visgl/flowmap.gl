@@ -75,7 +75,7 @@
           // fadeEnabled: config.fadeEnabled,
           // fadeOpacityEnabled: config.fadeOpacityEnabled,
           // locationTotalsEnabled: config.locationTotalsEnabled,
-          // animationEnabled: config.animationEnabled,
+          // flowLinesRenderingMode: config.flowLinesRenderingMode,
           // clusteringEnabled: config.clusteringEnabled,
           // clusteringAuto: config.clusteringAuto,
           // clusteringLevel: config.clusteringLevel,
