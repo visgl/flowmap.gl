@@ -82,7 +82,7 @@ void main(void) {
   float curveT = positions.x < 1.0
     ? mix(startTrim, shaftEndTrim, positions.x / ${HEAD_START_T})
     : endTrim;
-  vec2 curveNormal = normalize(vec2(-chord.y, chord.x));
+  vec2 curveNormal = normalize(vec2(chord.y, -chord.x));
   if (length(curveNormal) < 1e-6) {
     curveNormal = vec2(0.0, 1.0);
   }
