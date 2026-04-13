@@ -4,9 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 const HEAD_START_T = (1 - 1 / 24).toFixed(8);
-const MIN_HEAD_WIDTH_SCALE = '0.0';
-const MIN_HEAD_LENGTH_SCALE = '0.0';
-const MIN_HEAD_DEFORMATION_SCALE = '0.0';
 
 export default `\
 #version 300 es
@@ -83,10 +80,9 @@ void main(void) {
   float headScale = baseHeadBacktrackT > 1e-6
     ? clamp(headBacktrackT / baseHeadBacktrackT, 0.0, 1.0)
     : 1.0;
-  float headWidthScale = max(headScale, ${MIN_HEAD_WIDTH_SCALE});
-  float headLengthScale = max(headScale, ${MIN_HEAD_LENGTH_SCALE});
-  float headDeformation =
-    smoothstep(${MIN_HEAD_DEFORMATION_SCALE}, 1.0, headScale);
+  // A soft nonlinear fade of the head deformation avoids tiny heads folding
+  // into themselves while still allowing them to collapse back toward the strip.
+  float headDeformation = smoothstep(0.0, 1.0, headScale);
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
   float curveT = positions.x < 1.0
@@ -123,8 +119,8 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  float widthScale = mix(1.0, headWidthScale, headWeight);
-  float lengthScale = mix(1.0, headLengthScale, headWeight);
+  float widthScale = mix(1.0, headScale, headWeight);
+  float lengthScale = mix(1.0, headScale, headWeight);
   float shapeY = mix(min(positions.y, 1.0), positions.y, headDeformation);
   float shapeZ = positions.z * headDeformation;
   float normalDistanceCommon = clamp(
