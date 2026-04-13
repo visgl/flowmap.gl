@@ -22,16 +22,13 @@ code {
   width: 100vw;
   height: 100vh;
 }
-.light .mapboxgl-map {
-  filter: grayscale(0.85);
+.light .maplibregl-map {
   opacity: 0.5;
 }
 .dark {
   background: #000;
 }
-.dark .mapboxgl-map {
-  filter: grayscale(0.1) invert(1) hue-rotate(-180deg) saturate(0.5)
-    contrast(0.9);
+.dark .maplibregl-map {
   opacity: 0.3;
 }
 

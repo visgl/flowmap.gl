@@ -20,6 +20,7 @@
     "@loaders.gl/core": "^4.4.1",
     "@luma.gl/core": "9.2.6",
     "@luma.gl/engine": "9.2.6",
+    "maplibre-gl": "^5.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-map-gl": "^8.1.1"

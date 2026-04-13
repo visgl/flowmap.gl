@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, setContext } from 'svelte';
-  import { mapbox, key } from './mapbox.js';
+  import { maplibregl, key } from './map-provider.js';
   import {Deck} from "@deck.gl/core";
   import {fetchData} from "@flowmap.gl/examples-common";
   import {getViewStateForLocations} from "@flowmap.gl/data";
@@ -14,19 +14,22 @@
   export let lon;
   export let zoom;
 
-  let mapboxContainer;
+  let mapContainer;
   let deckCanvas;
   let map;
   let deck;
   let flowmapData;
 
+  const MAP_STYLE_DARK =
+    'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
   fetchData()
     .then((data) => {
       flowmapData = data;
 
-      map = new mapbox.Map({
-        container: mapboxContainer,
-        style: 'mapbox://styles/mapbox/dark-v10',
+      map = new maplibregl.Map({
+        container: mapContainer,
+        style: MAP_STYLE_DARK,
         center: [lon, lat],
         zoom,
       });
@@ -99,12 +102,12 @@
 <svelte:head>
   <link
       rel="stylesheet"
-      href="https://unpkg.com/mapbox-gl/dist/mapbox-gl.css"
+      href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"
   />
 </svelte:head>
 
 <div class="container">
-  <div bind:this={mapboxContainer} id="mapbox-container">
+  <div bind:this={mapContainer} id="map-container">
     {#if map}
       <slot />
     {/if}
@@ -122,7 +125,7 @@
     width: 100%;
     height: 100%;
   }
-  #mapbox-container {
+  #map-container {
     opacity: 0.5;
   }
   #deck-canvas {
