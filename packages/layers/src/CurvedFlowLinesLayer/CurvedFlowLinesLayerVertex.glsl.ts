@@ -12,7 +12,6 @@ export default `\
 in vec3 positions;
 in vec3 barycentrics;
 in vec3 edgeMasks;
-in float headFlags;
 in vec4 instanceColors;
 in float instanceThickness;
 in vec3 instanceSourcePositions;
@@ -115,7 +114,8 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  float geometryScale = mix(1.0, headScale, headFlags);
+  float headWeight = smoothstep(${HEAD_START_T}, 1.0, positions.x);
+  float geometryScale = mix(1.0, headScale, headWeight);
   float normalDistanceCommon = clamp(
     project_pixel_size(
       instanceThickness * positions.y * geometryScale * flowLines.thicknessUnit

@@ -39,7 +39,6 @@ type GeometryBuffers = {
   positions: Float32Array;
   barycentrics: Float32Array;
   edgeMasks: Float32Array;
-  headFlags: Float32Array;
 };
 
 export default class CurvedFlowLinesLayer<F> extends Layer {
@@ -170,7 +169,6 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
           positions: {size: 3, value: geometry.positions},
           barycentrics: {size: 3, value: geometry.barycentrics},
           edgeMasks: {size: 3, value: geometry.edgeMasks},
-          headFlags: {size: 1, value: geometry.headFlags},
         },
       }),
       isInstanced: true,
@@ -182,48 +180,41 @@ function buildGeometry(): GeometryBuffers {
   const positions: number[] = [];
   const barycentrics: number[] = [];
   const edgeMasks: number[] = [];
-  const headFlags: number[] = [];
 
   const pushTriangle = (
     a: [number, number, number],
     b: [number, number, number],
     c: [number, number, number],
     mask: [number, number, number],
-    headFlag: number,
   ) => {
     positions.push(...a, ...b, ...c);
     barycentrics.push(1, 0, 0, 0, 1, 0, 0, 0, 1);
     edgeMasks.push(...mask, ...mask, ...mask);
-    headFlags.push(headFlag, headFlag, headFlag);
   };
 
-  for (let index = 0; index < SHAFT_SEGMENTS; index++) {
-    const t0 = (index / SHAFT_SEGMENTS) * HEAD_START_T;
-    const t1 = ((index + 1) / SHAFT_SEGMENTS) * HEAD_START_T;
+  for (let index = 0; index < SHAFT_SEGMENTS - 1; index++) {
+    const t0 = index / SHAFT_SEGMENTS;
+    const t1 = (index + 1) / SHAFT_SEGMENTS;
     pushTriangle(
       [t0, 1, 0],
       [t1, 1, 0],
       [t0, 0, 0],
       [0, index === 0 ? 1 : 0, 1],
-      0,
     );
-    pushTriangle([t0, 0, 0], [t1, 1, 0], [t1, 0, 0], [0, 1, 0], 0);
+    pushTriangle([t0, 0, 0], [t1, 1, 0], [t1, 0, 0], [0, 1, 0]);
   }
 
-  pushTriangle([1, 0, 0], [1, 2, -3], [1, 1, -3], [1, 0, 1], 1);
-  pushTriangle([1, 0, 0], [1, 1, -3], [HEAD_START_T, 1, 0], [1, 0, 0], 1);
   pushTriangle(
-    [1, 0, 0],
     [HEAD_START_T, 1, 0],
+    [1, 2, -3],
     [HEAD_START_T, 0, 0],
-    [1, 1, 0],
-    1,
+    [0, 0, 1],
   );
+  pushTriangle([HEAD_START_T, 0, 0], [1, 2, -3], [1, 0, 0], [1, 1, 0]);
 
   return {
     positions: new Float32Array(positions),
     barycentrics: new Float32Array(barycentrics),
     edgeMasks: new Float32Array(edgeMasks),
-    headFlags: new Float32Array(headFlags),
   };
 }
