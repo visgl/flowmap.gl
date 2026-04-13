@@ -7,10 +7,10 @@
 import {Layer, picking, project32} from '@deck.gl/core';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {Geometry, Model} from '@luma.gl/engine';
+import {flowLinesUniforms} from '../FlowLinesLayer/FlowLinesLayerUniforms';
 import {LayerProps} from '../types';
 import FragmentShader from './CurvedFlowLinesLayerFragment.glsl';
 import VertexShader from './CurvedFlowLinesLayerVertex.glsl';
-import {flowLinesUniforms} from '../FlowLinesLayer/FlowLinesLayerUniforms';
 
 export interface Props<F> extends LayerProps {
   id: string;
@@ -206,11 +206,11 @@ function buildGeometry(): GeometryBuffers {
 
   pushTriangle(
     [HEAD_START_T, 1, 0],
-    [1, 2, -3],
+    [1, 1.7, -4.4],
     [HEAD_START_T, 0, 0],
     [0, 0, 1],
   );
-  pushTriangle([HEAD_START_T, 0, 0], [1, 2, -3], [1, 0, 0], [1, 1, 0]);
+  pushTriangle([HEAD_START_T, 0, 0], [1, 1.7, -4.4], [1, 0, 0], [1, 1, 0]);
 
   return {
     positions: new Float32Array(positions),
