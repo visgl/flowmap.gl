@@ -23,7 +23,7 @@
     "@deck.gl/core": "^9.0.0",
     "@deck.gl/layers": "^9.0.0"
   },
-  "gitHead": "b4d4491e420c816e587bf23ad09ef392331679bf",
+  "gitHead": "c80d98fbc729b912b17f58142d4dc73da8c61cbe",
   "publishConfig": {
     "access": "public"
   }
