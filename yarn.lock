@@ -417,7 +417,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flowmap.gl/data@npm:^9.1.0, @flowmap.gl/data@workspace:*, @flowmap.gl/data@workspace:packages/data":
+"@flowmap.gl/data@npm:^9.2.0, @flowmap.gl/data@workspace:*, @flowmap.gl/data@workspace:packages/data":
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/data@workspace:packages/data"
   dependencies:
@@ -471,7 +471,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@flowmap.gl/layers@workspace:packages/layers"
   dependencies:
-    "@flowmap.gl/data": "npm:^9.1.0"
+    "@flowmap.gl/data": "npm:^9.2.0"
     "@luma.gl/core": "npm:9.2.6"
     "@luma.gl/engine": "npm:9.2.6"
     "@luma.gl/shadertools": "npm:9.2.6"

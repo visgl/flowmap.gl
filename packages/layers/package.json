@@ -1,6 +1,6 @@
 {
   "name": "@flowmap.gl/layers",
-  "version": "9.1.0",
+  "version": "9.2.0",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^9.1.0",
+    "@flowmap.gl/data": "^9.2.0",
     "@luma.gl/core": "9.2.6",
     "@luma.gl/engine": "9.2.6",
     "@luma.gl/shadertools": "9.2.6"
