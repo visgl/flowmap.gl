@@ -27,18 +27,25 @@ export const UI_INITIAL = {
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
   flowEndpointsInViewportMode: 'any',
+  flowLineCurviness: FlowmapLayer.defaultProps.flowLineCurviness,
 };
 
 export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'darkMode');
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
-  gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
+  const flowLinesRenderingMode = gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
     'straight',
     'animated-straight',
     'curved',
   ]);
-  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 1.0);
+  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 5.0);
+  const flowLineCurviness = gui
+    .add(UI_INITIAL, 'flowLineCurviness', 0.0, 3.0)
+    .enable(UI_INITIAL.flowLinesRenderingMode === 'curved');
+  flowLinesRenderingMode.onChange((v) => {
+    flowLineCurviness.enable(v === 'curved');
+  });
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');

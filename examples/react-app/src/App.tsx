@@ -94,6 +94,7 @@ function App() {
         maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         flowLineThicknessScale: config.flowLineThicknessScale,
+        flowLineCurviness: config.flowLineCurviness,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,

@@ -48,6 +48,7 @@ export type FlowmapLayerProps<
   locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
   flowLineThicknessScale?: number;
+  flowLineCurviness?: number;
   flowLinesRenderingMode?: FlowLinesRenderingMode;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
@@ -142,6 +143,7 @@ export default class FlowmapLayer<
     clusteringLevel: undefined,
     adaptiveScalesEnabled: true,
     flowLineThicknessScale: 1,
+    flowLineCurviness: 1,
     colorScheme: 'Teal',
     highlightColor: 'orange',
     maxTopFlowsDisplayNum: 5000,
@@ -508,6 +510,8 @@ export default class FlowmapLayer<
     const flowLineThicknessScale =
       props.flowLineThicknessScale ??
       FlowmapLayer.defaultProps.flowLineThicknessScale;
+    const flowLineCurviness =
+      props.flowLineCurviness ?? FlowmapLayer.defaultProps.flowLineCurviness;
     const layers = [];
     if (this.state?.layersData) {
       const {layersData, highlightedObject} = this.state;
@@ -550,6 +554,7 @@ export default class FlowmapLayer<
                   drawOutline: true,
                   outlineColor: outlineColor,
                   thicknessUnit: 12 * flowLineThicknessScale,
+                  curviness: flowLineCurviness,
                 }),
               }),
             );
@@ -615,6 +620,7 @@ export default class FlowmapLayer<
                       outlineColor: colorAsRgba(highlightColor),
                       outlineThickness: 1.5,
                       thicknessUnit: 12 * flowLineThicknessScale,
+                      curviness: flowLineCurviness,
                       parameters: {
                         depthTest: false,
                       },

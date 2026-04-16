@@ -248,6 +248,7 @@ class FlowLinesLayer<F> extends Layer {
         outlineThickness,
         drawOutline: drawOutline ? 1 : 0,
         gap: 0.5,
+        curviness: 1.0,
       },
     });
     model.draw(this.context.renderPass as any);
