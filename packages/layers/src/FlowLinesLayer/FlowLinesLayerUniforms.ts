@@ -7,6 +7,7 @@ layout(std140) uniform flowLinesUniforms {
   float outlineThickness;
   float drawOutline;
   float gap;
+  float curviness;
 } flowLines;
 `;
 
@@ -16,6 +17,7 @@ export type FlowLinesProps = {
   outlineThickness: number;
   drawOutline: number;
   gap: number;
+  curviness: number;
 };
 
 export const flowLinesUniforms = {
@@ -28,5 +30,6 @@ export const flowLinesUniforms = {
     outlineThickness: 'f32',
     drawOutline: 'f32',
     gap: 'f32',
+    curviness: 'f32',
   },
 } as const satisfies ShaderModule<FlowLinesProps>;

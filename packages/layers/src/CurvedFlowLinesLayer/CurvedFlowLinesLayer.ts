@@ -29,6 +29,7 @@ export interface Props<F> extends LayerProps {
   getPickable?: (d: F, {index}: {index: number}) => number;
   getEndpointOffsets?: (d: F) => [number, number];
   getCurveOffset?: (d: F) => number;
+  curviness?: number;
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
@@ -59,6 +60,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
     thicknessUnit: 12,
     outlineThickness: 1,
     outlineColor: [255, 255, 255, 255],
+    curviness: 1,
     parameters: {
       depthTest: false,
     },
@@ -133,6 +135,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
       outlineColor = [255, 255, 255, 255],
       outlineThickness = 1,
       thicknessUnit = 12,
+      curviness = 1,
     } = this.props as unknown as Props<F>;
     const model = this.state.model;
     if (!model) {
@@ -150,6 +153,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
         outlineThickness,
         drawOutline: drawOutline ? 1 : 0,
         gap: 0.5,
+        curviness,
       },
     });
     model.draw(this.context.renderPass as any);

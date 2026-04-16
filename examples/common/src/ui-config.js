@@ -20,23 +20,32 @@ export const UI_INITIAL = {
   clusteringLevel: 5,
   clusteringMethod: 'HCA',
   flowLinesRenderingMode: 'straight',
+  flowLineThicknessScale: FlowmapLayer.defaultProps.flowLineThicknessScale,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
   maxTopFlowsDisplayNum: FlowmapLayer.defaultProps.maxTopFlowsDisplayNum,
   flowEndpointsInViewportMode: 'any',
+  flowLineCurviness: FlowmapLayer.defaultProps.flowLineCurviness,
 };
 
 export const initLilGui = (gui) => {
   gui.add(UI_INITIAL, 'darkMode');
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
-  gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
+  const flowLinesRenderingMode = gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
     'straight',
     'animated-straight',
     'curved',
   ]);
+  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 5.0);
+  const flowLineCurviness = gui
+    .add(UI_INITIAL, 'flowLineCurviness', 0.0, 3.0)
+    .enable(UI_INITIAL.flowLinesRenderingMode === 'curved');
+  flowLinesRenderingMode.onChange((v) => {
+    flowLineCurviness.enable(v === 'curved');
+  });
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');

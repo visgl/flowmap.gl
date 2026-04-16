@@ -99,7 +99,7 @@ void main(void) {
     target_commonspace.xyz,
     0.5
   );
-  control_commonspace.xy += curveNormal * project_pixel_size(abs(instanceCurveOffset));
+  control_commonspace.xy += curveNormal * project_pixel_size(abs(instanceCurveOffset)) * flowLines.curviness;
 
   vec3 curvePoint = quadraticBezier(
     source_commonspace.xyz,
