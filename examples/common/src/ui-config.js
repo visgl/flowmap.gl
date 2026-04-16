@@ -20,6 +20,7 @@ export const UI_INITIAL = {
   clusteringLevel: 5,
   clusteringMethod: 'HCA',
   flowLinesRenderingMode: 'straight',
+  flowLineThicknessScale: FlowmapLayer.defaultProps.flowLineThicknessScale,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
   locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
@@ -37,6 +38,7 @@ export const initLilGui = (gui) => {
     'animated-straight',
     'curved',
   ]);
+  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 1.0);
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');

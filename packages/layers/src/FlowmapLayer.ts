@@ -47,6 +47,7 @@ export type FlowmapLayerProps<
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
   adaptiveScalesEnabled?: boolean;
+  flowLineThicknessScale?: number;
   flowLinesRenderingMode?: FlowLinesRenderingMode;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
@@ -140,6 +141,7 @@ export default class FlowmapLayer<
     clusteringAuto: true,
     clusteringLevel: undefined,
     adaptiveScalesEnabled: true,
+    flowLineThicknessScale: 1,
     colorScheme: 'Teal',
     highlightColor: 'orange',
     maxTopFlowsDisplayNum: 5000,
@@ -503,6 +505,9 @@ export default class FlowmapLayer<
     const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
     const highlightColor =
       props.highlightColor ?? FlowmapLayer.defaultProps.highlightColor;
+    const flowLineThicknessScale =
+      props.flowLineThicknessScale ??
+      FlowmapLayer.defaultProps.flowLineThicknessScale;
     const layers = [];
     if (this.state?.layersData) {
       const {layersData, highlightedObject} = this.state;
@@ -531,7 +536,7 @@ export default class FlowmapLayer<
                   ...commonLineLayerProps,
                   id: 'animated-flow-lines',
                   drawOutline: false,
-                  thicknessUnit: 20,
+                  thicknessUnit: 10 * flowLineThicknessScale,
                 }),
               }),
             );
@@ -544,6 +549,7 @@ export default class FlowmapLayer<
                   id: 'curved-flow-lines',
                   drawOutline: true,
                   outlineColor: outlineColor,
+                  thicknessUnit: 12 * flowLineThicknessScale,
                 }),
               }),
             );
@@ -557,6 +563,7 @@ export default class FlowmapLayer<
                   id: 'flow-lines',
                   drawOutline: true,
                   outlineColor: outlineColor,
+                  thicknessUnit: 12 * flowLineThicknessScale,
                 }),
               }),
             );
@@ -607,6 +614,7 @@ export default class FlowmapLayer<
                       pickable: false,
                       outlineColor: colorAsRgba(highlightColor),
                       outlineThickness: 1.5,
+                      thicknessUnit: 12 * flowLineThicknessScale,
                       parameters: {
                         depthTest: false,
                       },
@@ -623,6 +631,7 @@ export default class FlowmapLayer<
                       pickable: false,
                       outlineColor: colorAsRgba(highlightColor),
                       outlineThickness: 1.5,
+                      thicknessUnit: 12 * flowLineThicknessScale,
                       parameters: {
                         depthTest: false,
                       },

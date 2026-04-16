@@ -93,6 +93,7 @@ function App() {
         highlightColor: config.highlightColor,
         maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
+        flowLineThicknessScale: config.flowLineThicknessScale,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
