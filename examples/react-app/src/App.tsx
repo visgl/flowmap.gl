@@ -34,6 +34,8 @@ const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 const MAP_STYLE_DARK =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const LEGEND_CIRCLE_RADIUS = 10;
+const LEGEND_CIRCLE_SECONDARY_RADIUS = 7;
 
 type TooltipState = {
   position: {left: number; top: number};
@@ -46,6 +48,9 @@ function App() {
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
   const [scaleLegend, setScaleLegend] = useState<ScaleLegendModel>();
+  const [scaleLockEnabled, setScaleLockEnabled] = useState(() =>
+    Boolean(config.scaleLockEnabled),
+  );
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -100,7 +105,7 @@ function App() {
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         flowLineThicknessScale: config.flowLineThicknessScale,
         flowLineCurviness: config.flowLineCurviness,
-        scaleLock: {enabled: config.scaleLockEnabled},
+        scaleLock: {enabled: scaleLockEnabled},
         onScaleLegendChange: setScaleLegend,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
@@ -143,91 +148,130 @@ function App() {
           {tooltip.content}
         </div>
       )}
-      <ScaleLegend legend={scaleLegend} />
+      {(scaleLegend?.flowThickness || scaleLegend?.locationCircles) && (
+        <ScaleLegend>
+          <ScaleLockButton
+            locked={scaleLockEnabled}
+            onToggle={() => setScaleLockEnabled((locked) => !locked)}
+          />
+          <ScaleLegend.FlowThickness legend={scaleLegend} />
+          <ScaleLegend.CircleSize legend={scaleLegend} />
+        </ScaleLegend>
+      )}
     </div>
   );
 }
 
-function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
-  if (!legend?.flowThickness && !legend?.locationCircles) return null;
-  const {flowThickness, locationCircles} = legend;
+function ScaleLegendRoot({children}: {children: ReactNode}) {
+  return <div className="scale-legend">{children}</div>;
+}
+
+function ScaleLockButton({
+  locked,
+  onToggle,
+}: {
+  locked: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="scale-legend">
-      {flowThickness && (
-        <div className="scale-legend-section">
-          <div className="scale-legend-title">
-            Flow thickness {legend.locked ? '(locked)' : ''}
-          </div>
-          {flowThickness.samples.map((sample) => (
-            <div className="scale-legend-row" key={sample.label}>
-              <span
-                className="scale-legend-line"
-                style={{
-                  backgroundColor: rgbaToCss(sample.color),
-                  height: `${Math.max(2, sample.thickness)}px`,
-                }}
-              />
-              <span>{sample.label}</span>
-            </div>
-          ))}
-          {flowThickness.outOfScale && (
-            <div className="scale-legend-row">
-              <span
-                className="scale-legend-line"
-                style={{
-                  backgroundColor: rgbaToCss(flowThickness.outOfScale.color),
-                  height: `${Math.max(2, flowThickness.outOfScale.thickness)}px`,
-                }}
-              />
-              <span>{flowThickness.outOfScale.magnitudeLabel}</span>
-            </div>
-          )}
+    <button
+      className="scale-legend-lock-button"
+      type="button"
+      aria-pressed={locked}
+      onClick={onToggle}
+    >
+      <span className="scale-legend-lock-icon" aria-hidden="true" />
+      <span>{locked ? 'Unlock scales' : 'Lock scales'}</span>
+    </button>
+  );
+}
+
+function FlowThicknessLegend({legend}: {legend: ScaleLegendModel | undefined}) {
+  const flowThickness = legend?.flowThickness;
+  if (!flowThickness) return null;
+  return (
+    <div className="scale-legend-section">
+      <div className="scale-legend-title">
+        Flow thickness {legend?.locked ? '(locked)' : ''}
+      </div>
+      {flowThickness.samples.map((sample) => (
+        <div className="scale-legend-row" key={sample.label}>
+          <span
+            className="scale-legend-line"
+            style={{
+              backgroundColor: rgbaToCss(sample.color),
+              height: `${Math.max(2, sample.thickness)}px`,
+            }}
+          />
+          <span>{sample.label}</span>
         </div>
-      )}
-      {locationCircles && (
-        <div className="scale-legend-section">
-          <div className="scale-legend-title">
-            Circle size {legend.locked ? '(locked)' : ''}
-          </div>
-          <div className="scale-legend-note">
-            Inner: {locationCircles.incomingLabel}
-          </div>
-          <div className="scale-legend-note">
-            Outer: {locationCircles.outgoingLabel}
-          </div>
-          <CircleLegendExample
-            label="Incoming > outgoing"
-            innerRadius={17}
-            outerRadius={12}
-            colors={locationCircles.colors}
+      ))}
+      {flowThickness.outOfScale && (
+        <div className="scale-legend-row">
+          <span
+            className="scale-legend-line"
+            style={{
+              backgroundColor: rgbaToCss(flowThickness.outOfScale.color),
+              height: `${Math.max(2, flowThickness.outOfScale.thickness)}px`,
+            }}
           />
-          <CircleLegendExample
-            label="Outgoing > incoming"
-            innerRadius={12}
-            outerRadius={17}
-            colors={locationCircles.colors}
-          />
-          <div className="scale-legend-note">
-            Range: {formatLegendRange(locationCircles.domain)}
-          </div>
-          {locationCircles.outOfScale && (
-            <div className="scale-legend-row">
-              <span
-                className="scale-legend-circle"
-                style={{
-                  backgroundColor: rgbaToCss(locationCircles.outOfScale.color),
-                  width: `${Math.max(8, locationCircles.outOfScale.radius)}px`,
-                  height: `${Math.max(8, locationCircles.outOfScale.radius)}px`,
-                }}
-              />
-              <span>{locationCircles.outOfScale.magnitudeLabel}</span>
-            </div>
-          )}
+          <span>{flowThickness.outOfScale.magnitudeLabel}</span>
         </div>
       )}
     </div>
   );
 }
+
+function CircleSizeLegend({legend}: {legend: ScaleLegendModel | undefined}) {
+  const locationCircles = legend?.locationCircles;
+  if (!locationCircles) return null;
+  return (
+    <div className="scale-legend-section">
+      <div className="scale-legend-title">
+        Circle size {legend?.locked ? '(locked)' : ''}
+      </div>
+      <div className="scale-legend-note">
+        Inner: {locationCircles.incomingLabel}
+      </div>
+      <div className="scale-legend-note">
+        Outer: {locationCircles.outgoingLabel}
+      </div>
+      <CircleLegendExample
+        label="Incoming > outgoing"
+        innerRadius={LEGEND_CIRCLE_RADIUS}
+        outerRadius={LEGEND_CIRCLE_SECONDARY_RADIUS}
+        colors={locationCircles.colors}
+      />
+      <CircleLegendExample
+        label="Outgoing > incoming"
+        innerRadius={LEGEND_CIRCLE_SECONDARY_RADIUS}
+        outerRadius={LEGEND_CIRCLE_RADIUS}
+        colors={locationCircles.colors}
+      />
+      <div className="scale-legend-note">
+        Range: {formatLegendRange(locationCircles.domain)}
+      </div>
+      {locationCircles.outOfScale && (
+        <div className="scale-legend-row">
+          <span
+            className="scale-legend-circle"
+            style={{
+              backgroundColor: rgbaToCss(locationCircles.outOfScale.color),
+              width: `${LEGEND_CIRCLE_RADIUS * 2}px`,
+              height: `${LEGEND_CIRCLE_RADIUS * 2}px`,
+            }}
+          />
+          <span>{locationCircles.outOfScale.magnitudeLabel}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ScaleLegend = Object.assign(ScaleLegendRoot, {
+  FlowThickness: FlowThicknessLegend,
+  CircleSize: CircleSizeLegend,
+});
 
 function CircleLegendExample({
   label,

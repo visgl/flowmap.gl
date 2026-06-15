@@ -22,7 +22,6 @@ export const UI_INITIAL = {
   flowLinesRenderingMode: 'straight',
   flowLineThicknessScale: FlowmapLayer.defaultProps.flowLineThicknessScale,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
-  scaleLockEnabled: false,
   locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
@@ -48,7 +47,6 @@ export const initLilGui = (gui) => {
     flowLineCurviness.enable(v === 'curved');
   });
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
-  gui.add(UI_INITIAL, 'scaleLockEnabled').name('scalesLock');
   gui.add(UI_INITIAL, 'locationsEnabled');
   gui.add(UI_INITIAL, 'locationTotalsEnabled');
   gui.add(UI_INITIAL, 'locationLabelsEnabled');

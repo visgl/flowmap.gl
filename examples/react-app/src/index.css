@@ -52,7 +52,54 @@ code {
   color: white;
   font-size: 10px;
   padding: 10px;
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.scale-legend-lock-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.scale-legend-lock-button[aria-pressed='true'] {
+  border-color: rgba(209, 238, 234, 0.7);
+  background: rgba(209, 238, 234, 0.18);
+}
+
+.scale-legend-lock-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.scale-legend-lock-icon {
+  position: relative;
+  display: block;
+  width: 10px;
+  height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+.scale-legend-lock-icon::before {
+  position: absolute;
+  left: 2px;
+  top: -7px;
+  width: 4px;
+  height: 6px;
+  border: 1px solid currentColor;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  content: '';
 }
 
 .scale-legend-title {
@@ -73,7 +120,7 @@ code {
 
 .scale-legend-row {
   display: grid;
-  grid-template-columns: 54px 1fr;
+  grid-template-columns: 40px 1fr;
   align-items: center;
   min-height: 18px;
   gap: 8px;
