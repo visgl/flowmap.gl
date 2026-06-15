@@ -150,12 +150,12 @@ function App() {
       )}
       {(scaleLegend?.flowThickness || scaleLegend?.locationCircles) && (
         <ScaleLegend>
+          <ScaleLegend.FlowThickness legend={scaleLegend} />
+          <ScaleLegend.CircleSize legend={scaleLegend} />
           <ScaleLockButton
             locked={scaleLockEnabled}
             onToggle={() => setScaleLockEnabled((locked) => !locked)}
           />
-          <ScaleLegend.FlowThickness legend={scaleLegend} />
-          <ScaleLegend.CircleSize legend={scaleLegend} />
         </ScaleLegend>
       )}
     </div>
@@ -190,7 +190,7 @@ function FlowThicknessLegend({legend}: {legend: ScaleLegendModel | undefined}) {
   const flowThickness = legend?.flowThickness;
   if (!flowThickness) return null;
   return (
-    <div className="scale-legend-section">
+    <div className="scale-legend-section scale-legend-flow-section">
       <div className="scale-legend-title">
         Flow thickness {legend?.locked ? '(locked)' : ''}
       </div>
@@ -226,7 +226,7 @@ function CircleSizeLegend({legend}: {legend: ScaleLegendModel | undefined}) {
   const locationCircles = legend?.locationCircles;
   if (!locationCircles) return null;
   return (
-    <div className="scale-legend-section">
+    <div className="scale-legend-section scale-legend-circle-section">
       <div className="scale-legend-title">
         Circle size {legend?.locked ? '(locked)' : ''}
       </div>
@@ -288,32 +288,47 @@ function CircleLegendExample({
   const innerSize = innerRadius * 2;
   const outerSize = outerRadius * 2;
   const outgoingDominant = outerRadius > innerRadius;
-  const outerColor = outgoingDominant ? colors.outgoing : colors.incoming;
+  const incomingDominant = innerRadius > outerRadius;
   return (
     <div className="scale-legend-row">
       <span
-        className="scale-legend-circle-example"
+        className={`scale-legend-circle-example ${
+          incomingDominant ? 'scale-legend-circle-example-incoming' : ''
+        }`}
         style={{width: size, height: size}}
       >
         <span
           className="scale-legend-circle-outer"
           style={{
-            width: outerSize,
-            height: outerSize,
-            backgroundColor: rgbaToCss(outerColor),
+            width: outgoingDominant ? outerSize : innerSize,
+            height: outgoingDominant ? outerSize : innerSize,
+            backgroundColor: rgbaToCss(
+              outgoingDominant ? colors.outgoing : colors.incoming,
+            ),
             borderColor: outgoingDominant
               ? rgbaToCss(mixRgba(colors.incoming, colors.outgoing, 0.4))
               : rgbaToCss(colors.incoming),
           }}
         />
-        <span
-          className="scale-legend-circle-inner"
-          style={{
-            width: innerSize,
-            height: innerSize,
-            backgroundColor: rgbaToCss(colors.incoming),
-          }}
-        />
+        {incomingDominant ? (
+          <span
+            className="scale-legend-circle-ring"
+            style={{
+              width: outerSize,
+              height: outerSize,
+              borderColor: rgbaToCss(colors.outgoing),
+            }}
+          />
+        ) : (
+          <span
+            className="scale-legend-circle-inner"
+            style={{
+              width: innerSize,
+              height: innerSize,
+              backgroundColor: rgbaToCss(colors.incoming),
+            }}
+          />
+        )}
       </span>
       <span>{label}</span>
     </div>
