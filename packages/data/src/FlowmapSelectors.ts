@@ -1294,6 +1294,9 @@ export default class FlowmapSelectors<
     const circleColor = isDiffColorsRGBA(flowmapColors)
       ? flowmapColors.positive.locationCircles.inner
       : flowmapColors.locationCircles.inner;
+    const circleLegendColors = isDiffColorsRGBA(flowmapColors)
+      ? flowmapColors.positive.locationCircles
+      : flowmapColors.locationCircles;
     const outOfScaleCircleDomain =
       scaleLockEnabled && lockedScaleDomains?.locationTotals
         ? lockedScaleDomains.locationTotals
@@ -1469,6 +1472,7 @@ export default class FlowmapSelectors<
         flowColorScale,
         outOfScaleFlowDomain,
         outOfScaleCircleDomain,
+        circleLegendColors,
       }),
     };
   }
@@ -1556,6 +1560,7 @@ function makeScaleLegendModel({
   flowColorScale,
   outOfScaleFlowDomain,
   outOfScaleCircleDomain,
+  circleLegendColors,
 }: {
   locked: boolean;
   flowMagnitudeExtent: [number, number] | undefined;
@@ -1566,6 +1571,11 @@ function makeScaleLegendModel({
   flowColorScale: (magnitude: number) => [number, number, number, number];
   outOfScaleFlowDomain: [number, number] | undefined;
   outOfScaleCircleDomain: [number, number] | undefined;
+  circleLegendColors: {
+    inner: [number, number, number, number];
+    outgoing: [number, number, number, number];
+    empty: [number, number, number, number];
+  };
 }): ScaleLegendModel | undefined {
   const flowMax = getMaxAbsScaleDomainValue(flowMagnitudeExtent);
   const flowSamples =
@@ -1618,6 +1628,11 @@ function makeScaleLegendModel({
             radiusRange: [0, maxLocationCircleSize] as [number, number],
             incomingLabel: 'Incoming + internal',
             outgoingLabel: 'Outgoing + internal',
+            colors: {
+              incoming: circleLegendColors.inner,
+              outgoing: circleLegendColors.outgoing,
+              empty: circleLegendColors.empty,
+            },
             ...(outOfScaleCircleDomain
               ? {
                   outOfScale: {

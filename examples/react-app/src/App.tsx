@@ -196,17 +196,22 @@ function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
             Inner: {locationCircles.incomingLabel}
           </div>
           <div className="scale-legend-note">
-            Ring: {locationCircles.outgoingLabel}
+            Outer: {locationCircles.outgoingLabel}
           </div>
-          <div className="scale-legend-row">
-            <span
-              className="scale-legend-circle"
-              style={{
-                width: `${Math.max(8, locationCircles.radiusRange[1])}px`,
-                height: `${Math.max(8, locationCircles.radiusRange[1])}px`,
-              }}
-            />
-            <span>{formatLegendRange(locationCircles.domain)}</span>
+          <CircleLegendExample
+            label="Incoming > outgoing"
+            innerRadius={17}
+            outerRadius={12}
+            colors={locationCircles.colors}
+          />
+          <CircleLegendExample
+            label="Outgoing > incoming"
+            innerRadius={12}
+            outerRadius={17}
+            colors={locationCircles.colors}
+          />
+          <div className="scale-legend-note">
+            Range: {formatLegendRange(locationCircles.domain)}
           </div>
           {locationCircles.outOfScale && (
             <div className="scale-legend-row">
@@ -227,6 +232,53 @@ function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
   );
 }
 
+function CircleLegendExample({
+  label,
+  innerRadius,
+  outerRadius,
+  colors,
+}: {
+  label: string;
+  innerRadius: number;
+  outerRadius: number;
+  colors: NonNullable<ScaleLegendModel['locationCircles']>['colors'];
+}) {
+  const size = Math.max(innerRadius, outerRadius) * 2;
+  const innerSize = innerRadius * 2;
+  const outerSize = outerRadius * 2;
+  const outgoingDominant = outerRadius > innerRadius;
+  const outerColor = outgoingDominant ? colors.outgoing : colors.incoming;
+  return (
+    <div className="scale-legend-row">
+      <span
+        className="scale-legend-circle-example"
+        style={{width: size, height: size}}
+      >
+        <span
+          className="scale-legend-circle-outer"
+          style={{
+            width: outerSize,
+            height: outerSize,
+            backgroundColor: rgbaToCss(outerColor),
+            borderColor: outgoingDominant
+              ? rgbaToCss(mixRgba(colors.incoming, colors.outgoing, 0.4))
+              : rgbaToCss(colors.incoming),
+          }}
+        />
+        <span
+          className="scale-legend-circle-inner"
+          style={{
+            width: innerSize,
+            height: innerSize,
+            backgroundColor: rgbaToCss(colors.incoming),
+          }}
+        />
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
 function formatLegendRange([min, max]: [number, number]): string {
   return `${formatLegendValue(min)} - ${formatLegendValue(max)}`;
 }
@@ -239,6 +291,19 @@ function formatLegendValue(value: number): string {
 
 function rgbaToCss([r, g, b, a]: [number, number, number, number]): string {
   return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+}
+
+function mixRgba(
+  from: [number, number, number, number],
+  to: [number, number, number, number],
+  amount: number,
+): [number, number, number, number] {
+  return [
+    Math.round(from[0] * (1 - amount) + to[0] * amount),
+    Math.round(from[1] * (1 - amount) + to[1] * amount),
+    Math.round(from[2] * (1 - amount) + to[2] * amount),
+    Math.round(from[3] * (1 - amount) + to[3] * amount),
+  ];
 }
 
 function getTooltipState(

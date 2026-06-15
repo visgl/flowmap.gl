@@ -222,6 +222,11 @@ type ScaleLegendModel = {
     radiusRange: [number, number];
     incomingLabel: string;
     outgoingLabel: string;
+    colors: {
+      incoming: [number, number, number, number];
+      outgoing: [number, number, number, number];
+      empty: [number, number, number, number];
+    };
     outOfScale?: {
       label: string;
       color: [number, number, number, number];
