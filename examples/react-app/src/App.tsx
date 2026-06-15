@@ -230,12 +230,6 @@ function CircleSizeLegend({legend}: {legend: ScaleLegendModel | undefined}) {
       <div className="scale-legend-title">
         Circle size {legend?.locked ? '(locked)' : ''}
       </div>
-      <div className="scale-legend-note">
-        Inner: {locationCircles.incomingLabel}
-      </div>
-      <div className="scale-legend-note">
-        Outer: {locationCircles.outgoingLabel}
-      </div>
       <CircleLegendExample
         label="Incoming > outgoing"
         innerRadius={LEGEND_CIRCLE_RADIUS}
