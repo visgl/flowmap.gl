@@ -101,6 +101,7 @@ function App() {
         clusteringAuto: config.clusteringAuto,
         clusteringLevel: config.clusteringLevel,
         adaptiveScalesEnabled: config.adaptiveScalesEnabled,
+        scaleLock: {enabled: config.scaleLockEnabled},
         highlightColor: config.highlightColor,
         maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
         onHover: (info) => setTooltip(getTooltipState(info)),

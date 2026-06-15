@@ -172,7 +172,64 @@ interface SettingsState {
   colorScheme: string | string[] | undefined;
   highlightColor: string;
   maxTopFlowsDisplayNum: number;
+  scaleLock?: ScaleLock;
 }
+```
+
+### ScaleLock
+
+Optional locked scale domains:
+
+```typescript
+type ScaleLockDomains = {
+  flowMagnitude?: [number, number];
+  locationTotals?: [number, number];
+};
+
+type ScaleLock = {
+  enabled: boolean;
+  domains?: ScaleLockDomains;
+};
+```
+
+### ScaleLegendModel
+
+Legend model for the effective scale domains:
+
+```typescript
+type FlowScaleLegendSample = {
+  label: string;
+  magnitude: number;
+  thickness: number;
+  color: [number, number, number, number];
+};
+
+type ScaleLegendModel = {
+  locked: boolean;
+  flowThickness?: {
+    domain: [number, number];
+    thicknessRange: [number, number];
+    samples: FlowScaleLegendSample[];
+    outOfScale?: {
+      label: string;
+      color: [number, number, number, number];
+      magnitudeLabel: string;
+      thickness: number;
+    };
+  };
+  locationCircles?: {
+    domain: [number, number];
+    radiusRange: [number, number];
+    incomingLabel: string;
+    outgoingLabel: string;
+    outOfScale?: {
+      label: string;
+      color: [number, number, number, number];
+      magnitudeLabel: string;
+      radius: number;
+    };
+  };
+};
 ```
 
 ### FlowmapState

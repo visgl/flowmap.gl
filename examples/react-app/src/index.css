@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
- body {
+body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 .flowmap-container {
@@ -40,4 +40,55 @@ code {
   padding: 1em;
   color: white;
   pointer-events: none;
+}
+
+.scale-legend {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  min-width: 140px;
+  border-radius: 5px;
+  background-color: rgba(25, 25, 25, 0.78);
+  color: white;
+  font-size: 10px;
+  padding: 10px;
+  pointer-events: none;
+}
+
+.scale-legend-title {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.scale-legend-section + .scale-legend-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.scale-legend-note {
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.scale-legend-row {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  align-items: center;
+  min-height: 18px;
+  gap: 8px;
+}
+
+.scale-legend-line {
+  display: block;
+  width: 48px;
+  border-radius: 2px;
+}
+
+.scale-legend-circle {
+  display: block;
+  justify-self: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.28);
 }

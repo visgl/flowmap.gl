@@ -7,6 +7,7 @@
 import {
   FlowLinesRenderingMode,
   LocationFilterMode,
+  ScaleLock,
   ViewportProps,
 } from './types';
 
@@ -35,6 +36,7 @@ export interface SettingsState {
   highlightColor: string | number[];
   maxTopFlowsDisplayNum: number;
   flowEndpointsInViewportMode: FlowEndpointsInViewportMode;
+  scaleLock?: ScaleLock;
 }
 
 export interface FlowmapState {

@@ -10,6 +10,50 @@ export type FlowmapData<L, F> = {
   clusterLevels?: ClusterLevels;
 };
 
+export type ScaleLockDomains = {
+  flowMagnitude?: [number, number];
+  locationTotals?: [number, number];
+};
+
+export type ScaleLock = {
+  enabled: boolean;
+  domains?: ScaleLockDomains;
+};
+
+export type FlowScaleLegendSample = {
+  label: string;
+  magnitude: number;
+  thickness: number;
+  color: [number, number, number, number];
+};
+
+export type ScaleLegendModel = {
+  locked: boolean;
+  flowThickness?: {
+    domain: [number, number];
+    thicknessRange: [number, number];
+    samples: FlowScaleLegendSample[];
+    outOfScale?: {
+      label: string;
+      color: [number, number, number, number];
+      magnitudeLabel: string;
+      thickness: number;
+    };
+  };
+  locationCircles?: {
+    domain: [number, number];
+    radiusRange: [number, number];
+    incomingLabel: string;
+    outgoingLabel: string;
+    outOfScale?: {
+      label: string;
+      color: [number, number, number, number];
+      magnitudeLabel: string;
+      radius: number;
+    };
+  };
+};
+
 export interface ViewState {
   latitude: number;
   longitude: number;
@@ -172,6 +216,8 @@ export interface LayersData {
   circleAttributes: FlowCirclesLayerAttributes;
   lineAttributes: FlowLinesLayerAttributes;
   locationLabels?: string[];
+  scaleDomains?: ScaleLockDomains;
+  scaleLegend?: ScaleLegendModel;
 }
 
 export type LayersDataAttrValues<T> = {value: T; size: number};

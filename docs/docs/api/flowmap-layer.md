@@ -196,7 +196,38 @@ Whether to also fade opacity (in addition to color) for lower-magnitude flows.
 - Type: `boolean`
 - Default: `true`
 
-Whether to adapt flow thickness and color scales to the current viewport. When `true`, scales adjust as you pan/zoom to always show meaningful variation.
+Whether to adapt flow thickness, flow color, and location circle scales to the current viewport. When `true`, scales adjust as you pan/zoom to always show meaningful variation.
+
+#### `scaleLock`
+
+- Type: `{enabled: boolean; domains?: {flowMagnitude?: [number, number]; locationTotals?: [number, number]}}`
+- Default: `undefined`
+
+Locks quantitative visual scale domains so pan/zoom/filtering can change what is visible without changing the numeric rulers used for rendering. When enabled, flow thickness, flow color, and location circle radii use the locked domains. Values outside a locked domain are clamped; flows above the locked flow magnitude domain render in red and clamp to the maximum locked thickness, and circles with incoming or outgoing totals above the locked location totals domain render in red with clamped radii.
+
+If `domains` is omitted, `FlowmapLayer` captures the current rendered domains when the lock transitions from disabled to enabled:
+
+```typescript
+new FlowmapLayer({
+  // ...
+  scaleLock: {enabled: true},
+});
+```
+
+You can also provide domains explicitly:
+
+```typescript
+new FlowmapLayer({
+  // ...
+  scaleLock: {
+    enabled: true,
+    domains: {
+      flowMagnitude: [0, 1000],
+      locationTotals: [0, 5000],
+    },
+  },
+});
+```
 
 ### Performance
 
@@ -220,6 +251,12 @@ Controls when a flow is considered visible based on endpoint locations:
 The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.
 
 ### Event Handlers
+
+#### `onScaleLegendChange`
+
+- Type: `(legend: ScaleLegendModel | undefined) => void`
+
+Callback fired after layer data is prepared with the legend model for the effective scale domains. Use this to render an HTML legend in your app UI.
 
 #### `onHover`
 

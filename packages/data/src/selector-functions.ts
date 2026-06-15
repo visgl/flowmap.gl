@@ -51,7 +51,32 @@ export const getFlowThicknessScale = (
         null,
         magnitudeExtent.map((x: number | undefined) => Math.abs(x || 0)),
       ),
-    ]);
+    ])
+    .clamp(true);
+};
+
+export const getMaxAbsScaleDomainValue = (
+  domain: [number, number] | undefined,
+): number | undefined => {
+  if (!domain) return undefined;
+  return Math.max(Math.abs(domain[0] || 0), Math.abs(domain[1] || 0));
+};
+
+export const isMagnitudeOutsideScaleDomain = (
+  magnitude: number,
+  domain: [number, number] | undefined,
+): boolean => {
+  const maxAbsValue = getMaxAbsScaleDomainValue(domain);
+  return maxAbsValue !== undefined && Math.abs(magnitude) > maxAbsValue;
+};
+
+export const clampMagnitudeToScaleDomain = (
+  magnitude: number,
+  domain: [number, number] | undefined,
+): number => {
+  const maxAbsValue = getMaxAbsScaleDomainValue(domain);
+  if (maxAbsValue === undefined) return Math.abs(magnitude);
+  return Math.min(Math.abs(magnitude), maxAbsValue);
 };
 
 /**

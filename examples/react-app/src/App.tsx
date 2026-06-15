@@ -5,7 +5,11 @@
  */
 
 import DeckGL from '@deck.gl/react';
-import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
+import {
+  FlowmapData,
+  ScaleLegendModel,
+  getViewStateForLocations,
+} from '@flowmap.gl/data';
 import {
   fetchData,
   FlowDatum,
@@ -41,6 +45,7 @@ function App() {
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
+  const [scaleLegend, setScaleLegend] = useState<ScaleLegendModel>();
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -95,6 +100,8 @@ function App() {
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         flowLineThicknessScale: config.flowLineThicknessScale,
         flowLineCurviness: config.flowLineCurviness,
+        scaleLock: {enabled: config.scaleLockEnabled},
+        onScaleLegendChange: setScaleLegend,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
@@ -136,8 +143,102 @@ function App() {
           {tooltip.content}
         </div>
       )}
+      <ScaleLegend legend={scaleLegend} />
     </div>
   );
+}
+
+function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
+  if (!legend?.flowThickness && !legend?.locationCircles) return null;
+  const {flowThickness, locationCircles} = legend;
+  return (
+    <div className="scale-legend">
+      {flowThickness && (
+        <div className="scale-legend-section">
+          <div className="scale-legend-title">
+            Flow thickness {legend.locked ? '(locked)' : ''}
+          </div>
+          {flowThickness.samples.map((sample) => (
+            <div className="scale-legend-row" key={sample.label}>
+              <span
+                className="scale-legend-line"
+                style={{
+                  backgroundColor: rgbaToCss(sample.color),
+                  height: `${Math.max(2, sample.thickness * 24)}px`,
+                }}
+              />
+              <span>{sample.label}</span>
+            </div>
+          ))}
+          {flowThickness.outOfScale && (
+            <div className="scale-legend-row">
+              <span
+                className="scale-legend-line"
+                style={{
+                  backgroundColor: rgbaToCss(flowThickness.outOfScale.color),
+                  height: `${Math.max(
+                    2,
+                    flowThickness.outOfScale.thickness * 24,
+                  )}px`,
+                }}
+              />
+              <span>{flowThickness.outOfScale.magnitudeLabel}</span>
+            </div>
+          )}
+        </div>
+      )}
+      {locationCircles && (
+        <div className="scale-legend-section">
+          <div className="scale-legend-title">
+            Circle size {legend.locked ? '(locked)' : ''}
+          </div>
+          <div className="scale-legend-note">
+            Inner: {locationCircles.incomingLabel}
+          </div>
+          <div className="scale-legend-note">
+            Ring: {locationCircles.outgoingLabel}
+          </div>
+          <div className="scale-legend-row">
+            <span
+              className="scale-legend-circle"
+              style={{
+                width: `${Math.max(8, locationCircles.radiusRange[1])}px`,
+                height: `${Math.max(8, locationCircles.radiusRange[1])}px`,
+              }}
+            />
+            <span>{formatLegendRange(locationCircles.domain)}</span>
+          </div>
+          {locationCircles.outOfScale && (
+            <div className="scale-legend-row">
+              <span
+                className="scale-legend-circle"
+                style={{
+                  backgroundColor: rgbaToCss(locationCircles.outOfScale.color),
+                  width: `${Math.max(8, locationCircles.outOfScale.radius)}px`,
+                  height: `${Math.max(8, locationCircles.outOfScale.radius)}px`,
+                }}
+              />
+              <span>{locationCircles.outOfScale.magnitudeLabel}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatLegendRange([min, max]: [number, number]): string {
+  return `${formatLegendValue(min)} - ${formatLegendValue(max)}`;
+}
+
+function formatLegendValue(value: number): string {
+  return value >= 1000
+    ? value.toLocaleString(undefined, {maximumFractionDigits: 0})
+    : value.toLocaleString(undefined, {maximumFractionDigits: 2});
+}
+
+function rgbaToCss([r, g, b, a]: [number, number, number, number]): string {
+  return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
 }
 
 function getTooltipState(

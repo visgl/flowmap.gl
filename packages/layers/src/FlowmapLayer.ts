@@ -16,6 +16,9 @@ import {
   FlowmapDataProvider,
   LayersData,
   LocalFlowmapDataProvider,
+  ScaleLock,
+  ScaleLockDomains,
+  ScaleLegendModel,
   ViewportProps,
   colorAsRgba,
   getFlowLineAttributesByIndex,
@@ -62,6 +65,8 @@ export type FlowmapLayerProps<
   highlightColor?: string | number[];
   maxTopFlowsDisplayNum?: number;
   flowEndpointsInViewportMode?: FlowEndpointsInViewportMode;
+  scaleLock?: ScaleLock;
+  onScaleLegendChange?: (legend: ScaleLegendModel | undefined) => void;
   onHover?: (
     info: FlowmapLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
@@ -89,6 +94,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'highlightColor',
   'maxTopFlowsDisplayNum',
   'flowEndpointsInViewportMode',
+  'scaleLock',
 ];
 
 const DEFAULT_FLOW_LINES_RENDERING_MODE: FlowLinesRenderingMode = 'straight';
@@ -117,6 +123,7 @@ type State<L extends Record<string, any>, F extends Record<string, any>> = {
   layersData: LayersData | undefined;
   highlightedObject: HighlightedObject | undefined;
   pickingInfo: FlowmapLayerPickingInfo<L, F> | undefined;
+  lockedScaleDomains: ScaleLockDomains | undefined;
   lastHoverTime: number | undefined;
   lastClickTime: number | undefined;
 };
@@ -208,6 +215,7 @@ export default class FlowmapLayer<
       layersData: undefined,
       highlightedObject: undefined,
       pickingInfo: undefined,
+      lockedScaleDomains: this.typedProps.scaleLock?.domains,
       lastHoverTime: undefined,
       lastClickTime: undefined,
     };
@@ -269,6 +277,13 @@ export default class FlowmapLayer<
   updateState(params: any): void {
     super.updateState(params);
     const {oldProps, props, changeFlags} = params;
+    const nextLockedScaleDomains = this._getNextLockedScaleDomains(
+      oldProps,
+      props,
+    );
+    if (nextLockedScaleDomains !== this.state?.lockedScaleDomains) {
+      this.setState({lockedScaleDomains: nextLockedScaleDomains});
+    }
     if (changeFlags.propsChanged) {
       // this._updateAccessors();
     }
@@ -289,15 +304,29 @@ export default class FlowmapLayer<
     ) {
       const {dataProvider} = this.state || {};
       if (dataProvider) {
-        dataProvider.setFlowmapState(this._getFlowmapState());
+        dataProvider.setFlowmapState(
+          this._getFlowmapState(nextLockedScaleDomains),
+        );
         dataProvider.updateLayersData((layersData: LayersData | undefined) => {
-          this.setState({layersData, highlightedObject: undefined});
+          props.onScaleLegendChange?.(layersData?.scaleLegend);
+          const capturedScaleDomains =
+            this._shouldCaptureScaleDomainsFromLayersData() &&
+            layersData?.scaleDomains
+              ? layersData.scaleDomains
+              : undefined;
+          this.setState({
+            layersData,
+            highlightedObject: undefined,
+            ...(capturedScaleDomains
+              ? {lockedScaleDomains: capturedScaleDomains}
+              : {}),
+          });
         }, changeFlags);
       }
     }
   }
 
-  private _getSettingsState() {
+  private _getSettingsState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
     const defaults = FlowmapLayer.defaultProps;
     const {
@@ -317,6 +346,7 @@ export default class FlowmapLayer<
       highlightColor,
       maxTopFlowsDisplayNum,
       flowEndpointsInViewportMode,
+      scaleLock,
     } = props;
     return {
       locationsEnabled: locationsEnabled ?? defaults.locationsEnabled,
@@ -341,6 +371,12 @@ export default class FlowmapLayer<
         maxTopFlowsDisplayNum ?? defaults.maxTopFlowsDisplayNum,
       flowEndpointsInViewportMode: (flowEndpointsInViewportMode ??
         defaults.flowEndpointsInViewportMode) as FlowEndpointsInViewportMode,
+      scaleLock: scaleLock?.enabled
+        ? {
+            enabled: true,
+            domains: scaleLock.domains ?? lockedScaleDomains,
+          }
+        : scaleLock,
     };
   }
 
@@ -370,13 +406,39 @@ export default class FlowmapLayer<
     return DEFAULT_FLOW_LINES_RENDERING_MODE;
   }
 
-  private _getFlowmapState() {
+  private _getFlowmapState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
     return {
       viewport: pickViewportProps(this.context.viewport),
       filter: props.filter,
-      settings: this._getSettingsState(),
+      settings: this._getSettingsState(lockedScaleDomains),
     };
+  }
+
+  private _getNextLockedScaleDomains(
+    oldProps: FlowmapLayerProps<L, F>,
+    props: FlowmapLayerProps<L, F>,
+  ): ScaleLockDomains | undefined {
+    const scaleLock = props.scaleLock;
+    if (!scaleLock?.enabled) {
+      return undefined;
+    }
+    if (scaleLock.domains) {
+      return scaleLock.domains;
+    }
+    if (!oldProps.scaleLock?.enabled) {
+      return this.state?.layersData?.scaleDomains;
+    }
+    return this.state?.lockedScaleDomains;
+  }
+
+  private _shouldCaptureScaleDomainsFromLayersData(): boolean {
+    const scaleLock = this.typedProps.scaleLock;
+    return Boolean(
+      scaleLock?.enabled &&
+      !scaleLock.domains &&
+      !this.state?.lockedScaleDomains,
+    );
   }
 
   private async _getFlowmapLayerPickingInfo(

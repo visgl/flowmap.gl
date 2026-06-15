@@ -29,9 +29,12 @@ import getColors, {
   isDiffColorsRGBA,
 } from './colors';
 import {
+  clampMagnitudeToScaleDomain,
   addClusterNames,
   getFlowThicknessScale,
+  getMaxAbsScaleDomainValue,
   getViewportBoundingBox,
+  isMagnitudeOutsideScaleDomain,
 } from './selector-functions';
 import {
   TimeGranularityKey,
@@ -54,11 +57,14 @@ import {
   LayersData,
   LocationFilterMode,
   LocationTotals,
+  ScaleLockDomains,
+  ScaleLegendModel,
   ViewportProps,
   isLocationClusterNode,
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
+const OUT_OF_SCALE_COLOR: [number, number, number, number] = [255, 48, 48, 255];
 type KDBushTree = any;
 
 export type Selector<L, F, T> = (
@@ -117,6 +123,17 @@ export default class FlowmapSelectors<
     state.viewport;
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filter?.selectedTimeRange;
+  getScaleLockEnabled = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ): boolean => state.settings.scaleLock?.enabled ?? false;
+  getLockedScaleDomains = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ): ScaleLockDomains | undefined =>
+    state.settings.scaleLock?.enabled
+      ? state.settings.scaleLock.domains
+      : undefined;
 
   getColorScheme: Selector<L, F, string | string[] | undefined> = (
     state: FlowmapState,
@@ -836,7 +853,7 @@ export default class FlowmapSelectors<
       calcLocationTotalsExtent(locationTotals, locationsInViewport),
   );
 
-  getLocationTotalsExtent = (
+  getCurrentLocationTotalsExtent = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
@@ -845,6 +862,14 @@ export default class FlowmapSelectors<
     } else {
       return this._getLocationTotalsExtent(state, props);
     }
+  };
+
+  getLocationTotalsExtent = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ): [number, number] | undefined => {
+    const locked = this.getLockedScaleDomains(state, props)?.locationTotals;
+    return locked ?? this.getCurrentLocationTotalsExtent(state, props);
   };
 
   getFlowsForFlowmapLayer: Selector<L, F, (F | AggregateFlow)[] | undefined> =
@@ -936,7 +961,7 @@ export default class FlowmapSelectors<
     return rv[0] !== undefined && rv[1] !== undefined ? rv : undefined;
   });
 
-  getFlowMagnitudeExtent = (
+  getCurrentFlowMagnitudeExtent = (
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ): [number, number] | undefined => {
@@ -945,6 +970,14 @@ export default class FlowmapSelectors<
     } else {
       return this._getFlowMagnitudeExtent(state, props);
     }
+  };
+
+  getFlowMagnitudeExtent = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ): [number, number] | undefined => {
+    const locked = this.getLockedScaleDomains(state, props)?.flowMagnitude;
+    return locked ?? this.getCurrentFlowMagnitudeExtent(state, props);
   };
 
   getLocationMaxAbsTotalGetter = createSelector(
@@ -986,7 +1019,8 @@ export default class FlowmapSelectors<
               Math.abs(x || 0),
             ),
           ),
-        ]);
+        ])
+        .clamp(true);
     },
   );
 
@@ -1103,11 +1137,18 @@ export default class FlowmapSelectors<
     this.getLocationsForFlowmapLayer,
     this.getFlowsForFlowmapLayer,
     this.getFlowmapColorsRGBA,
+    this.getLocationTotals,
     this.getLocationsForFlowmapLayerById,
     this.getLocationIdsInViewport,
     this.getInCircleSizeGetter,
     this.getOutCircleSizeGetter,
     this.getFlowThicknessScale,
+    this.getFlowMagnitudeExtent,
+    this.getLocationTotalsExtent,
+    this.getLocationTotalsEnabled,
+    this.getMaxLocationCircleSize,
+    this.getScaleLockEnabled,
+    this.getLockedScaleDomains,
     this.getViewport,
     this.getFlowLinesRenderingMode,
     this.getLocationLabelsEnabled,
@@ -1115,11 +1156,18 @@ export default class FlowmapSelectors<
       locations,
       flows,
       flowmapColors,
+      locationTotals,
       locationsById,
       locationIdsInViewport,
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
+      flowMagnitudeExtent,
+      locationTotalsExtent,
+      locationTotalsEnabled,
+      maxLocationCircleSize,
+      scaleLockEnabled,
+      lockedScaleDomains,
       viewport,
       flowLinesRenderingMode,
       locationLabelsEnabled,
@@ -1128,11 +1176,18 @@ export default class FlowmapSelectors<
         locations,
         flows,
         flowmapColors,
+        locationTotals,
         locationsById,
         locationIdsInViewport,
         getInCircleSize,
         getOutCircleSize,
         flowThicknessScale,
+        flowMagnitudeExtent,
+        locationTotalsExtent,
+        locationTotalsEnabled,
+        maxLocationCircleSize,
+        scaleLockEnabled,
+        lockedScaleDomains,
         viewport,
         flowLinesRenderingMode,
         locationLabelsEnabled,
@@ -1146,22 +1201,36 @@ export default class FlowmapSelectors<
     const flowmapColors = (
       this.getFlowmapColorsRGBA as Selector<L, F, DiffColorsRGBA | ColorsRGBA>
     )(state, props);
+    const locationTotals = this.getLocationTotals(state, props);
     const locationsById = this.getLocationsForFlowmapLayerById(state, props);
     const locationIdsInViewport = this.getLocationIdsInViewport(state, props);
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
+    const flowMagnitudeExtent = this.getFlowMagnitudeExtent(state, props);
+    const locationTotalsExtent = this.getLocationTotalsExtent(state, props);
+    const locationTotalsEnabled = this.getLocationTotalsEnabled(state, props);
+    const maxLocationCircleSize = this.getMaxLocationCircleSize(state, props);
+    const scaleLockEnabled = this.getScaleLockEnabled(state, props);
+    const lockedScaleDomains = this.getLockedScaleDomains(state, props);
     const locationLabelsEnabled = this.getLocationLabelsEnabled(state, props);
     const viewport = this.getViewport(state, props);
     return this._prepareLayersData(
       locations,
       flows,
       flowmapColors,
+      locationTotals,
       locationsById,
       locationIdsInViewport,
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
+      flowMagnitudeExtent,
+      locationTotalsExtent,
+      locationTotalsEnabled,
+      maxLocationCircleSize,
+      scaleLockEnabled,
+      lockedScaleDomains,
       viewport,
       state.settings.flowLinesRenderingMode,
       locationLabelsEnabled,
@@ -1172,11 +1241,18 @@ export default class FlowmapSelectors<
     locations: (L | ClusterNode)[] | undefined,
     flows: (F | AggregateFlow)[] | undefined,
     flowmapColors: DiffColorsRGBA | ColorsRGBA,
+    locationTotals: Map<string | number, LocationTotals> | undefined,
     locationsById: Map<string | number, L | ClusterNode> | undefined,
     locationIdsInViewport: Set<string | number> | undefined,
     getInCircleSize: (locationId: string | number) => number,
     getOutCircleSize: (locationId: string | number) => number,
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
+    flowMagnitudeExtent: [number, number] | undefined,
+    locationTotalsExtent: [number, number] | undefined,
+    locationTotalsEnabled: boolean,
+    maxLocationCircleSize: number,
+    scaleLockEnabled: boolean,
+    lockedScaleDomains: ScaleLockDomains | undefined,
     viewport: ViewportProps,
     flowLinesRenderingMode: FlowLinesRenderingMode,
     locationLabelsEnabled: boolean,
@@ -1193,15 +1269,15 @@ export default class FlowmapSelectors<
       getLocationName,
     } = this.accessors;
 
-    const flowMagnitudeExtent = extent(flows, (f) => getFlowMagnitude(f)) as [
-      number,
-      number,
-    ];
     const flowColorScale = getFlowColorScale(
       flowmapColors,
       flowMagnitudeExtent,
       flowLinesRenderingMode === 'animated-straight',
     );
+    const outOfScaleFlowDomain =
+      scaleLockEnabled && lockedScaleDomains?.flowMagnitude
+        ? lockedScaleDomains.flowMagnitude
+        : undefined;
 
     // Using a generator here helps to avoid creating intermediary arrays
     const circlePositions = Float64Array.from(
@@ -1218,11 +1294,28 @@ export default class FlowmapSelectors<
     const circleColor = isDiffColorsRGBA(flowmapColors)
       ? flowmapColors.positive.locationCircles.inner
       : flowmapColors.locationCircles.inner;
+    const outOfScaleCircleDomain =
+      scaleLockEnabled && lockedScaleDomains?.locationTotals
+        ? lockedScaleDomains.locationTotals
+        : undefined;
 
     const circleColors = Uint8Array.from(
       (function* () {
         for (const location of locations) {
-          yield* circleColor;
+          const id = getLocationId(location);
+          const total = locationTotals?.get(id);
+          const isOutOfScale =
+            total &&
+            (isMagnitudeOutsideScaleDomain(
+              total.incomingCount + total.internalCount,
+              outOfScaleCircleDomain,
+            ) ||
+              isMagnitudeOutsideScaleDomain(
+                total.outgoingCount + total.internalCount,
+                outOfScaleCircleDomain,
+              ));
+          const color = isOutOfScale ? OUT_OF_SCALE_COLOR : circleColor;
+          yield* color;
         }
       })(),
     );
@@ -1267,8 +1360,11 @@ export default class FlowmapSelectors<
     const thicknesses = Float32Array.from(
       (function* () {
         for (const flow of flows) {
+          const magnitude = getFlowMagnitude(flow);
           yield flowThicknessScale
-            ? flowThicknessScale(getFlowMagnitude(flow)) || 0
+            ? flowThicknessScale(
+                clampMagnitudeToScaleDomain(magnitude, outOfScaleFlowDomain),
+              ) || 0
             : 0;
         }
       })(),
@@ -1286,7 +1382,14 @@ export default class FlowmapSelectors<
     const flowLineColors = Uint8Array.from(
       (function* () {
         for (const flow of flows) {
-          yield* flowColorScale(getFlowMagnitude(flow));
+          const magnitude = getFlowMagnitude(flow);
+          const color = isMagnitudeOutsideScaleDomain(
+            magnitude,
+            outOfScaleFlowDomain,
+          )
+            ? OUT_OF_SCALE_COLOR
+            : flowColorScale(magnitude);
+          yield* color;
         }
       })(),
     );
@@ -1345,6 +1448,21 @@ export default class FlowmapSelectors<
       ...(locationLabelsEnabled
         ? {locationLabels: locations.map(getLocationName)}
         : undefined),
+      scaleDomains: {
+        ...(flowMagnitudeExtent ? {flowMagnitude: flowMagnitudeExtent} : {}),
+        ...(locationTotalsExtent ? {locationTotals: locationTotalsExtent} : {}),
+      },
+      scaleLegend: makeScaleLegendModel({
+        locked: scaleLockEnabled,
+        flowMagnitudeExtent,
+        locationTotalsExtent,
+        locationTotalsEnabled,
+        maxLocationCircleSize,
+        flowThicknessScale,
+        flowColorScale,
+        outOfScaleFlowDomain,
+        outOfScaleCircleDomain,
+      }),
     };
   }
 
@@ -1419,6 +1537,100 @@ export default class FlowmapSelectors<
   //     {incoming: {}, outgoing: {}, internal: {}},
   //   );
   // }
+}
+
+function makeScaleLegendModel({
+  locked,
+  flowMagnitudeExtent,
+  locationTotalsExtent,
+  locationTotalsEnabled,
+  maxLocationCircleSize,
+  flowThicknessScale,
+  flowColorScale,
+  outOfScaleFlowDomain,
+  outOfScaleCircleDomain,
+}: {
+  locked: boolean;
+  flowMagnitudeExtent: [number, number] | undefined;
+  locationTotalsExtent: [number, number] | undefined;
+  locationTotalsEnabled: boolean;
+  maxLocationCircleSize: number;
+  flowThicknessScale: ScaleLinear<number, number, never> | undefined;
+  flowColorScale: (magnitude: number) => [number, number, number, number];
+  outOfScaleFlowDomain: [number, number] | undefined;
+  outOfScaleCircleDomain: [number, number] | undefined;
+}): ScaleLegendModel | undefined {
+  const flowMax = getMaxAbsScaleDomainValue(flowMagnitudeExtent);
+  const flowSamples =
+    flowMax !== undefined && flowThicknessScale
+      ? [0, flowMax / 2, flowMax].map((magnitude) => ({
+          label: formatLegendValue(magnitude),
+          magnitude,
+          thickness: flowThicknessScale(magnitude) || 0,
+          color: flowColorScale(magnitude),
+        }))
+      : undefined;
+  const locationMax = getMaxAbsScaleDomainValue(locationTotalsExtent);
+  if (!flowSamples && !(locationTotalsEnabled && locationMax !== undefined)) {
+    return undefined;
+  }
+  const maxFlowThickness =
+    flowSamples?.[flowSamples.length - 1]?.thickness ?? 0;
+  return {
+    locked,
+    ...(flowSamples && flowMagnitudeExtent
+      ? {
+          flowThickness: {
+            domain: flowMagnitudeExtent,
+            thicknessRange: [
+              flowSamples[0]?.thickness ?? 0,
+              maxFlowThickness,
+            ] as [number, number],
+            samples: flowSamples,
+            ...(outOfScaleFlowDomain
+              ? {
+                  outOfScale: {
+                    label: 'Outside locked scale',
+                    color: OUT_OF_SCALE_COLOR,
+                    magnitudeLabel: `> ${formatLegendValue(
+                      getMaxAbsScaleDomainValue(outOfScaleFlowDomain) ?? 0,
+                    )}`,
+                    thickness: maxFlowThickness,
+                  },
+                }
+              : {}),
+          },
+        }
+      : {}),
+    ...(locationTotalsEnabled &&
+    locationMax !== undefined &&
+    locationTotalsExtent
+      ? {
+          locationCircles: {
+            domain: locationTotalsExtent,
+            radiusRange: [0, maxLocationCircleSize] as [number, number],
+            incomingLabel: 'Incoming + internal',
+            outgoingLabel: 'Outgoing + internal',
+            ...(outOfScaleCircleDomain
+              ? {
+                  outOfScale: {
+                    label: 'Outside locked scale',
+                    color: OUT_OF_SCALE_COLOR,
+                    magnitudeLabel: `> ${formatLegendValue(locationMax)}`,
+                    radius: maxLocationCircleSize,
+                  },
+                }
+              : {}),
+          },
+        }
+      : {}),
+  };
+}
+
+function formatLegendValue(value: number): string {
+  return value >= 1000
+    ? value.toLocaleString(undefined, {maximumFractionDigits: 0})
+    : value.toLocaleString(undefined, {maximumFractionDigits: 2});
 }
 
 function calcLocationTotalsExtent(
