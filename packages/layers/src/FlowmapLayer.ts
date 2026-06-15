@@ -94,6 +94,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'highlightColor',
   'maxTopFlowsDisplayNum',
   'flowEndpointsInViewportMode',
+  'flowLineThicknessScale',
   'scaleLock',
 ];
 
@@ -346,6 +347,7 @@ export default class FlowmapLayer<
       highlightColor,
       maxTopFlowsDisplayNum,
       flowEndpointsInViewportMode,
+      flowLineThicknessScale,
       scaleLock,
     } = props;
     return {
@@ -371,6 +373,8 @@ export default class FlowmapLayer<
         maxTopFlowsDisplayNum ?? defaults.maxTopFlowsDisplayNum,
       flowEndpointsInViewportMode: (flowEndpointsInViewportMode ??
         defaults.flowEndpointsInViewportMode) as FlowEndpointsInViewportMode,
+      flowLineThicknessScale:
+        flowLineThicknessScale ?? defaults.flowLineThicknessScale,
       scaleLock: scaleLock?.enabled
         ? {
             enabled: true,

@@ -40,7 +40,7 @@ export const initLilGui = (gui) => {
     'animated-straight',
     'curved',
   ]);
-  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 5.0);
+  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 4.0);
   const flowLineCurviness = gui
     .add(UI_INITIAL, 'flowLineCurviness', 0.0, 3.0)
     .enable(UI_INITIAL.flowLinesRenderingMode === 'curved');

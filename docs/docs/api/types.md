@@ -196,6 +196,9 @@ type ScaleLock = {
 
 Legend model for the effective scale domains:
 
+Flow thickness values are expressed in display pixels and already include the
+`flowLineThicknessScale` multiplier.
+
 ```typescript
 type FlowScaleLegendSample = {
   label: string;

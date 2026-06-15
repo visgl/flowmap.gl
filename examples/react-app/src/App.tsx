@@ -164,7 +164,7 @@ function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
                 className="scale-legend-line"
                 style={{
                   backgroundColor: rgbaToCss(sample.color),
-                  height: `${Math.max(2, sample.thickness * 24)}px`,
+                  height: `${Math.max(2, sample.thickness)}px`,
                 }}
               />
               <span>{sample.label}</span>
@@ -176,10 +176,7 @@ function ScaleLegend({legend}: {legend: ScaleLegendModel | undefined}) {
                 className="scale-legend-line"
                 style={{
                   backgroundColor: rgbaToCss(flowThickness.outOfScale.color),
-                  height: `${Math.max(
-                    2,
-                    flowThickness.outOfScale.thickness * 24,
-                  )}px`,
+                  height: `${Math.max(2, flowThickness.outOfScale.thickness)}px`,
                 }}
               />
               <span>{flowThickness.outOfScale.magnitudeLabel}</span>

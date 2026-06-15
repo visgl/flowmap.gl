@@ -64,6 +64,7 @@ import {
 } from './types';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
+const FLOW_THICKNESS_DISPLAY_UNIT = 24;
 const OUT_OF_SCALE_COLOR: [number, number, number, number] = [255, 48, 48, 255];
 type KDBushTree = any;
 
@@ -164,6 +165,10 @@ export default class FlowmapSelectors<
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ) => state.settings.flowLinesRenderingMode;
+  getFlowLineThicknessScale: Selector<L, F, number> = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ) => state.settings.flowLineThicknessScale;
 
   getAnimate: Selector<L, F, boolean> = createSelector(
     this.getFlowLinesRenderingMode,
@@ -1143,6 +1148,7 @@ export default class FlowmapSelectors<
     this.getInCircleSizeGetter,
     this.getOutCircleSizeGetter,
     this.getFlowThicknessScale,
+    this.getFlowLineThicknessScale,
     this.getFlowMagnitudeExtent,
     this.getLocationTotalsExtent,
     this.getLocationTotalsEnabled,
@@ -1162,6 +1168,7 @@ export default class FlowmapSelectors<
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
+      flowLineThicknessScale,
       flowMagnitudeExtent,
       locationTotalsExtent,
       locationTotalsEnabled,
@@ -1182,6 +1189,7 @@ export default class FlowmapSelectors<
         getInCircleSize,
         getOutCircleSize,
         flowThicknessScale,
+        flowLineThicknessScale,
         flowMagnitudeExtent,
         locationTotalsExtent,
         locationTotalsEnabled,
@@ -1207,6 +1215,7 @@ export default class FlowmapSelectors<
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
+    const flowLineThicknessScale = this.getFlowLineThicknessScale(state, props);
     const flowMagnitudeExtent = this.getFlowMagnitudeExtent(state, props);
     const locationTotalsExtent = this.getLocationTotalsExtent(state, props);
     const locationTotalsEnabled = this.getLocationTotalsEnabled(state, props);
@@ -1225,6 +1234,7 @@ export default class FlowmapSelectors<
       getInCircleSize,
       getOutCircleSize,
       flowThicknessScale,
+      flowLineThicknessScale,
       flowMagnitudeExtent,
       locationTotalsExtent,
       locationTotalsEnabled,
@@ -1247,6 +1257,7 @@ export default class FlowmapSelectors<
     getInCircleSize: (locationId: string | number) => number,
     getOutCircleSize: (locationId: string | number) => number,
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
+    flowLineThicknessScale: number,
     flowMagnitudeExtent: [number, number] | undefined,
     locationTotalsExtent: [number, number] | undefined,
     locationTotalsEnabled: boolean,
@@ -1469,6 +1480,7 @@ export default class FlowmapSelectors<
         locationTotalsEnabled,
         maxLocationCircleSize,
         flowThicknessScale,
+        flowLineThicknessScale,
         flowColorScale,
         outOfScaleFlowDomain,
         outOfScaleCircleDomain,
@@ -1557,6 +1569,7 @@ function makeScaleLegendModel({
   locationTotalsEnabled,
   maxLocationCircleSize,
   flowThicknessScale,
+  flowLineThicknessScale,
   flowColorScale,
   outOfScaleFlowDomain,
   outOfScaleCircleDomain,
@@ -1568,6 +1581,7 @@ function makeScaleLegendModel({
   locationTotalsEnabled: boolean;
   maxLocationCircleSize: number;
   flowThicknessScale: ScaleLinear<number, number, never> | undefined;
+  flowLineThicknessScale: number;
   flowColorScale: (magnitude: number) => [number, number, number, number];
   outOfScaleFlowDomain: [number, number] | undefined;
   outOfScaleCircleDomain: [number, number] | undefined;
@@ -1578,12 +1592,15 @@ function makeScaleLegendModel({
   };
 }): ScaleLegendModel | undefined {
   const flowMax = getMaxAbsScaleDomainValue(flowMagnitudeExtent);
+  const flowThicknessDisplayUnit =
+    FLOW_THICKNESS_DISPLAY_UNIT * flowLineThicknessScale;
   const flowSamples =
     flowMax !== undefined && flowThicknessScale
       ? [0, flowMax / 2, flowMax].map((magnitude) => ({
           label: formatLegendValue(magnitude),
           magnitude,
-          thickness: flowThicknessScale(magnitude) || 0,
+          thickness:
+            (flowThicknessScale(magnitude) || 0) * flowThicknessDisplayUnit,
           color: flowColorScale(magnitude),
         }))
       : undefined;
