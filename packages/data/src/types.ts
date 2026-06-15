@@ -196,6 +196,7 @@ export interface FlowCirclesLayerAttributes {
     getColor: LayersDataAttrValues<Uint8Array>;
     getInRadius: LayersDataAttrValues<Float32Array>;
     getOutRadius: LayersDataAttrValues<Float32Array>;
+    getOutOfScale?: LayersDataAttrValues<Float32Array>;
   };
 }
 

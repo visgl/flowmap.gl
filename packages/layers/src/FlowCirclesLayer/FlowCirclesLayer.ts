@@ -24,6 +24,7 @@ export interface Props extends LayerProps {
   getPosition?: (d: FlowCirclesDatum) => [number, number];
   getInRadius?: (d: FlowCirclesDatum) => number;
   getOutRadius?: (d: FlowCirclesDatum) => number;
+  getOutOfScale?: (d: FlowCirclesDatum) => number;
   data: FlowCirclesDatum[] | FlowCirclesLayerAttributes;
   updateTriggers?: {[key: string]: Record<string, unknown>};
 }
@@ -46,6 +47,7 @@ class FlowCirclesLayer extends Layer {
     getPosition: {type: 'accessor', value: (d: FlowCirclesDatum) => d.position},
     getInRadius: {type: 'accessor', value: 1},
     getOutRadius: {type: 'accessor', value: 1},
+    getOutOfScale: {type: 'accessor', value: 0},
     parameters: {
       depthTest: false,
     },
@@ -91,6 +93,12 @@ class FlowCirclesLayer extends Layer {
         type: 'unorm8',
         accessor: 'getColor',
         defaultValue: DEFAULT_COLOR,
+      },
+      instanceOutOfScale: {
+        size: 1,
+        transition: true,
+        accessor: 'getOutOfScale',
+        defaultValue: 0,
       },
     });
     this.setState({model: this._getModel()});

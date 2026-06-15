@@ -602,7 +602,7 @@ export default class FlowmapLayer<
                   ...commonLineLayerProps,
                   id: 'animated-flow-lines',
                   drawOutline: false,
-                  thicknessUnit: 10 * flowLineThicknessScale,
+                  thicknessUnit: 12 * flowLineThicknessScale,
                 }),
               }),
             );

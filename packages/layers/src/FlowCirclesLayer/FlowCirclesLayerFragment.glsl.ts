@@ -14,6 +14,7 @@ in vec4 vColor;
 in vec2 unitPosition;
 in float unitInRadius;
 in float unitOutRadius;
+in float vOutOfScale;
 
 out vec4 fragColor;
 
@@ -56,6 +57,7 @@ void main(void) {
   fragColor = mix(fragColor, flowCircles.emptyColor, smoothstep(step2, step3, distToCenter));
   fragColor = mix(fragColor, ringColor, smoothstep(step3, step4, distToCenter));
   fragColor = mix(fragColor, outlineColor, smoothstep(step5, step6, distToCenter));
+  fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 0.188235, 0.188235), step(0.5, vOutOfScale));
   fragColor.a = vColor.a;
   fragColor.a *= smoothstep(0.0, SOFT_OUTLINE, 1.0 - distToCenter);
   DECKGL_FILTER_COLOR(fragColor, geometry);

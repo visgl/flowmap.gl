@@ -1303,19 +1303,25 @@ export default class FlowmapSelectors<
       (function* () {
         for (const location of locations) {
           const id = getLocationId(location);
-          const total = locationTotals?.get(id);
-          const isOutOfScale =
-            total &&
-            (isMagnitudeOutsideScaleDomain(
-              total.incomingCount + total.internalCount,
-              outOfScaleCircleDomain,
-            ) ||
-              isMagnitudeOutsideScaleDomain(
-                total.outgoingCount + total.internalCount,
-                outOfScaleCircleDomain,
-              ));
+          const isOutOfScale = isLocationTotalOutsideScaleDomain(
+            locationTotals?.get(id),
+            outOfScaleCircleDomain,
+          );
           const color = isOutOfScale ? OUT_OF_SCALE_COLOR : circleColor;
           yield* color;
+        }
+      })(),
+    );
+    const circleOutOfScaleValues = Float32Array.from(
+      (function* () {
+        for (const location of locations) {
+          const id = getLocationId(location);
+          yield isLocationTotalOutsideScaleDomain(
+            locationTotals?.get(id),
+            outOfScaleCircleDomain,
+          )
+            ? 1
+            : 0;
         }
       })(),
     );
@@ -1427,6 +1433,7 @@ export default class FlowmapSelectors<
           getColor: {value: circleColors, size: 4},
           getInRadius: {value: inCircleRadii, size: 1},
           getOutRadius: {value: outCircleRadii, size: 1},
+          getOutOfScale: {value: circleOutOfScaleValues, size: 1},
         },
       },
       lineAttributes: {
@@ -1625,6 +1632,23 @@ function makeScaleLegendModel({
         }
       : {}),
   };
+}
+
+function isLocationTotalOutsideScaleDomain(
+  total: LocationTotals | undefined,
+  domain: [number, number] | undefined,
+): boolean {
+  return Boolean(
+    total &&
+    (isMagnitudeOutsideScaleDomain(
+      total.incomingCount + total.internalCount,
+      domain,
+    ) ||
+      isMagnitudeOutsideScaleDomain(
+        total.outgoingCount + total.internalCount,
+        domain,
+      )),
+  );
 }
 
 function formatLegendValue(value: number): string {

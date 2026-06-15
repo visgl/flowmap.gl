@@ -15,12 +15,14 @@ in vec3 instancePositions64Low;
 in float instanceInRadius;
 in float instanceOutRadius;
 in vec4 instanceColors;
+in float instanceOutOfScale;
 in vec3 instancePickingColors;
 
 out vec4 vColor;
 out vec2 unitPosition;
 out float unitInRadius;
 out float unitOutRadius;
+out float vOutOfScale;
 
 void main(void) {
   geometry.worldPosition = instancePositions;
@@ -28,6 +30,7 @@ void main(void) {
   float outerRadiusPixels = max(instanceInRadius, instanceOutRadius);
   unitInRadius = instanceInRadius / outerRadiusPixels; 
   unitOutRadius = instanceOutRadius / outerRadiusPixels; 
+  vOutOfScale = instanceOutOfScale;
 
   // position on the containing square in [-1, 1] space
   unitPosition = positions.xy;
