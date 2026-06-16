@@ -59,6 +59,23 @@ deck.setProps({
 
 When `onScaleChange` fires, update your app state and pass the next `scaleState` to a new or updated `FlowmapLegendWidget`.
 
+Use `className` for the widget root and `classNames` for internal slots. Set `unstyled: true` when you want to provide the full presentation layer from your own CSS, such as Tailwind utilities:
+
+```typescript
+const legend = new FlowmapLegendWidget({
+  scaleState,
+  className: 'rounded bg-zinc-950/80 p-3 text-xs text-white',
+  classNames: {
+    section: 'space-y-1',
+    row: 'grid items-center gap-2',
+    line: 'rounded',
+    lockButton: 'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
+    lockButtonLocked: 'border-teal-200 bg-teal-200/20',
+  },
+  unstyled: true,
+});
+```
+
 ## Props Reference
 
 ### Data Props
