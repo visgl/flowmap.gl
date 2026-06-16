@@ -16,6 +16,8 @@ export type FlowmapLegendWidgetProps = WidgetProps & {
   viewId?: string | null;
   /** Scale state emitted by `FlowmapLayer.onScaleChange`. */
   scaleState?: ScaleState;
+  /** Match the legend presentation to a dark or light map theme. */
+  darkMode?: boolean;
   /** Legend sections to render. Omit to show all available sections. */
   sections?: readonly FlowmapLegendWidgetSection[];
   /** Whether to show the scale lock control when `onToggleLock` is provided. */
@@ -54,7 +56,21 @@ const DEFAULT_SECTIONS: readonly FlowmapLegendWidgetSection[] = [
 
 type RenderOptions = {
   classNames: FlowmapLegendWidgetClassNames;
+  theme: LegendTheme;
   unstyled: boolean;
+};
+
+type LegendTheme = {
+  backgroundColor: string;
+  color: string;
+  noteColor: string;
+  separatorColor: string;
+  markerBorderColor: string;
+  markerOutlineColor: string;
+  buttonBorderColor: string;
+  buttonBackgroundColor: string;
+  lockedButtonBorderColor: string;
+  lockedButtonBackgroundColor: string;
 };
 
 export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps> {
@@ -64,6 +80,7 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
     placement: 'bottom-right',
     viewId: null,
     scaleState: undefined!,
+    darkMode: true,
     sections: DEFAULT_SECTIONS,
     showLockControl: true,
     onToggleLock: undefined!,
@@ -90,6 +107,7 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
     syncRootClassName(rootElement, this);
     const renderOptions = {
       classNames: this.props.classNames ?? {},
+      theme: getLegendTheme(this.props.darkMode ?? true),
       unstyled: this.props.unstyled ?? false,
     };
     applyLegendRootStyles(rootElement, this.props.style, renderOptions);
@@ -185,7 +203,7 @@ function renderLocationCirclesSection(
     if (!options.unstyled) {
       section.style.marginTop = '12px';
       section.style.paddingTop = '12px';
-      section.style.borderTop = '1px solid rgba(255, 255, 255, 0.22)';
+      section.style.borderTop = `1px solid ${options.theme.separatorColor}`;
     }
   } else if (!options.unstyled) {
     section.style.marginTop = '0';
@@ -227,7 +245,7 @@ function renderLocationCirclesSection(
   if (!options.unstyled) {
     range.style.marginTop = '8px';
     range.style.marginBottom = '6px';
-    range.style.color = 'rgba(255, 255, 255, 0.82)';
+    range.style.color = options.theme.noteColor;
   }
   section.append(range);
 
@@ -271,12 +289,12 @@ function renderScaleLockControl(
       gap: '6px',
       margin: '12px 0 0',
       border: locked
-        ? '1px solid rgba(209, 238, 234, 0.7)'
-        : '1px solid rgba(255, 255, 255, 0.32)',
+        ? `1px solid ${options.theme.lockedButtonBorderColor}`
+        : `1px solid ${options.theme.buttonBorderColor}`,
       borderRadius: '4px',
       background: locked
-        ? 'rgba(209, 238, 234, 0.18)'
-        : 'rgba(255, 255, 255, 0.08)',
+        ? options.theme.lockedButtonBackgroundColor
+        : options.theme.buttonBackgroundColor,
       color: 'inherit',
       font: 'inherit',
       fontWeight: '600',
@@ -373,7 +391,7 @@ function renderCircle(
     Object.assign(circle.style, {
       display: 'block',
       justifySelf: 'center',
-      border: '1px solid rgba(255, 255, 255, 0.8)',
+      border: `1px solid ${options.theme.markerBorderColor}`,
       borderRadius: '999px',
     });
   }
@@ -420,7 +438,7 @@ function renderCircleExample(
     outer.style.border = `1px solid ${
       outgoingDominant
         ? rgbaToCss(mixRgba(colors.incoming, colors.outgoing, 0.4))
-        : rgbaToCss(colors.incoming)
+        : options.theme.markerBorderColor
     }`;
   }
   root.append(outer);
@@ -434,7 +452,7 @@ function renderCircleExample(
     });
     if (!options.unstyled) {
       ring.style.border = `1px solid ${rgbaToCss(colors.outgoing)}`;
-      ring.style.boxShadow = '0 0 0 1px rgba(255, 255, 255, 0.72)';
+      ring.style.boxShadow = `0 0 0 1px ${options.theme.markerOutlineColor}`;
     }
     root.append(ring);
   } else {
@@ -446,7 +464,7 @@ function renderCircleExample(
       backgroundColor: rgbaToCss(colors.incoming),
     });
     if (!options.unstyled) {
-      inner.style.border = '1px solid rgba(255, 255, 255, 0.85)';
+      inner.style.border = `1px solid ${options.theme.markerBorderColor}`;
     }
     root.append(inner);
   }
@@ -475,8 +493,10 @@ function applyLegendRootStyles(
     Object.assign(rootElement.style, {
       boxSizing: 'border-box',
       borderRadius: '5px',
-      backgroundColor: 'var(--flowmap-legend-background, rgba(25, 25, 25, 0.78))',
-      color: 'var(--flowmap-legend-color, white)',
+      backgroundColor: `var(--flowmap-legend-background, ${
+        options.theme.backgroundColor
+      })`,
+      color: `var(--flowmap-legend-color, ${options.theme.color})`,
       fontFamily:
         "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       fontSize: '10px',
@@ -494,6 +514,34 @@ function applyLegendRootStyles(
     });
   }
   Object.assign(rootElement.style, style);
+}
+
+function getLegendTheme(darkMode: boolean): LegendTheme {
+  return darkMode
+    ? {
+        backgroundColor: 'rgba(25, 25, 25, 0.78)',
+        color: 'white',
+        noteColor: 'rgba(255, 255, 255, 0.82)',
+        separatorColor: 'rgba(255, 255, 255, 0.22)',
+        markerBorderColor: 'rgba(255, 255, 255, 0.8)',
+        markerOutlineColor: 'rgba(255, 255, 255, 0.72)',
+        buttonBorderColor: 'rgba(255, 255, 255, 0.32)',
+        buttonBackgroundColor: 'rgba(255, 255, 255, 0.08)',
+        lockedButtonBorderColor: 'rgba(209, 238, 234, 0.7)',
+        lockedButtonBackgroundColor: 'rgba(209, 238, 234, 0.18)',
+      }
+    : {
+        backgroundColor: 'rgba(255, 255, 255, 0.88)',
+        color: 'rgba(17, 24, 39, 0.94)',
+        noteColor: 'rgba(31, 41, 55, 0.78)',
+        separatorColor: 'rgba(17, 24, 39, 0.16)',
+        markerBorderColor: 'rgba(17, 24, 39, 0.38)',
+        markerOutlineColor: 'rgba(17, 24, 39, 0.28)',
+        buttonBorderColor: 'rgba(17, 24, 39, 0.22)',
+        buttonBackgroundColor: 'rgba(17, 24, 39, 0.05)',
+        lockedButtonBorderColor: 'rgba(13, 148, 136, 0.55)',
+        lockedButtonBackgroundColor: 'rgba(13, 148, 136, 0.12)',
+      };
 }
 
 function formatLegendRange([min, max]: [number, number]): string {
@@ -545,6 +593,9 @@ function syncRootClassName(
   rootElement.className = [
     'deck-widget',
     widget.className,
+    widget.props.darkMode === false
+      ? 'flowmap-legend-widget-light'
+      : 'flowmap-legend-widget-dark',
     widget.props.className,
     widget.props.classNames?.root,
   ]

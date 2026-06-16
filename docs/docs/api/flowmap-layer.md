@@ -45,6 +45,7 @@ const layer = new FlowmapLayer({
 
 const legend = new FlowmapLegendWidget({
   scaleState,
+  darkMode: true,
   sections: ['flowThickness', 'locationCircles'],
   placement: 'bottom-right',
   showLockControl: true,
@@ -72,11 +73,14 @@ new FlowmapLegendWidget({
 
 The scale lock control is optional. By default it renders only when `onToggleLock` is provided; set `showLockControl: false` to hide it even when a toggle handler exists.
 
+Set `darkMode` to match the map/layer theme. The widget uses that value for its default background, foreground, borders, and lock-control colors. It also adds either `flowmap-legend-widget-dark` or `flowmap-legend-widget-light` to the root element.
+
 Use `className` for the widget root and `classNames` for internal slots. Set `unstyled: true` when you want to provide the full presentation layer from your own CSS, such as Tailwind utilities:
 
 ```typescript
 const legend = new FlowmapLegendWidget({
   scaleState,
+  darkMode,
   className: 'rounded bg-zinc-950/80 p-3 text-xs text-white',
   classNames: {
     section: 'space-y-1',
