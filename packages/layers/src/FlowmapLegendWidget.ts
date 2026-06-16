@@ -49,6 +49,8 @@ export type FlowmapLegendWidgetClassNames = {
 
 const LEGEND_CIRCLE_RADIUS = 10;
 const LEGEND_CIRCLE_SECONDARY_RADIUS = 7;
+const DEFAULT_ATTRIBUTION_OFFSET = '44px';
+const DEFAULT_VIEWPORT_EDGE_OFFSET = '12px';
 const DEFAULT_SECTIONS: readonly FlowmapLegendWidgetSection[] = [
   'flowThickness',
   'locationCircles',
@@ -112,7 +114,12 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
       theme: getLegendTheme(this.props.darkMode ?? true),
       unstyled: this.props.unstyled ?? false,
     };
-    applyLegendRootStyles(rootElement, this.props.style, renderOptions);
+    applyLegendRootStyles(
+      rootElement,
+      this.props.style,
+      this.placement,
+      renderOptions,
+    );
 
     const {scaleState} = this.props;
     const sections = this.props.sections ?? DEFAULT_SECTIONS;
@@ -133,7 +140,9 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
     rootElement.style.display = 'block';
 
     if (showFlowThickness) {
-      rootElement.append(renderFlowThicknessSection(scaleState!, renderOptions));
+      rootElement.append(
+        renderFlowThicknessSection(scaleState!, renderOptions),
+      );
     }
     if (showLocationCircles) {
       rootElement.append(
@@ -161,7 +170,10 @@ function renderFlowThicknessSection(
   const flowThickness = scaleState.flowThickness!;
   const section = createSlotElement('div', 'section', options);
   section.append(
-    renderTitle(`Flow thickness ${scaleState.locked ? '(locked)' : ''}`, options),
+    renderTitle(
+      `Flow thickness ${scaleState.locked ? '(locked)' : ''}`,
+      options,
+    ),
   );
 
   for (const sample of flowThickness.samples) {
@@ -435,7 +447,9 @@ function renderCircleExample(
   Object.assign(outer.style, {
     width: `${outgoingDominant ? outerSize : innerSize}px`,
     height: `${outgoingDominant ? outerSize : innerSize}px`,
-    backgroundColor: rgbaToCss(outgoingDominant ? colors.outgoing : colors.incoming),
+    backgroundColor: rgbaToCss(
+      outgoingDominant ? colors.outgoing : colors.incoming,
+    ),
   });
   if (!options.unstyled) {
     outer.style.border = `1px solid ${
@@ -489,6 +503,7 @@ function circlePartStyles(): Partial<CSSStyleDeclaration> {
 function applyLegendRootStyles(
   rootElement: HTMLElement,
   style: Partial<CSSStyleDeclaration>,
+  placement: WidgetPlacement,
   options: RenderOptions,
 ): void {
   rootElement.style.pointerEvents = 'auto';

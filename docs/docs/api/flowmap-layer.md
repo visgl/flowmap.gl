@@ -47,7 +47,7 @@ const legend = new FlowmapLegendWidget({
   scaleState,
   darkMode: true,
   sections: ['flowThickness', 'locationCircles'],
-  placement: 'bottom-right',
+  placement: 'bottom-left',
   showLockControl: true,
   onToggleLock: (locked) => {
     scaleLockEnabled = locked;
@@ -74,6 +74,19 @@ new FlowmapLegendWidget({
 The scale lock control is optional. By default it renders only when `onToggleLock` is provided; set `showLockControl: false` to hide it even when a toggle handler exists.
 
 Set `darkMode` to match the map/layer theme. The widget uses that value for its default background, foreground, borders, and lock-control colors. It also adds either `flowmap-legend-widget-dark` or `flowmap-legend-widget-light` to the root element.
+
+`placement` is the standard deck.gl widget placement (`'top-left'`, `'top-right'`, `'bottom-left'`, or `'bottom-right'`). When placed at the bottom, the widget reserves space above common basemap attribution controls. Left and right placements also get a small edge offset. Override root margins only if your map needs different spacing:
+
+```typescript
+new FlowmapLegendWidget({
+  scaleState,
+  placement: 'bottom-left',
+  style: {
+    marginBottom: '56px',
+    marginLeft: '20px',
+  },
+});
+```
 
 Use `className` for the widget root and `classNames` for internal slots. Set `unstyled: true` when you want to provide the full presentation layer from your own CSS, such as Tailwind utilities:
 

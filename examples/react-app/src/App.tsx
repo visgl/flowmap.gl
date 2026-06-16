@@ -122,6 +122,11 @@ function App() {
       new FlowmapLegendWidget({
         scaleState,
         darkMode: config.darkMode,
+        placement: 'bottom-right',
+        style: {
+          marginRight: '15px',
+          marginBottom: '44px',
+        },
         sections: ['flowThickness', 'locationCircles'],
         showLockControl: true,
         onToggleLock: (locked) => setConfigValue('scaleLockEnabled', locked),
