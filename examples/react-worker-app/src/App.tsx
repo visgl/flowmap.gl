@@ -58,7 +58,7 @@ async function createDataProvider() {
 }
 
 function App() {
-  const config = useUI(UI_INITIAL, initLilGui);
+  const [config] = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewState>();
   const [data, setData] = useState<{dataProvider: WorkerFlowmapDataProvider}>();
   const [tooltip, setTooltip] = useState<TooltipState>();

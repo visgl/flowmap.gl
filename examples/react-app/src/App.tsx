@@ -43,14 +43,11 @@ type TooltipState = {
 };
 
 function App() {
-  const config = useUI(UI_INITIAL, initLilGui);
+  const [config, setConfigValue] = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
   const [scaleLegend, setScaleLegend] = useState<ScaleLegendModel>();
-  const [scaleLockEnabled, setScaleLockEnabled] = useState(() =>
-    Boolean(config.scaleLockEnabled),
-  );
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -105,7 +102,7 @@ function App() {
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         flowLineThicknessScale: config.flowLineThicknessScale,
         flowLineCurviness: config.flowLineCurviness,
-        scaleLock: {enabled: scaleLockEnabled},
+        scaleLock: {enabled: config.scaleLockEnabled},
         onScaleLegendChange: setScaleLegend,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
@@ -153,8 +150,10 @@ function App() {
           <ScaleLegend.FlowThickness legend={scaleLegend} />
           <ScaleLegend.CircleSize legend={scaleLegend} />
           <ScaleLockButton
-            locked={scaleLockEnabled}
-            onToggle={() => setScaleLockEnabled((locked) => !locked)}
+            locked={config.scaleLockEnabled}
+            onToggle={() =>
+              setConfigValue('scaleLockEnabled', !config.scaleLockEnabled)
+            }
           />
         </ScaleLegend>
       )}

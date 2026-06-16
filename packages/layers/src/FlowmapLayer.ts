@@ -95,7 +95,6 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'maxTopFlowsDisplayNum',
   'flowEndpointsInViewportMode',
   'flowLineThicknessScale',
-  'scaleLock',
 ];
 
 const DEFAULT_FLOW_LINES_RENDERING_MODE: FlowLinesRenderingMode = 'straight';
@@ -299,9 +298,10 @@ export default class FlowmapLayer<
       changeFlags.viewportChanged ||
       changeFlags.dataChanged ||
       (changeFlags.propsChanged &&
-        PROPS_TO_CAUSE_LAYER_DATA_UPDATE.some(
+        (PROPS_TO_CAUSE_LAYER_DATA_UPDATE.some(
           (prop) => oldProps[prop] !== props[prop],
-        ))
+        ) ||
+          !areScaleLocksEqual(oldProps.scaleLock, props.scaleLock)))
     ) {
       const {dataProvider} = this.state || {};
       if (dataProvider) {
@@ -765,4 +765,32 @@ function pickViewportProps(viewport: Record<string, any>): ViewportProps {
     pitch,
     bearing,
   };
+}
+
+function areScaleLocksEqual(
+  a: ScaleLock | undefined,
+  b: ScaleLock | undefined,
+): boolean {
+  const aEnabled = a?.enabled ?? false;
+  const bEnabled = b?.enabled ?? false;
+  if (aEnabled !== bEnabled) return false;
+  if (!aEnabled) return true;
+  return areScaleDomainsEqual(a?.domains, b?.domains);
+}
+
+function areScaleDomainsEqual(
+  a: ScaleLockDomains | undefined,
+  b: ScaleLockDomains | undefined,
+): boolean {
+  return (
+    areScaleDomainEqual(a?.flowMagnitude, b?.flowMagnitude) &&
+    areScaleDomainEqual(a?.locationTotals, b?.locationTotals)
+  );
+}
+
+function areScaleDomainEqual(
+  a: [number, number] | undefined,
+  b: [number, number] | undefined,
+): boolean {
+  return a === b || Boolean(a && b && a[0] === b[0] && a[1] === b[1]);
 }
