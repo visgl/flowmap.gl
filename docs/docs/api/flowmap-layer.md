@@ -23,6 +23,42 @@ const layer = new FlowmapLayer({
 });
 ```
 
+## Legend Widget
+
+`FlowmapLegendWidget` renders the layer's scale state as a deck.gl widget. Pass the `ScaleState` emitted by `onScaleChange` into the widget:
+
+```typescript
+import {FlowmapLayer, FlowmapLegendWidget} from '@flowmap.gl/layers';
+
+let scaleState;
+let scaleLockEnabled = false;
+
+const layer = new FlowmapLayer({
+  id: 'flowmap-layer',
+  data: {locations, flows},
+  scaleLock: {enabled: scaleLockEnabled},
+  onScaleChange: (nextScaleState) => {
+    scaleState = nextScaleState;
+  },
+  // accessors...
+});
+
+const legend = new FlowmapLegendWidget({
+  scaleState,
+  placement: 'bottom-right',
+  onToggleLock: (locked) => {
+    scaleLockEnabled = locked;
+  },
+});
+
+deck.setProps({
+  layers: [layer],
+  widgets: [legend],
+});
+```
+
+When `onScaleChange` fires, update your app state and pass the next `scaleState` to a new or updated `FlowmapLegendWidget`.
+
 ## Props Reference
 
 ### Data Props

@@ -20,6 +20,7 @@ import {
 } from '@flowmap.gl/examples-common';
 import {
   FlowmapLayer,
+  FlowmapLegendWidget,
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
@@ -29,9 +30,6 @@ import {
   Map as ReactMapGl,
   ViewState as ViewportProps,
 } from 'react-map-gl/maplibre';
-import {ScaleLegend} from './legends/ScaleLegend';
-import {ScaleLockButton} from './legends/ScaleLockButton';
-import {makeScaleLegendModel} from './legends/utils';
 
 const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
@@ -49,7 +47,6 @@ function App() {
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
   const [scaleState, setScaleState] = useState<ScaleState>();
-  const scaleLegend = makeScaleLegendModel(scaleState);
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -79,6 +76,7 @@ function App() {
     setTooltip(undefined);
   };
   const layers = [];
+  const widgets = [];
   if (data) {
     layers.push(
       new FlowmapLayer<LocationDatum, FlowDatum>({
@@ -119,6 +117,14 @@ function App() {
       }),
     );
   }
+  if (scaleState?.flowThickness || scaleState?.locationCircles) {
+    widgets.push(
+      new FlowmapLegendWidget({
+        scaleState,
+        onToggleLock: (locked) => setConfigValue('scaleLockEnabled', locked),
+      }),
+    );
+  }
   if (!viewState) {
     return null;
   }
@@ -136,6 +142,7 @@ function App() {
         controller={true}
         // @ts-ignore
         layers={layers}
+        widgets={widgets}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
         <ReactMapGl
@@ -146,18 +153,6 @@ function App() {
         <div className="tooltip" style={tooltip.position}>
           {tooltip.content}
         </div>
-      )}
-      {(scaleLegend?.flowThickness || scaleLegend?.locationCircles) && (
-        <ScaleLegend>
-          <ScaleLegend.FlowThickness legend={scaleLegend} />
-          <ScaleLegend.CircleSize legend={scaleLegend} />
-          <ScaleLockButton
-            locked={config.scaleLockEnabled}
-            onToggle={() =>
-              setConfigValue('scaleLockEnabled', !config.scaleLockEnabled)
-            }
-          />
-        </ScaleLegend>
       )}
     </div>
   );
