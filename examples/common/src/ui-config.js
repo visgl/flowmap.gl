@@ -47,9 +47,17 @@ export const initLilGui = (gui) => {
     flowLineCurviness.enable(v === 'curved');
   });
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
-  gui.add(UI_INITIAL, 'locationsEnabled');
-  gui.add(UI_INITIAL, 'locationTotalsEnabled');
-  gui.add(UI_INITIAL, 'locationLabelsEnabled');
+  const locationsEnabled = gui.add(UI_INITIAL, 'locationsEnabled');
+  const locationTotalsEnabled = gui
+    .add(UI_INITIAL, 'locationTotalsEnabled')
+    .enable(UI_INITIAL.locationsEnabled);
+  const locationLabelsEnabled = gui
+    .add(UI_INITIAL, 'locationLabelsEnabled')
+    .enable(UI_INITIAL.locationsEnabled);
+  locationsEnabled.onChange((v) => {
+    locationTotalsEnabled.enable(v);
+    locationLabelsEnabled.enable(v);
+  });
   gui.add(UI_INITIAL, 'flowEndpointsInViewportMode', ['any', 'both']);
 
   gui

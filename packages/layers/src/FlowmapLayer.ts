@@ -571,6 +571,8 @@ export default class FlowmapLayer<
   renderLayers(): Array<any> {
     const props = this.typedProps;
     const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
+    const locationsEnabled =
+      props.locationsEnabled ?? FlowmapLayer.defaultProps.locationsEnabled;
     const highlightColor =
       props.highlightColor ?? FlowmapLayer.defaultProps.highlightColor;
     const flowLineThicknessScale =
@@ -640,39 +642,43 @@ export default class FlowmapLayer<
             );
             break;
         }
-        layers.push(
-          new FlowCirclesLayer(
-            this.getSubLayerProps({
-              id: 'circles',
-              data: circleAttributes,
-              emptyColor: props.darkMode
-                ? [0, 0, 0, 255]
-                : [255, 255, 255, 255],
-              outlineEmptyMix: 0.4,
-            }),
-          ),
-        );
+        if (locationsEnabled) {
+          layers.push(
+            new FlowCirclesLayer(
+              this.getSubLayerProps({
+                id: 'circles',
+                data: circleAttributes,
+                emptyColor: props.darkMode
+                  ? [0, 0, 0, 255]
+                  : [255, 255, 255, 255],
+                outlineEmptyMix: 0.4,
+              }),
+            ),
+          );
+        }
         if (highlightedObject) {
           switch (highlightedObject.type) {
             case HighlightType.LOCATION:
-              layers.push(
-                new ScatterplotLayer({
-                  ...this.getSubLayerProps({
-                    id: 'location-highlight',
-                    data: [highlightedObject],
-                    pickable: false,
-                    antialiasing: true,
-                    stroked: true,
-                    filled: false,
-                    lineWidthUnits: 'pixels',
-                    getLineWidth: 2,
-                    radiusUnits: 'pixels',
-                    getRadius: (d: HighlightedLocationObject) => d.radius,
-                    getLineColor: colorAsRgba(highlightColor),
-                    getPosition: (d: HighlightedLocationObject) => d.coords,
+              if (locationsEnabled) {
+                layers.push(
+                  new ScatterplotLayer({
+                    ...this.getSubLayerProps({
+                      id: 'location-highlight',
+                      data: [highlightedObject],
+                      pickable: false,
+                      antialiasing: true,
+                      stroked: true,
+                      filled: false,
+                      lineWidthUnits: 'pixels',
+                      getLineWidth: 2,
+                      radiusUnits: 'pixels',
+                      getRadius: (d: HighlightedLocationObject) => d.radius,
+                      getLineColor: colorAsRgba(highlightColor),
+                      getPosition: (d: HighlightedLocationObject) => d.coords,
+                    }),
                   }),
-                }),
-              );
+                );
+              }
               break;
             case HighlightType.FLOW:
               if (flowLinesRenderingMode === 'curved') {
@@ -715,7 +721,7 @@ export default class FlowmapLayer<
           }
         }
       }
-      if (locationLabels) {
+      if (locationsEnabled && locationLabels) {
         layers.push(
           new TextLayer(
             this.getSubLayerProps({
