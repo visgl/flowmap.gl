@@ -18,7 +18,7 @@ import {
   LocalFlowmapDataProvider,
   ScaleLock,
   ScaleLockDomains,
-  ScaleLegendModel,
+  ScaleState,
   ViewportProps,
   colorAsRgba,
   getFlowLineAttributesByIndex,
@@ -66,7 +66,7 @@ export type FlowmapLayerProps<
   maxTopFlowsDisplayNum?: number;
   flowEndpointsInViewportMode?: FlowEndpointsInViewportMode;
   scaleLock?: ScaleLock;
-  onScaleLegendChange?: (legend: ScaleLegendModel | undefined) => void;
+  onScaleChange?: (scaleState: ScaleState | undefined) => void;
   onHover?: (
     info: FlowmapLayerPickingInfo<L, F> | undefined,
     event: SourceEvent,
@@ -309,7 +309,7 @@ export default class FlowmapLayer<
           this._getFlowmapState(nextLockedScaleDomains),
         );
         dataProvider.updateLayersData((layersData: LayersData | undefined) => {
-          props.onScaleLegendChange?.(layersData?.scaleLegend);
+          props.onScaleChange?.(layersData?.scaleState);
           const capturedScaleDomains =
             this._shouldCaptureScaleDomainsFromLayersData() &&
             layersData?.scaleDomains

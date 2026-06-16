@@ -192,48 +192,44 @@ type ScaleLock = {
 };
 ```
 
-### ScaleLegendModel
+### ScaleState
 
-Legend model for the effective scale domains:
+Computed quantitative scale state for the effective scale domains:
 
 Flow thickness values are expressed in display pixels and already include the
 `flowLineThicknessScale` multiplier.
 
 ```typescript
-type FlowScaleLegendSample = {
-  label: string;
+type FlowScaleSample = {
   magnitude: number;
   thickness: number;
   color: [number, number, number, number];
 };
 
-type ScaleLegendModel = {
+type ScaleState = {
   locked: boolean;
+  domains?: ScaleLockDomains;
   flowThickness?: {
     domain: [number, number];
     thicknessRange: [number, number];
-    samples: FlowScaleLegendSample[];
+    samples: FlowScaleSample[];
     outOfScale?: {
-      label: string;
       color: [number, number, number, number];
-      magnitudeLabel: string;
+      magnitude: number;
       thickness: number;
     };
   };
   locationCircles?: {
     domain: [number, number];
     radiusRange: [number, number];
-    incomingLabel: string;
-    outgoingLabel: string;
     colors: {
       incoming: [number, number, number, number];
       outgoing: [number, number, number, number];
       empty: [number, number, number, number];
     };
     outOfScale?: {
-      label: string;
       color: [number, number, number, number];
-      magnitudeLabel: string;
+      magnitude: number;
       radius: number;
     };
   };

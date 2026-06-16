@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {RGBA} from './colors';
+
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
   flows: Iterable<F> | undefined;
@@ -20,40 +22,36 @@ export type ScaleLock = {
   domains?: ScaleLockDomains;
 };
 
-export type FlowScaleLegendSample = {
-  label: string;
+export type FlowScaleSample = {
   magnitude: number;
   thickness: number;
-  color: [number, number, number, number];
+  color: RGBA;
 };
 
-export type ScaleLegendModel = {
+export type ScaleState = {
   locked: boolean;
+  domains?: ScaleLockDomains;
   flowThickness?: {
     domain: [number, number];
     thicknessRange: [number, number];
-    samples: FlowScaleLegendSample[];
+    samples: FlowScaleSample[];
     outOfScale?: {
-      label: string;
-      color: [number, number, number, number];
-      magnitudeLabel: string;
+      color: RGBA;
+      magnitude: number;
       thickness: number;
     };
   };
   locationCircles?: {
     domain: [number, number];
     radiusRange: [number, number];
-    incomingLabel: string;
-    outgoingLabel: string;
     colors: {
-      incoming: [number, number, number, number];
-      outgoing: [number, number, number, number];
-      empty: [number, number, number, number];
+      incoming: RGBA;
+      outgoing: RGBA;
+      empty: RGBA;
     };
     outOfScale?: {
-      label: string;
-      color: [number, number, number, number];
-      magnitudeLabel: string;
+      color: RGBA;
+      magnitude: number;
       radius: number;
     };
   };
@@ -223,7 +221,7 @@ export interface LayersData {
   lineAttributes: FlowLinesLayerAttributes;
   locationLabels?: string[];
   scaleDomains?: ScaleLockDomains;
-  scaleLegend?: ScaleLegendModel;
+  scaleState?: ScaleState;
 }
 
 export type LayersDataAttrValues<T> = {value: T; size: number};

@@ -6,9 +6,9 @@
 
 import DeckGL from '@deck.gl/react';
 import {
-  FlowmapData,
-  ScaleLegendModel,
   getViewStateForLocations,
+  type FlowmapData,
+  type ScaleState,
 } from '@flowmap.gl/data';
 import {
   fetchData,
@@ -31,6 +31,7 @@ import {
 } from 'react-map-gl/maplibre';
 import {ScaleLegend} from './legends/ScaleLegend';
 import {ScaleLockButton} from './legends/ScaleLockButton';
+import {makeScaleLegendModel} from './legends/utils';
 
 const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
@@ -47,7 +48,8 @@ function App() {
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
-  const [scaleLegend, setScaleLegend] = useState<ScaleLegendModel>();
+  const [scaleState, setScaleState] = useState<ScaleState>();
+  const scaleLegend = makeScaleLegendModel(scaleState);
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -103,7 +105,7 @@ function App() {
         flowLineThicknessScale: config.flowLineThicknessScale,
         flowLineCurviness: config.flowLineCurviness,
         scaleLock: {enabled: config.scaleLockEnabled},
-        onScaleLegendChange: setScaleLegend,
+        onScaleChange: setScaleState,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,

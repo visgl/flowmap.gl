@@ -1,4 +1,4 @@
-import {ScaleLegendModel} from '@flowmap.gl/data';
+import type {ScaleLegendModel} from './types';
 import {formatLegendRange, mixRgba, rgbaToCss} from './utils';
 
 const LEGEND_CIRCLE_RADIUS = 10;

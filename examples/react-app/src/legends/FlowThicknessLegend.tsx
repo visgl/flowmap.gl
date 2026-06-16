@@ -1,4 +1,4 @@
-import {ScaleLegendModel} from '@flowmap.gl/data';
+import type {ScaleLegendModel} from './types';
 import {rgbaToCss} from './utils';
 
 export function FlowThicknessLegend({

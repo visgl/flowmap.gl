@@ -252,11 +252,11 @@ The `'both'` mode is useful for stricter local views where you only want to see 
 
 ### Event Handlers
 
-#### `onScaleLegendChange`
+#### `onScaleChange`
 
-- Type: `(legend: ScaleLegendModel | undefined) => void`
+- Type: `(scaleState: ScaleState | undefined) => void`
 
-Callback fired after layer data is prepared with the legend model for the effective scale domains. Use this to render an HTML legend in your app UI.
+Callback fired after layer data is prepared with the effective quantitative scale state. Use this to render an HTML legend, persist locked domains, or sync related UI with the map's flow and location scales.
 
 #### `onHover`
 

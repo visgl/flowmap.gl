@@ -58,7 +58,7 @@ import {
   LocationFilterMode,
   LocationTotals,
   ScaleLockDomains,
-  ScaleLegendModel,
+  ScaleState,
   ViewportProps,
   isLocationClusterNode,
 } from './types';
@@ -1486,7 +1486,7 @@ export default class FlowmapSelectors<
         ...(flowMagnitudeExtent ? {flowMagnitude: flowMagnitudeExtent} : {}),
         ...(locationTotalsExtent ? {locationTotals: locationTotalsExtent} : {}),
       },
-      scaleLegend: makeScaleLegendModel({
+      scaleState: makeScaleState({
         locked: scaleLockEnabled,
         flowMagnitudeExtent,
         locationTotalsExtent,
@@ -1575,7 +1575,7 @@ export default class FlowmapSelectors<
   // }
 }
 
-function makeScaleLegendModel({
+function makeScaleState({
   locked,
   flowMagnitudeExtent,
   locationTotalsExtent,
@@ -1603,14 +1603,13 @@ function makeScaleLegendModel({
     outgoing: [number, number, number, number];
     empty: [number, number, number, number];
   };
-}): ScaleLegendModel | undefined {
+}): ScaleState | undefined {
   const flowMax = getMaxAbsScaleDomainValue(flowMagnitudeExtent);
   const flowThicknessDisplayUnit =
     FLOW_THICKNESS_DISPLAY_UNIT * flowLineThicknessScale;
   const flowSamples =
     flowMax !== undefined && flowThicknessScale
       ? [0, flowMax / 2, flowMax].map((magnitude) => ({
-          label: formatLegendValue(magnitude),
           magnitude,
           thickness:
             (flowThicknessScale(magnitude) || 0) * flowThicknessDisplayUnit,
@@ -1625,6 +1624,10 @@ function makeScaleLegendModel({
     flowSamples?.[flowSamples.length - 1]?.thickness ?? 0;
   return {
     locked,
+    domains: {
+      ...(flowMagnitudeExtent ? {flowMagnitude: flowMagnitudeExtent} : {}),
+      ...(locationTotalsExtent ? {locationTotals: locationTotalsExtent} : {}),
+    },
     ...(flowSamples && flowMagnitudeExtent
       ? {
           flowThickness: {
@@ -1637,11 +1640,9 @@ function makeScaleLegendModel({
             ...(outOfScaleFlowDomain
               ? {
                   outOfScale: {
-                    label: 'Outside locked scale',
                     color: OUT_OF_SCALE_COLOR,
-                    magnitudeLabel: `> ${formatLegendValue(
+                    magnitude:
                       getMaxAbsScaleDomainValue(outOfScaleFlowDomain) ?? 0,
-                    )}`,
                     thickness: maxFlowThickness,
                   },
                 }
@@ -1656,8 +1657,6 @@ function makeScaleLegendModel({
           locationCircles: {
             domain: locationTotalsExtent,
             radiusRange: [0, maxLocationCircleSize] as [number, number],
-            incomingLabel: 'Incoming + internal',
-            outgoingLabel: 'Outgoing + internal',
             colors: {
               incoming: circleLegendColors.inner,
               outgoing: circleLegendColors.outgoing,
@@ -1666,9 +1665,8 @@ function makeScaleLegendModel({
             ...(outOfScaleCircleDomain
               ? {
                   outOfScale: {
-                    label: 'Outside locked scale',
                     color: OUT_OF_SCALE_COLOR,
-                    magnitudeLabel: `> ${formatLegendValue(locationMax)}`,
+                    magnitude: locationMax,
                     radius: maxLocationCircleSize,
                   },
                 }
@@ -1694,12 +1692,6 @@ function isLocationTotalOutsideScaleDomain(
         domain,
       )),
   );
-}
-
-function formatLegendValue(value: number): string {
-  return value >= 1000
-    ? value.toLocaleString(undefined, {maximumFractionDigits: 0})
-    : value.toLocaleString(undefined, {maximumFractionDigits: 2});
 }
 
 function calcLocationTotalsExtent(
