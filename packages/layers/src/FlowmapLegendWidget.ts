@@ -62,6 +62,7 @@ type RenderOptions = {
 
 type LegendTheme = {
   backgroundColor: string;
+  borderColor: string;
   color: string;
   noteColor: string;
   separatorColor: string;
@@ -494,6 +495,9 @@ function applyLegendRootStyles(
   if (!options.unstyled) {
     Object.assign(rootElement.style, {
       boxSizing: 'border-box',
+      border: `1px solid var(--flowmap-legend-border-color, ${
+        options.theme.borderColor
+      })`,
       borderRadius: '5px',
       backgroundColor: `var(--flowmap-legend-background, ${
         options.theme.backgroundColor
@@ -507,6 +511,7 @@ function applyLegendRootStyles(
   } else {
     Object.assign(rootElement.style, {
       boxSizing: '',
+      border: '',
       borderRadius: '',
       backgroundColor: '',
       color: '',
@@ -521,7 +526,8 @@ function applyLegendRootStyles(
 function getLegendTheme(darkMode: boolean): LegendTheme {
   return darkMode
     ? {
-        backgroundColor: 'rgba(25, 25, 25, 0.78)',
+        backgroundColor: 'rgba(38, 38, 38, 0.72)',
+        borderColor: 'rgba(255, 255, 255, 0.22)',
         color: 'white',
         noteColor: 'rgba(255, 255, 255, 0.82)',
         separatorColor: 'rgba(255, 255, 255, 0.22)',
@@ -534,7 +540,8 @@ function getLegendTheme(darkMode: boolean): LegendTheme {
         lockedButtonBackgroundColor: 'rgba(209, 238, 234, 0.18)',
       }
     : {
-        backgroundColor: 'rgba(255, 255, 255, 0.88)',
+        backgroundColor: 'rgba(243, 244, 246, 0.78)',
+        borderColor: 'rgba(17, 24, 39, 0.18)',
         color: 'rgba(17, 24, 39, 0.94)',
         noteColor: 'rgba(31, 41, 55, 0.78)',
         separatorColor: 'rgba(17, 24, 39, 0.16)',
