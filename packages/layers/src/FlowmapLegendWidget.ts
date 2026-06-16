@@ -65,6 +65,7 @@ type LegendTheme = {
   color: string;
   noteColor: string;
   separatorColor: string;
+  lineOutlineColor: string;
   markerBorderColor: string;
   markerOutlineColor: string;
   buttonBorderColor: string;
@@ -370,6 +371,7 @@ function renderLine(
     Object.assign(line.style, {
       display: 'block',
       borderRadius: '2px',
+      boxShadow: `0 0 0 1px ${options.theme.lineOutlineColor}`,
     });
   }
   Object.assign(line.style, {
@@ -523,6 +525,7 @@ function getLegendTheme(darkMode: boolean): LegendTheme {
         color: 'white',
         noteColor: 'rgba(255, 255, 255, 0.82)',
         separatorColor: 'rgba(255, 255, 255, 0.22)',
+        lineOutlineColor: 'rgba(255, 255, 255, 0.28)',
         markerBorderColor: 'rgba(255, 255, 255, 0.8)',
         markerOutlineColor: 'rgba(255, 255, 255, 0.72)',
         buttonBorderColor: 'rgba(255, 255, 255, 0.32)',
@@ -535,6 +538,7 @@ function getLegendTheme(darkMode: boolean): LegendTheme {
         color: 'rgba(17, 24, 39, 0.94)',
         noteColor: 'rgba(31, 41, 55, 0.78)',
         separatorColor: 'rgba(17, 24, 39, 0.16)',
+        lineOutlineColor: 'rgba(17, 24, 39, 0.18)',
         markerBorderColor: 'rgba(17, 24, 39, 0.38)',
         markerOutlineColor: 'rgba(17, 24, 39, 0.28)',
         buttonBorderColor: 'rgba(17, 24, 39, 0.22)',
