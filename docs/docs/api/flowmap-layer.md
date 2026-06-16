@@ -23,6 +23,89 @@ const layer = new FlowmapLayer({
 });
 ```
 
+## Legend Widget
+
+`FlowmapLegendWidget` renders the layer's scale state as a deck.gl widget. Pass the `ScaleState` emitted by `onScaleChange` into the widget:
+
+```typescript
+import {FlowmapLayer, FlowmapLegendWidget} from '@flowmap.gl/layers';
+
+let scaleState;
+let scaleLockEnabled = false;
+
+const layer = new FlowmapLayer({
+  id: 'flowmap-layer',
+  data: {locations, flows},
+  scaleLock: {enabled: scaleLockEnabled},
+  onScaleChange: (nextScaleState) => {
+    scaleState = nextScaleState;
+  },
+  // accessors...
+});
+
+const legend = new FlowmapLegendWidget({
+  scaleState,
+  darkMode: true,
+  sections: ['flowThickness', 'locationCircles'],
+  placement: 'bottom-left',
+  showLockControl: true,
+  onToggleLock: (locked) => {
+    scaleLockEnabled = locked;
+  },
+});
+
+deck.setProps({
+  layers: [layer],
+  widgets: [legend],
+});
+```
+
+When `onScaleChange` fires, update your app state and pass the next `scaleState` to a new or updated `FlowmapLegendWidget`.
+
+`sections` defaults to `['flowThickness', 'locationCircles']`. Use it to render only part of the legend:
+
+```typescript
+new FlowmapLegendWidget({
+  scaleState,
+  sections: ['flowThickness'],
+});
+```
+
+The scale lock control is optional. By default it renders only when `onToggleLock` is provided; set `showLockControl: false` to hide it even when a toggle handler exists.
+
+Set `darkMode` to match the map/layer theme. The widget uses that value for its default background, foreground, borders, and lock-control colors. It also adds either `flowmap-legend-widget-dark` or `flowmap-legend-widget-light` to the root element.
+
+`placement` is the standard deck.gl widget placement (`'top-left'`, `'top-right'`, `'bottom-left'`, or `'bottom-right'`). When placed at the bottom, the widget reserves space above common basemap attribution controls. Left and right placements also get a small edge offset. Override root margins only if your map needs different spacing:
+
+```typescript
+new FlowmapLegendWidget({
+  scaleState,
+  placement: 'bottom-left',
+  style: {
+    marginBottom: '56px',
+    marginLeft: '20px',
+  },
+});
+```
+
+Use `className` for the widget root and `classNames` for internal slots. Set `unstyled: true` when you want to provide the full presentation layer from your own CSS, such as Tailwind utilities:
+
+```typescript
+const legend = new FlowmapLegendWidget({
+  scaleState,
+  darkMode,
+  className: 'rounded bg-zinc-950/80 p-3 text-xs text-white',
+  classNames: {
+    section: 'space-y-1',
+    row: 'grid items-center gap-2',
+    line: 'rounded',
+    lockButton: 'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
+    lockButtonLocked: 'border-teal-200 bg-teal-200/20',
+  },
+  unstyled: true,
+});
+```
+
 ## Props Reference
 
 ### Data Props
@@ -196,7 +279,38 @@ Whether to also fade opacity (in addition to color) for lower-magnitude flows.
 - Type: `boolean`
 - Default: `true`
 
-Whether to adapt flow thickness and color scales to the current viewport. When `true`, scales adjust as you pan/zoom to always show meaningful variation.
+Whether to adapt flow thickness, flow color, and location circle scales to the current viewport. When `true`, scales adjust as you pan/zoom to always show meaningful variation.
+
+#### `scaleLock`
+
+- Type: `{enabled: boolean; domains?: {flowMagnitude?: [number, number]; locationTotals?: [number, number]}}`
+- Default: `undefined`
+
+Locks quantitative visual scale domains so pan/zoom/filtering can change what is visible without changing the numeric rulers used for rendering. When enabled, flow thickness, flow color, and location circle radii use the locked domains. Values outside a locked domain are clamped; flows above the locked flow magnitude domain render in red and clamp to the maximum locked thickness, and circles with incoming or outgoing totals above the locked location totals domain render in red with clamped radii.
+
+If `domains` is omitted, `FlowmapLayer` captures the current rendered domains when the lock transitions from disabled to enabled:
+
+```typescript
+new FlowmapLayer({
+  // ...
+  scaleLock: {enabled: true},
+});
+```
+
+You can also provide domains explicitly:
+
+```typescript
+new FlowmapLayer({
+  // ...
+  scaleLock: {
+    enabled: true,
+    domains: {
+      flowMagnitude: [0, 1000],
+      locationTotals: [0, 5000],
+    },
+  },
+});
+```
 
 ### Performance
 
@@ -220,6 +334,12 @@ Controls when a flow is considered visible based on endpoint locations:
 The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.
 
 ### Event Handlers
+
+#### `onScaleChange`
+
+- Type: `(scaleState: ScaleState | undefined) => void`
+
+Callback fired after layer data is prepared with the effective quantitative scale state. Use this to render an HTML legend, persist locked domains, or sync related UI with the map's flow and location scales.
 
 #### `onHover`
 

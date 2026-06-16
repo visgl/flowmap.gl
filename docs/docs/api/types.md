@@ -172,7 +172,68 @@ interface SettingsState {
   colorScheme: string | string[] | undefined;
   highlightColor: string;
   maxTopFlowsDisplayNum: number;
+  scaleLock?: ScaleLock;
 }
+```
+
+### ScaleLock
+
+Optional locked scale domains:
+
+```typescript
+type ScaleLockDomains = {
+  flowMagnitude?: [number, number];
+  locationTotals?: [number, number];
+};
+
+type ScaleLock = {
+  enabled: boolean;
+  domains?: ScaleLockDomains;
+};
+```
+
+### ScaleState
+
+Computed quantitative scale state for the effective scale domains:
+
+Flow thickness values are expressed in display pixels and already include the
+`flowLineThicknessScale` multiplier.
+
+```typescript
+type FlowScaleSample = {
+  magnitude: number;
+  thickness: number;
+  color: [number, number, number, number];
+};
+
+type ScaleState = {
+  locked: boolean;
+  domains?: ScaleLockDomains;
+  flowThickness?: {
+    domain: [number, number];
+    thicknessRange: [number, number];
+    samples: FlowScaleSample[];
+    outOfScale?: {
+      color: [number, number, number, number];
+      magnitude: number;
+      thickness: number;
+    };
+  };
+  locationCircles?: {
+    domain: [number, number];
+    radiusRange: [number, number];
+    colors: {
+      incoming: [number, number, number, number];
+      outgoing: [number, number, number, number];
+      empty: [number, number, number, number];
+    };
+    outOfScale?: {
+      color: [number, number, number, number];
+      magnitude: number;
+      radius: number;
+    };
+  };
+};
 ```
 
 ### FlowmapState

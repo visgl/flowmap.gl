@@ -10,5 +10,11 @@ export {default as FlowLinesLayer} from './FlowLinesLayer';
 export {default as FlowCirclesLayer} from './FlowCirclesLayer';
 export {default as FlowmapLayer} from './FlowmapLayer';
 export type {FlowmapLayerProps} from './FlowmapLayer';
+export {default as FlowmapLegendWidget} from './FlowmapLegendWidget';
+export type {
+  FlowmapLegendWidgetClassNames,
+  FlowmapLegendWidgetProps,
+  FlowmapLegendWidgetSection,
+} from './FlowmapLegendWidget';
 
 export * from './types';

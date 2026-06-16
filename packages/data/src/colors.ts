@@ -479,7 +479,8 @@ export function createFlowColorScale(
   const scale = scaleSequentialPow(interpolateRgbaBasis(scheme))
     // @ts-ignore
     .exponent(animate ? 1 / 2 : 1 / 3)
-    .domain(domain);
+    .domain(domain)
+    .clamp(true);
 
   return (value: number) => colorAsRgba(scale(value));
 }

@@ -5,7 +5,11 @@
  */
 
 import DeckGL from '@deck.gl/react';
-import {FlowmapData, getViewStateForLocations} from '@flowmap.gl/data';
+import {
+  getViewStateForLocations,
+  type FlowmapData,
+  type ScaleState,
+} from '@flowmap.gl/data';
 import {
   fetchData,
   FlowDatum,
@@ -16,6 +20,7 @@ import {
 } from '@flowmap.gl/examples-common';
 import {
   FlowmapLayer,
+  FlowmapLegendWidget,
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
@@ -37,10 +42,11 @@ type TooltipState = {
 };
 
 function App() {
-  const config = useUI(UI_INITIAL, initLilGui);
+  const [config, setConfigValue] = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [tooltip, setTooltip] = useState<TooltipState>();
+  const [scaleState, setScaleState] = useState<ScaleState>();
   useEffect(() => {
     (async () => {
       setData(await fetchData(config.clusteringMethod));
@@ -70,6 +76,7 @@ function App() {
     setTooltip(undefined);
   };
   const layers = [];
+  const widgets = [];
   if (data) {
     layers.push(
       new FlowmapLayer<LocationDatum, FlowDatum>({
@@ -95,6 +102,8 @@ function App() {
         flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
         flowLineThicknessScale: config.flowLineThicknessScale,
         flowLineCurviness: config.flowLineCurviness,
+        scaleLock: {enabled: config.scaleLockEnabled},
+        onScaleChange: setScaleState,
         getLocationId: (loc) => loc.id,
         getLocationLat: (loc) => loc.lat,
         getLocationLon: (loc) => loc.lon,
@@ -105,6 +114,22 @@ function App() {
         onHover: (info) => setTooltip(getTooltipState(info)),
         onClick: (info) =>
           console.log('clicked', info.object?.type, info.object, info),
+      }),
+    );
+  }
+  if (scaleState?.flowThickness || scaleState?.locationCircles) {
+    widgets.push(
+      new FlowmapLegendWidget({
+        scaleState,
+        darkMode: config.darkMode,
+        placement: 'bottom-right',
+        style: {
+          marginRight: '15px',
+          marginBottom: '44px',
+        },
+        sections: ['flowThickness', 'locationCircles'],
+        showLockControl: true,
+        onToggleLock: (locked) => setConfigValue('scaleLockEnabled', locked),
       }),
     );
   }
@@ -125,6 +150,7 @@ function App() {
         controller={true}
         // @ts-ignore
         layers={layers}
+        widgets={widgets}
         style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
       >
         <ReactMapGl

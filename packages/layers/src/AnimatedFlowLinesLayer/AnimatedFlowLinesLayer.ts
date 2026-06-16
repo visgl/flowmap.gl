@@ -61,7 +61,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     },
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
     getThickness: {type: 'accessor', value: 1},
-    thicknessUnit: 15 * 2,
+    thicknessUnit: 12,
     parameters: {
       depthTest: false,
     },
@@ -136,7 +136,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   }
 
   draw(): void {
-    const {thicknessUnit = 15 * 2, animationTailLength = 0.7} = this
+    const {thicknessUnit = 12, animationTailLength = 0.7} = this
       .props as unknown as Props<F>;
     const timestamp = Date.now() / 1000;
     const animationTime = ((timestamp % loopTime) / loopTime) * loopLength;
@@ -147,7 +147,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     }
     model.shaderInputs.setProps({
       animatedFlowLines: {
-        thicknessUnit: thicknessUnit * 4,
+        thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,
         currentTime: animationTime,
       },

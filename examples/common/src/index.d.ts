@@ -30,9 +30,12 @@ export function getClusterLevelsH3(
 export function fetchData(clusteringMethod?: string): Promise<LoadedData>;
 
 export const UI_INITIAL: Record<string, any>;
-export const initLilGui: (gui: GUI) => void;
+export const initLilGui: (
+  gui: GUI,
+  options?: {scaleLockEnabled?: boolean},
+) => void;
 
 export function useUI<T extends Record<string, any>>(
   initialState: T,
   initUi: (gui: GUI) => void,
-);
+): [T, <K extends keyof T>(key: K, value: T[K]) => void];

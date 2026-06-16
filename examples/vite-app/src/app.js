@@ -85,6 +85,7 @@ fetchData().then((data) => {
           clusteringAuto: config.clusteringAuto,
           clusteringLevel: config.clusteringLevel,
           adaptiveScalesEnabled: config.adaptiveScalesEnabled,
+          scaleLock: {enabled: config.scaleLockEnabled},
           highlightColor: config.highlightColor,
           getLocationId: (loc) => loc.id,
           getLocationLat: (loc) => loc.lat,

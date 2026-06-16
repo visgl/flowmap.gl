@@ -4,10 +4,57 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {RGBA} from './colors';
+
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;
   flows: Iterable<F> | undefined;
   clusterLevels?: ClusterLevels;
+};
+
+export type ScaleLockDomains = {
+  flowMagnitude?: [number, number];
+  locationTotals?: [number, number];
+};
+
+export type ScaleLock = {
+  enabled: boolean;
+  domains?: ScaleLockDomains;
+};
+
+export type FlowScaleSample = {
+  magnitude: number;
+  thickness: number;
+  color: RGBA;
+};
+
+export type ScaleState = {
+  locked: boolean;
+  domains?: ScaleLockDomains;
+  flowThickness?: {
+    domain: [number, number];
+    thicknessRange: [number, number];
+    samples: FlowScaleSample[];
+    outOfScale?: {
+      color: RGBA;
+      magnitude: number;
+      thickness: number;
+    };
+  };
+  locationCircles?: {
+    domain: [number, number];
+    radiusRange: [number, number];
+    colors: {
+      incoming: RGBA;
+      outgoing: RGBA;
+      empty: RGBA;
+    };
+    outOfScale?: {
+      color: RGBA;
+      magnitude: number;
+      radius: number;
+    };
+  };
 };
 
 export interface ViewState {
@@ -152,6 +199,7 @@ export interface FlowCirclesLayerAttributes {
     getColor: LayersDataAttrValues<Uint8Array>;
     getInRadius: LayersDataAttrValues<Float32Array>;
     getOutRadius: LayersDataAttrValues<Float32Array>;
+    getOutOfScale?: LayersDataAttrValues<Float32Array>;
   };
 }
 
@@ -172,6 +220,8 @@ export interface LayersData {
   circleAttributes: FlowCirclesLayerAttributes;
   lineAttributes: FlowLinesLayerAttributes;
   locationLabels?: string[];
+  scaleDomains?: ScaleLockDomains;
+  scaleState?: ScaleState;
 }
 
 export type LayersDataAttrValues<T> = {value: T; size: number};

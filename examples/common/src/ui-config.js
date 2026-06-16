@@ -22,6 +22,7 @@ export const UI_INITIAL = {
   flowLinesRenderingMode: 'straight',
   flowLineThicknessScale: FlowmapLayer.defaultProps.flowLineThicknessScale,
   adaptiveScalesEnabled: FlowmapLayer.defaultProps.adaptiveScalesEnabled,
+  scaleLockEnabled: false,
   locationsEnabled: FlowmapLayer.defaultProps.locationsEnabled,
   locationTotalsEnabled: FlowmapLayer.defaultProps.locationTotalsEnabled,
   locationLabelsEnabled: FlowmapLayer.defaultProps.locationLabelsEnabled,
@@ -30,7 +31,7 @@ export const UI_INITIAL = {
   flowLineCurviness: FlowmapLayer.defaultProps.flowLineCurviness,
 };
 
-export const initLilGui = (gui) => {
+export const initLilGui = (gui, {scaleLockEnabled = true} = {}) => {
   gui.add(UI_INITIAL, 'darkMode');
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
@@ -39,7 +40,7 @@ export const initLilGui = (gui) => {
     'animated-straight',
     'curved',
   ]);
-  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 5.0);
+  gui.add(UI_INITIAL, 'flowLineThicknessScale', 0.1, 4.0);
   const flowLineCurviness = gui
     .add(UI_INITIAL, 'flowLineCurviness', 0.0, 3.0)
     .enable(UI_INITIAL.flowLinesRenderingMode === 'curved');
@@ -47,6 +48,9 @@ export const initLilGui = (gui) => {
     flowLineCurviness.enable(v === 'curved');
   });
   gui.add(UI_INITIAL, 'adaptiveScalesEnabled');
+  if (scaleLockEnabled) {
+    gui.add(UI_INITIAL, 'scaleLockEnabled');
+  }
   const locationsEnabled = gui.add(UI_INITIAL, 'locationsEnabled');
   const locationTotalsEnabled = gui
     .add(UI_INITIAL, 'locationTotalsEnabled')

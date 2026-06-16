@@ -43,10 +43,33 @@ export default function useUI(initialState, initUi) {
     ...readParamsFromUrl(initialState),
   }));
   const lilGuiRef = useRef();
+  const controllersRef = useRef([]);
 
   const syncToUrl = useCallback(
     (nextState) => writeParamsToUrl(nextState, defaultsRef.current),
     [],
+  );
+
+  const updateStateValue = useCallback((property, value) => {
+    setState((prev) => {
+      const next = {...prev, [property]: value};
+      writeParamsToUrl(next, defaultsRef.current);
+      return next;
+    });
+  }, []);
+
+  const setValue = useCallback(
+    (property, value) => {
+      const controller = controllersRef.current.find(
+        (c) => c._name === property,
+      );
+      if (controller) {
+        controller.setValue(value);
+      } else {
+        updateStateValue(property, value);
+      }
+    },
+    [updateStateValue],
   );
 
   useEffect(() => {
@@ -57,7 +80,7 @@ export default function useUI(initialState, initUi) {
     const gui = new GUI();
     initUi(gui);
 
-    const controllers = gui.controllersRecursive();
+    let controllers = gui.controllersRecursive();
     for (const key in initialState) {
       if (initialState[key]) {
         if (controllers.find((c) => c._name === key)) continue;
@@ -66,24 +89,23 @@ export default function useUI(initialState, initUi) {
         gui.add.apply(gui, args);
       }
     }
+    controllers = gui.controllersRecursive();
+    controllersRef.current = controllers;
 
     gui.onChange((event) => {
-      setState((prev) => {
-        const next = {...prev, [event.property]: event.value};
-        writeParamsToUrl(next, defaultsRef.current);
-        return next;
-      });
+      updateStateValue(event.property, event.value);
     });
 
     lilGuiRef.current = gui;
     return () => {
       gui.destroy();
+      controllersRef.current = [];
     };
-  }, [initUi]);
+  }, [initUi, updateStateValue]);
 
   useEffect(() => {
     syncToUrl(state);
   }, [state, syncToUrl]);
 
-  return state;
+  return [state, setValue];
 }
