@@ -45,7 +45,9 @@ const layer = new FlowmapLayer({
 
 const legend = new FlowmapLegendWidget({
   scaleState,
+  sections: ['flowThickness', 'locationCircles'],
   placement: 'bottom-right',
+  showLockControl: true,
   onToggleLock: (locked) => {
     scaleLockEnabled = locked;
   },
@@ -58,6 +60,17 @@ deck.setProps({
 ```
 
 When `onScaleChange` fires, update your app state and pass the next `scaleState` to a new or updated `FlowmapLegendWidget`.
+
+`sections` defaults to `['flowThickness', 'locationCircles']`. Use it to render only part of the legend:
+
+```typescript
+new FlowmapLegendWidget({
+  scaleState,
+  sections: ['flowThickness'],
+});
+```
+
+The scale lock control is optional. By default it renders only when `onToggleLock` is provided; set `showLockControl: false` to hide it even when a toggle handler exists.
 
 Use `className` for the widget root and `classNames` for internal slots. Set `unstyled: true` when you want to provide the full presentation layer from your own CSS, such as Tailwind utilities:
 

@@ -7,6 +7,8 @@ import {Widget} from '@deck.gl/core';
 import type {WidgetPlacement, WidgetProps} from '@deck.gl/core';
 import type {RGBA, ScaleState} from '@flowmap.gl/data';
 
+export type FlowmapLegendWidgetSection = 'flowThickness' | 'locationCircles';
+
 export type FlowmapLegendWidgetProps = WidgetProps & {
   /** Widget positioning within the view. */
   placement?: WidgetPlacement;
@@ -14,6 +16,10 @@ export type FlowmapLegendWidgetProps = WidgetProps & {
   viewId?: string | null;
   /** Scale state emitted by `FlowmapLayer.onScaleChange`. */
   scaleState?: ScaleState;
+  /** Legend sections to render. Omit to show all available sections. */
+  sections?: readonly FlowmapLegendWidgetSection[];
+  /** Whether to show the scale lock control when `onToggleLock` is provided. */
+  showLockControl?: boolean;
   /** Called when the lock button is clicked. Omit to hide the button. */
   onToggleLock?: (locked: boolean) => void;
   /** CSS class names for internal legend slots. Useful with utility CSS frameworks. */
@@ -41,6 +47,10 @@ export type FlowmapLegendWidgetClassNames = {
 
 const LEGEND_CIRCLE_RADIUS = 10;
 const LEGEND_CIRCLE_SECONDARY_RADIUS = 7;
+const DEFAULT_SECTIONS: readonly FlowmapLegendWidgetSection[] = [
+  'flowThickness',
+  'locationCircles',
+];
 
 type RenderOptions = {
   classNames: FlowmapLegendWidgetClassNames;
@@ -54,6 +64,8 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
     placement: 'bottom-right',
     viewId: null,
     scaleState: undefined!,
+    sections: DEFAULT_SECTIONS,
+    showLockControl: true,
     onToggleLock: undefined!,
     classNames: {},
     unstyled: false,
@@ -83,29 +95,46 @@ export default class FlowmapLegendWidget extends Widget<FlowmapLegendWidgetProps
     applyLegendRootStyles(rootElement, this.props.style, renderOptions);
 
     const {scaleState} = this.props;
-    if (!scaleState?.flowThickness && !scaleState?.locationCircles) {
+    const sections = this.props.sections ?? DEFAULT_SECTIONS;
+    const showFlowThickness =
+      sections.includes('flowThickness') && Boolean(scaleState?.flowThickness);
+    const showLocationCircles =
+      sections.includes('locationCircles') &&
+      Boolean(scaleState?.locationCircles);
+    const showLockControl =
+      Boolean(scaleState) &&
+      this.props.showLockControl !== false &&
+      Boolean(this.props.onToggleLock);
+
+    if (!showFlowThickness && !showLocationCircles && !showLockControl) {
       rootElement.style.display = 'none';
       return;
     }
     rootElement.style.display = 'block';
 
-    if (scaleState.flowThickness) {
-      rootElement.append(renderFlowThickness(scaleState, renderOptions));
+    if (showFlowThickness) {
+      rootElement.append(renderFlowThicknessSection(scaleState!, renderOptions));
     }
-    if (scaleState.locationCircles) {
-      rootElement.append(renderCircleSize(scaleState, renderOptions));
-    }
-    if (this.props.onToggleLock) {
+    if (showLocationCircles) {
       rootElement.append(
-        renderLockButton(scaleState.locked, renderOptions, () => {
-          this.props.onToggleLock?.(!scaleState.locked);
+        renderLocationCirclesSection(
+          scaleState!,
+          renderOptions,
+          showFlowThickness,
+        ),
+      );
+    }
+    if (showLockControl) {
+      rootElement.append(
+        renderScaleLockControl(scaleState!.locked, renderOptions, () => {
+          this.props.onToggleLock?.(!scaleState!.locked);
         }),
       );
     }
   }
 }
 
-function renderFlowThickness(
+function renderFlowThicknessSection(
   scaleState: ScaleState,
   options: RenderOptions,
 ): HTMLElement {
@@ -143,13 +172,14 @@ function renderFlowThickness(
   return section;
 }
 
-function renderCircleSize(
+function renderLocationCirclesSection(
   scaleState: ScaleState,
   options: RenderOptions,
+  separated: boolean,
 ): HTMLElement {
   const locationCircles = scaleState.locationCircles!;
   const section = createSlotElement('div', 'section', options);
-  if (scaleState.flowThickness) {
+  if (separated) {
     addClasses(section, 'flowmap-legend-section-separated');
     addClasses(section, options.classNames.sectionSeparated);
     if (!options.unstyled) {
@@ -218,7 +248,7 @@ function renderCircleSize(
   return section;
 }
 
-function renderLockButton(
+function renderScaleLockControl(
   locked: boolean,
   options: RenderOptions,
   onClick: () => void,

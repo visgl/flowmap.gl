@@ -121,6 +121,8 @@ function App() {
     widgets.push(
       new FlowmapLegendWidget({
         scaleState,
+        sections: ['flowThickness', 'locationCircles'],
+        showLockControl: true,
         onToggleLock: (locked) => setConfigValue('scaleLockEnabled', locked),
       }),
     );

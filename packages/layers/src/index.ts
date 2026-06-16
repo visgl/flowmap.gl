@@ -14,6 +14,7 @@ export {default as FlowmapLegendWidget} from './FlowmapLegendWidget';
 export type {
   FlowmapLegendWidgetClassNames,
   FlowmapLegendWidgetProps,
+  FlowmapLegendWidgetSection,
 } from './FlowmapLegendWidget';
 
 export * from './types';
