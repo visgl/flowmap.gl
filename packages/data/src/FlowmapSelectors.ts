@@ -107,6 +107,8 @@ export default class FlowmapSelectors<
     state.filter?.locationFilterMode;
   getClusteringEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.clusteringEnabled;
+  getLocationsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
+    state.settings.locationsEnabled;
   getLocationTotalsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.locationTotalsEnabled;
   getLocationLabelsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -1110,6 +1112,7 @@ export default class FlowmapSelectors<
     this.getFlowThicknessScale,
     this.getViewport,
     this.getFlowLinesRenderingMode,
+    this.getLocationsEnabled,
     this.getLocationLabelsEnabled,
     (
       locations,
@@ -1122,6 +1125,7 @@ export default class FlowmapSelectors<
       flowThicknessScale,
       viewport,
       flowLinesRenderingMode,
+      locationsEnabled,
       locationLabelsEnabled,
     ) => {
       return this._prepareLayersData(
@@ -1135,6 +1139,7 @@ export default class FlowmapSelectors<
         flowThicknessScale,
         viewport,
         flowLinesRenderingMode,
+        locationsEnabled,
         locationLabelsEnabled,
       );
     },
@@ -1151,6 +1156,7 @@ export default class FlowmapSelectors<
     const getInCircleSize = this.getInCircleSizeGetter(state, props);
     const getOutCircleSize = this.getOutCircleSizeGetter(state, props);
     const flowThicknessScale = this.getFlowThicknessScale(state, props);
+    const locationsEnabled = this.getLocationsEnabled(state, props);
     const locationLabelsEnabled = this.getLocationLabelsEnabled(state, props);
     const viewport = this.getViewport(state, props);
     return this._prepareLayersData(
@@ -1164,6 +1170,7 @@ export default class FlowmapSelectors<
       flowThicknessScale,
       viewport,
       state.settings.flowLinesRenderingMode,
+      locationsEnabled,
       locationLabelsEnabled,
     );
   }
@@ -1179,6 +1186,7 @@ export default class FlowmapSelectors<
     flowThicknessScale: ScaleLinear<number, number, never> | undefined,
     viewport: ViewportProps,
     flowLinesRenderingMode: FlowLinesRenderingMode,
+    locationsEnabled: boolean,
     locationLabelsEnabled: boolean,
   ): LayersData {
     if (!locations) locations = [];
@@ -1276,6 +1284,11 @@ export default class FlowmapSelectors<
     const endpointOffsets = Float32Array.from(
       (function* () {
         for (const flow of flows) {
+          if (!locationsEnabled) {
+            yield 0;
+            yield 0;
+            continue;
+          }
           const originId = getFlowOriginId(flow);
           const destId = getFlowDestId(flow);
           yield Math.max(getInCircleSize(originId), getOutCircleSize(originId));
