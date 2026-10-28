@@ -28,15 +28,15 @@ From the repository root, run `yarn build` and then
   settings. Turning `globe` off shows the same flights on the flat map and restores
   its last camera and selected rendering mode.
 - `/globe.html` redirects to the main example, preserving query settings.
-- Globe mode uses MapLibre's globe camera and gestures with an interleaved
+- Both projections use MapLibre's camera and gestures with an interleaved
   deck.gl overlay, following deck.gl's `global-grids` example. The basemap uses
   OpenFreeMap Dark or Positron vector tiles according to the dark-mode toggle,
   with labels and attribution. Drag rotates
-  the globe; wheel/pinch and the zoom buttons change scale. Tilt is disabled.
+  the map; wheel/pinch and the zoom buttons change scale. Tilt is disabled on the globe.
   The flights example defaults to dark mode. Light mode uses Positron and a
   pale background around the globe.
   Basemap labels render above the flows; the `basemapLabels` checkbox shows
-  or hides them in either theme, independently of airport/location labels.
+  or hides them in both projections and themes, independently of airport/location labels.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
@@ -55,5 +55,5 @@ whose endpoints are both outside the visible viewport is omitted even if part of
 its path crosses the screen. Exactly antipodal endpoints use a deterministic
 fallback plane because their shortest route is ambiguous. Routes use 96 segments;
 this is not adaptive tessellation. The examples cap globe zoom at 12, before
-`GlobeView` switches to Mercator. Flat mode retains its existing deck.gl
-controller and Carto basemap styles.
+`GlobeView` switches to Mercator. Flat mode retains its existing flow rendering modes
+and Mercator clustering, with the same OpenFreeMap styles and label controls.

@@ -4,31 +4,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import DeckGL from '@deck.gl/react';
-import {MapView, type GlobeViewState, type Layer} from '@deck.gl/core';
-import GlobeMap from './globe/GlobeMap';
+import type {GlobeViewState, Layer} from '@deck.gl/core';
+import FlowmapCanvas from './map/FlowmapCanvas';
+import {FLOWMAP_LABELS_ANCHOR} from './map/basemap-style';
 import {fetchGlobeData} from './globe/data';
 import {initialConfig, initExampleGui} from './ui';
 import {type FlowmapData, type ScaleState} from '@flowmap.gl/data';
 import {FlowDatum, LocationDatum, useUI} from '@flowmap.gl/examples-common';
 import {
   FlowmapLayer,
+  type FlowmapLayerProps,
   FlowmapLegendWidget,
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {ReactNode, useEffect, useState} from 'react';
-import {
-  Map as ReactMapGl,
-  ViewState as ViewportProps,
-} from 'react-map-gl/maplibre';
-
-const MAP_STYLE_LIGHT =
-  'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
-const MAP_STYLE_DARK =
-  'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
-const mapView = new MapView({id: 'map'});
+import type {ViewState as ViewportProps} from 'react-map-gl/maplibre';
 
 type TooltipState = {
   position: {left: number; top: number};
@@ -84,44 +76,47 @@ function App() {
   const layers: Layer[] = [];
   const widgets = [];
   if (data) {
-    layers.push(
-      new FlowmapLayer<LocationDatum, FlowDatum>({
-        id: 'my-flowmap-layer',
-        data,
-        opacity: config.opacity,
-        pickable: true,
-        darkMode: config.darkMode,
-        colorScheme: config.colorScheme,
-        fadeAmount: config.fadeAmount,
-        fadeEnabled: config.fadeEnabled,
-        fadeOpacityEnabled: config.fadeOpacityEnabled,
-        locationsEnabled: config.locationsEnabled,
-        locationTotalsEnabled: config.locationTotalsEnabled,
-        locationLabelsEnabled: config.locationLabelsEnabled,
-        flowLinesRenderingMode: config.flowLinesRenderingMode,
-        clusteringEnabled: config.clusteringEnabled,
-        clusteringAuto: config.clusteringAuto,
-        clusteringLevel: config.clusteringLevel,
-        adaptiveScalesEnabled: config.adaptiveScalesEnabled,
-        highlightColor: config.highlightColor,
-        maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
-        flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
-        flowLineThicknessScale: config.flowLineThicknessScale,
-        flowLineCurviness: config.flowLineCurviness,
-        scaleLock: {enabled: config.scaleLockEnabled},
-        onScaleChange: setScaleState,
-        getLocationId: (loc) => loc.id,
-        getLocationLat: (loc) => loc.lat,
-        getLocationLon: (loc) => loc.lon,
-        getFlowOriginId: (flow) => flow.origin,
-        getLocationName: (loc) => loc.name,
-        getFlowDestId: (flow) => flow.dest,
-        getFlowMagnitude: (flow) => flow.count,
-        onHover: (info) => setTooltip(getTooltipState(info)),
-        onClick: (info) =>
-          console.log('clicked', info.object?.type, info.object, info),
-      }),
-    );
+    // Set draw order on the original layer: cloning would wrap its picking handlers twice.
+    const layerProps: FlowmapLayerProps<LocationDatum, FlowDatum> & {
+      beforeId: string;
+    } = {
+      beforeId: FLOWMAP_LABELS_ANCHOR,
+      id: 'my-flowmap-layer',
+      data,
+      opacity: config.opacity,
+      pickable: true,
+      darkMode: config.darkMode,
+      colorScheme: config.colorScheme,
+      fadeAmount: config.fadeAmount,
+      fadeEnabled: config.fadeEnabled,
+      fadeOpacityEnabled: config.fadeOpacityEnabled,
+      locationsEnabled: config.locationsEnabled,
+      locationTotalsEnabled: config.locationTotalsEnabled,
+      locationLabelsEnabled: config.locationLabelsEnabled,
+      flowLinesRenderingMode: config.flowLinesRenderingMode,
+      clusteringEnabled: config.clusteringEnabled,
+      clusteringAuto: config.clusteringAuto,
+      clusteringLevel: config.clusteringLevel,
+      adaptiveScalesEnabled: config.adaptiveScalesEnabled,
+      highlightColor: config.highlightColor,
+      maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
+      flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
+      flowLineThicknessScale: config.flowLineThicknessScale,
+      flowLineCurviness: config.flowLineCurviness,
+      scaleLock: {enabled: config.scaleLockEnabled},
+      onScaleChange: setScaleState,
+      getLocationId: (loc) => loc.id,
+      getLocationLat: (loc) => loc.lat,
+      getLocationLon: (loc) => loc.lon,
+      getFlowOriginId: (flow) => flow.origin,
+      getLocationName: (loc) => loc.name,
+      getFlowDestId: (flow) => flow.dest,
+      getFlowMagnitude: (flow) => flow.count,
+      onHover: (info) => setTooltip(getTooltipState(info)),
+      onClick: (info) =>
+        console.log('clicked', info.object?.type, info.object, info),
+    };
+    layers.push(new FlowmapLayer<LocationDatum, FlowDatum>(layerProps));
   }
   if (scaleState?.flowThickness || scaleState?.locationCircles) {
     widgets.push(
@@ -156,35 +151,16 @@ function App() {
           Unable to load data: {dataError}
         </div>
       )}
-      {globe ? (
-        <GlobeMap
-          darkMode={config.darkMode}
-          labelsEnabled={config.basemapLabels}
-          initialViewState={globeViewState}
-          onMove={handleViewStateChange}
-          layers={layers}
-          widgets={widgets}
-        />
-      ) : (
-        <DeckGL
-          views={mapView}
-          width="100%"
-          height="100%"
-          initialViewState={viewState}
-          onViewStateChange={handleViewStateChange}
-          controller={true}
-          // @ts-ignore
-          layers={layers}
-          widgets={widgets}
-          style={{
-            mixBlendMode: config.darkMode ? 'screen' : 'darken',
-          }}
-        >
-          <ReactMapGl
-            mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
-          />
-        </DeckGL>
-      )}
+      <FlowmapCanvas
+        key={globe ? 'globe' : 'flat'}
+        projection={globe ? 'globe' : 'mercator'}
+        darkMode={config.darkMode}
+        labelsEnabled={config.basemapLabels}
+        initialViewState={globe ? globeViewState : viewState}
+        onMove={handleViewStateChange}
+        layers={layers}
+        widgets={widgets}
+      />
       {tooltip && (
         <div className="tooltip" style={tooltip.position}>
           {tooltip.content}

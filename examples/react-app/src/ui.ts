@@ -9,11 +9,8 @@ export const initialConfig = Object.assign(UI_INITIAL, {
 });
 
 export function initExampleGui(gui: Parameters<typeof initLilGui>[0]) {
-  const globe = gui.add(initialConfig, 'globe');
-  const labels = gui
-    .add(initialConfig, 'basemapLabels')
-    .enable(initialConfig.globe);
-  globe.onChange((enabled: boolean) => labels.enable(enabled));
+  gui.add(initialConfig, 'globe');
+  gui.add(initialConfig, 'basemapLabels');
   initLilGui(gui);
 
   const source = document.createElement('a');

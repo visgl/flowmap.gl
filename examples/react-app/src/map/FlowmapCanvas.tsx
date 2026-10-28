@@ -1,26 +1,29 @@
-import type {GlobeViewState, Layer} from '@deck.gl/core';
+import type {GlobeViewState, MapViewState, Layer} from '@deck.gl/core';
 import {MapLibreOverlay, type MapLibreOverlayProps} from '@deck.gl/maplibre';
 import type {StyleSpecification} from 'maplibre-gl';
 import {useEffect, useMemo, useState} from 'react';
 import {Map, NavigationControl, useControl} from 'react-map-gl/maplibre';
-import {FLOWMAP_LABELS_ANCHOR, prepareBasemapStyle} from './basemap-style';
+import {prepareBasemapStyle} from './basemap-style';
 
-type GlobeMapProps = Pick<MapLibreOverlayProps, 'widgets'> & {
+type FlowmapCanvasProps = Pick<MapLibreOverlayProps, 'widgets'> & {
   layers: Layer[];
+  projection: 'globe' | 'mercator';
   darkMode: boolean;
   labelsEnabled: boolean;
-  initialViewState: GlobeViewState;
-  onMove: (event: {viewState: GlobeViewState}) => void;
+  initialViewState: GlobeViewState | MapViewState;
+  onMove: (event: {viewState: MapViewState}) => void;
 };
 
-export default function GlobeMap({
+export default function FlowmapCanvas({
+  projection,
   darkMode,
   labelsEnabled,
   initialViewState,
   onMove,
   layers,
   widgets,
-}: GlobeMapProps) {
+}: FlowmapCanvasProps) {
+  const globe = projection === 'globe';
   const [sourceStyle, setSourceStyle] = useState<StyleSpecification>();
   const [styleError, setStyleError] = useState<string>();
   useEffect(() => {
@@ -49,10 +52,6 @@ export default function GlobeMap({
     () => sourceStyle && prepareBasemapStyle(sourceStyle, labelsEnabled),
     [sourceStyle, labelsEnabled],
   );
-  const orderedLayers = layers.map((layer) => {
-    const props = {id: layer.id, beforeId: FLOWMAP_LABELS_ANCHOR};
-    return layer.clone(props);
-  });
   if (!mapStyle) {
     return (
       <div className="basemap-status" role={styleError ? 'alert' : 'status'}>
@@ -68,18 +67,24 @@ export default function GlobeMap({
         </div>
       )}
       <Map
-        projection="globe"
+        projection={projection}
         initialViewState={initialViewState}
         onMove={onMove}
         mapStyle={mapStyle}
         style={{isolation: 'isolate'}}
-        dragRotate={false}
-        touchPitch={false}
-        maxPitch={0}
-        maxZoom={12}
+        dragRotate={!globe}
+        touchPitch={!globe}
+        maxPitch={globe ? 0 : 60}
+        maxZoom={globe ? 12 : 20}
       >
-        <NavigationControl position="bottom-left" showCompass={false} />
-        <FlowmapOverlay layers={orderedLayers} widgets={widgets} interleaved />
+        <NavigationControl position="bottom-left" showCompass={!globe} />
+        <FlowmapOverlay
+          layers={layers}
+          widgets={widgets}
+          interleaved
+          // These are 2D overlays: don't occlude basemap labels drawn afterward.
+          parameters={{depthWriteEnabled: false, depthCompare: 'always'}}
+        />
       </Map>
     </>
   );

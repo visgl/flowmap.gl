@@ -22,14 +22,8 @@ code {
   width: 100vw;
   height: 100vh;
 }
-.flat.light .maplibregl-map {
-  opacity: 0.5;
-}
 .dark {
   background: #000;
-}
-.flat.dark .maplibregl-map {
-  opacity: 0.3;
 }
 .globe.dark {
   background: linear-gradient(0deg, #000, #223);
