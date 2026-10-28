@@ -5,7 +5,8 @@
  */
 
 import {Deck, MapView} from '@deck.gl/core';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import {
   FlowmapLayer,
   getFlowmapCanvasStyle,
@@ -15,6 +16,8 @@ import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';

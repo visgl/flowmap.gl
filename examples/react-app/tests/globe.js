@@ -5,6 +5,7 @@ import {
   AnimatedFlowLinesLayer,
   CurvedFlowLinesLayer,
 } from '@flowmap.gl/layers';
+import {LocalFlowmapDataProvider} from '@flowmap.gl/data';
 import {checkClustering} from './clustering';
 import {isLocationVisibleOnGlobe} from '../../../packages/data/src/globe';
 
@@ -42,6 +43,14 @@ async function run() {
       onError: (error) => errors.push(error.message),
     });
   });
+  const accessors = {
+    getLocationId: (d) => d.id,
+    getLocationLon: (d) => d.lon,
+    getLocationLat: (d) => d.lat,
+    getFlowOriginId: (d) => d.origin,
+    getFlowDestId: (d) => d.dest,
+    getFlowMagnitude: (d) => d.count,
+  };
   const makeLayer = (mode, data, extra = {}) =>
     new FlowmapLayer({
       id: 'test-flows',
@@ -53,12 +62,7 @@ async function run() {
       adaptiveScalesEnabled: false,
       fadeEnabled: false,
       locationsEnabled: false,
-      getLocationId: (d) => d.id,
-      getLocationLon: (d) => d.lon,
-      getLocationLat: (d) => d.lat,
-      getFlowOriginId: (d) => d.origin,
-      getFlowDestId: (d) => d.dest,
-      getFlowMagnitude: (d) => d.count,
+      ...accessors,
       ...extra,
     });
   const route = (source, target) => ({
@@ -73,6 +77,47 @@ async function run() {
     return deck.pickObject({x, y, radius: 12});
   };
   try {
+    for (const clusteringEnabled of [false, true]) {
+      for (const locations of [undefined, []]) {
+        // Each case starts a new layer, then updates that same layer when data arrives.
+        const id = `loading-${clusteringEnabled}-${locations === undefined ? 'missing' : 'empty'}`;
+        const pendingData = {locations, flows: []};
+        const dataProvider = new LocalFlowmapDataProvider(accessors);
+        dataProvider.setFlowmapData(pendingData);
+        deck.setProps({
+          layers: [
+            makeLayer('curved', pendingData, {
+              id,
+              clusteringEnabled,
+              dataProvider,
+            }),
+          ],
+        });
+        await frames();
+        assert(
+          !pick([0, 0]),
+          `Missing locations produced a pickable flow (locations: ${locations === undefined ? 'undefined' : 'empty'}, clustering: ${clusteringEnabled})`,
+        );
+
+        deck.setProps({
+          layers: [
+            makeLayer('curved', route([-40, 0], [40, 0]), {
+              id,
+              clusteringEnabled,
+            }),
+          ],
+        });
+        await frames();
+        assert(
+          pick([0, 0])?.index === 0,
+          `Globe failed to recover after locations loaded (clustering: ${clusteringEnabled})`,
+        );
+      }
+    }
+    report(
+      'PASS missing/empty globe locations recover when data arrives, with and without clustering',
+    );
+
     for (const mode of ['straight', 'animated-straight', 'curved']) {
       const layer = makeLayer(mode, route([-40, 0], [40, 0]));
       deck.setProps({layers: [layer]});

@@ -27,9 +27,13 @@ import {
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
+import {setWorkerUrl} from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {ReactNode, useEffect, useRef, useState} from 'react';
 import type {ViewState as ViewportProps} from 'react-map-gl/maplibre';
+
+setWorkerUrl(maplibreWorkerUrl);
 
 type TooltipState = {
   position: {left: number; top: number};
