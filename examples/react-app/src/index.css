@@ -37,6 +37,15 @@ code {
 .globe.light {
   background: linear-gradient(0deg, #f8fafc, #dfe8f0);
 }
+.basemap-status {
+  position: absolute;
+  bottom: 16px;
+  left: 50px;
+  z-index: 1;
+  padding: 8px 12px;
+  background: #eef3f8;
+  color: #172634;
+}
 
 .tooltip {
   position: absolute;

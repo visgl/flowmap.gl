@@ -32,6 +32,8 @@ From the repository root, run `yarn build` and then
   the globe; wheel/pinch and the zoom buttons change scale. Tilt is disabled.
   The flights example defaults to dark mode. Light mode uses Positron and a
   pale background around the globe.
+  Basemap labels render above the flows; the **Basemap labels** checkbox shows
+  or hides them in either theme, independently of airport/location labels.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 

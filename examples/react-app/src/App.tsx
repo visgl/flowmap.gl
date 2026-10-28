@@ -47,6 +47,7 @@ type TooltipState = {
 
 function App({globeExample = false}: {globeExample?: boolean}) {
   const [globe, setGlobe] = useState(globeExample);
+  const [basemapLabels, setBasemapLabels] = useState(true);
   const [globeViewState, setGlobeViewState] = useState<GlobeViewState>({
     longitude: -25,
     latitude: 25,
@@ -193,6 +194,16 @@ function App({globeExample = false}: {globeExample?: boolean}) {
           Globe
         </label>
         {globe && <span>Great-circle arrows</span>}
+        {globe && (
+          <label>
+            <input
+              type="checkbox"
+              checked={basemapLabels}
+              onChange={(event) => setBasemapLabels(event.target.checked)}
+            />{' '}
+            Basemap labels
+          </label>
+        )}
         <a href={globeExample ? './index.html' : './globe.html'}>
           {globeExample ? 'Bike trips example' : 'Global routes example'}
         </a>
@@ -204,6 +215,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
       {globe ? (
         <GlobeMap
           darkMode={config.darkMode}
+          labelsEnabled={basemapLabels}
           initialViewState={globeViewState}
           onMove={handleViewStateChange}
           layers={layers}
