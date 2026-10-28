@@ -7,7 +7,7 @@
 import DeckGL from '@deck.gl/react';
 import type {GlobeViewState, Layer} from '@deck.gl/core';
 import {globeBackground, globeView, mapView} from './globe/background';
-import {globeData} from './globe/data';
+import {fetchGlobeData, flightsSourceUrl} from './globe/data';
 import {
   getViewStateForLocations,
   type FlowmapData,
@@ -54,14 +54,27 @@ function App({globeExample = false}: {globeExample?: boolean}) {
   const [config, setConfigValue] = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
+  const [dataError, setDataError] = useState<string>();
   const [tooltip, setTooltip] = useState<TooltipState>();
   const [scaleState, setScaleState] = useState<ScaleState>();
   useEffect(() => {
+    let cancelled = false;
+    setDataError(undefined);
     (async () => {
-      setData(
-        globeExample ? globeData : await fetchData(config.clusteringMethod),
-      );
+      try {
+        const loadedData = await (globeExample
+          ? fetchGlobeData(config.clusteringMethod)
+          : fetchData(config.clusteringMethod));
+        if (!cancelled) setData(loadedData);
+      } catch (error) {
+        if (!cancelled) {
+          setDataError(error instanceof Error ? error.message : String(error));
+        }
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [config.clusteringMethod, globeExample]);
 
   useEffect(() => {
@@ -147,7 +160,11 @@ function App({globeExample = false}: {globeExample?: boolean}) {
     );
   }
   if (!viewState) {
-    return null;
+    return (
+      <div className="view-controls" role={dataError ? 'alert' : 'status'}>
+        {dataError ? `Unable to load data: ${dataError}` : 'Loading data…'}
+      </div>
+    );
   }
   return (
     <div
@@ -178,7 +195,10 @@ function App({globeExample = false}: {globeExample?: boolean}) {
         <a href={globeExample ? './index.html' : './globe.html'}>
           {globeExample ? 'Bike trips example' : 'Global routes example'}
         </a>
-        {globeExample && <span>Synthetic route counts</span>}
+        {globeExample && <a href={flightsSourceUrl}>Global flights data</a>}
+        {dataError && (
+          <span role="alert">Unable to load data: {dataError}</span>
+        )}
       </div>
       <DeckGL
         key={globe ? 'globe' : 'map'}

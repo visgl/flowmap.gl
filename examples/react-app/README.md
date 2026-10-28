@@ -2,7 +2,6 @@
 
 This example shows how Flowmap.gl can be used in a React web app.
 
-
 ## Usage
 
 ```bash
@@ -23,8 +22,9 @@ From the repository root, run `yarn build` and then
 
 - `/` keeps the bike-trip example and adds a **Globe** switch. Switching back
   restores the flat view and the selected rendering mode.
-- `/globe.html` starts a separate globe example with synthetic global routes,
-  including bidirectional, polar, and dateline-crossing connections.
+- `/globe.html` loads 7,698 airports and 37,042 routes from the
+  [Global Flights dataset](https://gist.github.com/ilyabo/15998ce470d8b4fe6ea5d94187adc89b),
+  pinned to a snapshot. Both spherical and H3 clustering are available.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
