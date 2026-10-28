@@ -57,3 +57,12 @@ code {
   color: #7cdbdc;
   font-size: 12px;
 }
+
+/* Allow the overlay canvas to blend against the basemap across MapLibre's
+   control container. Individual widgets already have their own z-index. */
+.separate-canvas {
+  isolation: isolate;
+}
+.separate-canvas .maplibregl-ctrl-top-left {
+  z-index: auto;
+}

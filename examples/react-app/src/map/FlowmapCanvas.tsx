@@ -1,4 +1,15 @@
-import type {GlobeViewState, MapViewState, Layer} from '@deck.gl/core';
+import {
+  _GlobeView as GlobeView,
+  MapView,
+  type GlobeViewState,
+  type MapViewState,
+  type Layer,
+} from '@deck.gl/core';
+import {
+  getFlowmapCanvasStyle,
+  getFlowmapCanvasClearColor,
+  type BlendingMode,
+} from '@flowmap.gl/layers';
 import {MapLibreOverlay, type MapLibreOverlayProps} from '@deck.gl/maplibre';
 import type {StyleSpecification} from 'maplibre-gl';
 import {useEffect, useMemo, useState} from 'react';
@@ -8,6 +19,8 @@ import {prepareBasemapStyle} from './basemap-style';
 type FlowmapCanvasProps = Pick<MapLibreOverlayProps, 'widgets'> & {
   layers: Layer[];
   projection: 'globe' | 'mercator';
+  interleaved: boolean;
+  blendingMode: BlendingMode;
   darkMode: boolean;
   labelsEnabled: boolean;
   initialViewState: GlobeViewState | MapViewState;
@@ -17,6 +30,8 @@ type FlowmapCanvasProps = Pick<MapLibreOverlayProps, 'widgets'> & {
 export default function FlowmapCanvas({
   projection,
   darkMode,
+  interleaved,
+  blendingMode,
   labelsEnabled,
   initialViewState,
   onMove,
@@ -52,6 +67,15 @@ export default function FlowmapCanvas({
     () => sourceStyle && prepareBasemapStyle(sourceStyle, labelsEnabled),
     [sourceStyle, labelsEnabled],
   );
+  const clearColor = interleaved
+    ? undefined
+    : getFlowmapCanvasClearColor({blendingMode, darkMode});
+  const View = globe ? GlobeView : MapView;
+  const views = new View({
+    id: 'maplibre',
+    clear: Boolean(clearColor),
+    clearColor,
+  });
   if (!mapStyle) {
     return (
       <div className="basemap-status" role={styleError ? 'alert' : 'status'}>
@@ -67,11 +91,14 @@ export default function FlowmapCanvas({
         </div>
       )}
       <Map
-        projection={projection}
+        projection={globe ? 'globe' : 'mercator'}
         initialViewState={initialViewState}
+        longitude={initialViewState.longitude}
+        latitude={initialViewState.latitude}
+        zoom={initialViewState.zoom}
         onMove={onMove}
         mapStyle={mapStyle}
-        style={{isolation: 'isolate'}}
+        style={{isolation: interleaved ? 'isolate' : undefined}}
         dragRotate={!globe}
         touchPitch={!globe}
         maxPitch={globe ? 0 : 60}
@@ -79,11 +106,18 @@ export default function FlowmapCanvas({
       >
         <NavigationControl position="bottom-left" showCompass={!globe} />
         <FlowmapOverlay
+          key={String(interleaved)}
           layers={layers}
           widgets={widgets}
-          interleaved
-          // These are 2D overlays: don't occlude basemap labels drawn afterward.
+          interleaved={interleaved}
           parameters={{depthWriteEnabled: false, depthCompare: 'always'}}
+          // MapLibreOverlay's DeckProps default incorrectly narrows views to null.
+          views={views as unknown as MapLibreOverlayProps['views']}
+          style={
+            interleaved
+              ? undefined
+              : getFlowmapCanvasStyle({blendingMode, darkMode})
+          }
         />
       </Map>
     </>
@@ -93,5 +127,13 @@ export default function FlowmapCanvas({
 function FlowmapOverlay(props: MapLibreOverlayProps) {
   const overlay = useControl(() => new MapLibreOverlay(props));
   overlay.setProps(props);
+  useEffect(() => {
+    // Deck's imperative style prop is only applied at canvas creation.
+    // Theme/mode changes must also update the existing separate canvas.
+    if (!props.interleaved) {
+      const canvas = overlay.getCanvas();
+      if (canvas) Object.assign(canvas.style, props.style);
+    }
+  }, [overlay, props.interleaved, props.style]);
   return null;
 }

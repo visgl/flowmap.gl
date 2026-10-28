@@ -30,6 +30,7 @@ import {
   isFlowmapData,
   isFlowmapDataProvider,
 } from '@flowmap.gl/data';
+import {type BlendingMode} from './flowBlending';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -60,6 +61,7 @@ export type FlowmapLayerProps<
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
   clusteringLevel?: number;
+  blendingMode?: BlendingMode;
   fadeEnabled?: boolean;
   fadeOpacityEnabled?: boolean;
   clusteringAuto?: boolean;
@@ -89,6 +91,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'animationEnabled',
   'clusteringEnabled',
   'clusteringLevel',
+  'blendingMode',
   'fadeEnabled',
   'fadeOpacityEnabled',
   'clusteringAuto',
@@ -143,6 +146,7 @@ export default class FlowmapLayer<
 
   static defaultProps = {
     darkMode: true,
+    blendingMode: 'normal' as BlendingMode,
     fadeAmount: 50,
     locationsEnabled: true,
     locationTotalsEnabled: true,
@@ -342,6 +346,7 @@ export default class FlowmapLayer<
       flowLinesRenderingMode,
       clusteringEnabled,
       clusteringLevel,
+      blendingMode,
       fadeEnabled,
       fadeOpacityEnabled,
       clusteringAuto,
@@ -365,6 +370,7 @@ export default class FlowmapLayer<
       flowLinesRenderingMode: this._getResolvedFlowLinesRenderingMode(),
       clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
       clusteringLevel,
+      blendingMode: blendingMode ?? defaults.blendingMode,
       fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
       fadeOpacityEnabled: fadeOpacityEnabled ?? defaults.fadeOpacityEnabled,
       clusteringAuto: clusteringAuto ?? defaults.clusteringAuto,
@@ -616,6 +622,8 @@ export default class FlowmapLayer<
         );
         const commonLineLayerProps = {
           data: lineAttributes,
+          blendingMode: props.blendingMode,
+          darkMode: props.darkMode,
           parameters: {
             ...((props.parameters as Record<string, unknown> | undefined) ??
               {}),

@@ -8,6 +8,10 @@ import {
 import {checkClustering} from './clustering';
 import {isLocationVisibleOnGlobe} from '../../../packages/data/src/globe';
 
+const blendingMode =
+  new globalThis.URLSearchParams(globalThis.location.search).get(
+    'blendingMode',
+  ) ?? 'normal';
 const results = globalThis.document.getElementById('results');
 const errors = [];
 const lines = [];
@@ -41,6 +45,7 @@ async function run() {
   const makeLayer = (mode, data, extra = {}) =>
     new FlowmapLayer({
       id: 'test-flows',
+      blendingMode,
       data,
       pickable: true,
       flowLinesRenderingMode: mode,

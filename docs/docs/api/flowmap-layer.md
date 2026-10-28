@@ -99,7 +99,8 @@ const legend = new FlowmapLegendWidget({
     section: 'space-y-1',
     row: 'grid items-center gap-2',
     line: 'rounded',
-    lockButton: 'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
+    lockButton:
+      'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
     lockButtonLocked: 'border-teal-200 bg-teal-200/20',
   },
   unstyled: true,
@@ -493,3 +494,77 @@ const layer = new FlowmapLayer({
   },
 });
 ```
+
+## Flow blending
+
+`blendingMode: 'normal' | 'non-accumulating'` defaults to `'normal'`, preserving
+existing rendering. Blending is independent of `fadeEnabled`.
+
+With `'non-accumulating'`, light mode uses per-channel GPU **min** (darken) and
+dark mode uses **max** (lighten). Identical overlapping flows do not become
+stronger, including at antialiased edges. This applies to straight, animated,
+and curved flows, including globe routes. Picking and globe horizon clipping
+remain active; highlights retain ordinary blending so they stay visible.
+
+`fadeEnabled` and `fadeAmount` fade weaker flows toward white in light mode and
+black in dark mode. `fadeOpacityEnabled` adds further fading. Flow color alpha,
+layer `opacity` (including deck.gl's opacity scaling), outline alpha, animation
+tails, and antialias coverage are folded into RGB toward that same neutral color:
+min/max ignore source/destination alpha blend factors. Output alpha is opaque.
+
+### Separate canvases
+
+Interleaved rendering blends directly against the basemap and needs no canvas
+configuration. **Do not clear the interleaved canvas.** With a separate canvas,
+clear to opaque white/black and use matching CSS `darken`/`lighten`:
+
+```typescript
+import {MapView} from '@deck.gl/core';
+import {
+  FlowmapLayer,
+  getFlowmapCanvasClearColor,
+  getFlowmapCanvasStyle,
+} from '@flowmap.gl/layers';
+
+const blending = {blendingMode: 'non-accumulating', darkMode: false} as const;
+const clearColor = getFlowmapCanvasClearColor(blending);
+const view = new MapView({id: 'map', clear: Boolean(clearColor), clearColor});
+// Pass views: view and style: getFlowmapCanvasStyle(blending) to Deck/DeckGL.
+// GlobeView works the same way. MapLibreOverlay uses view id 'maplibre'.
+const layer = new FlowmapLayer({...flowmapProps, ...blending});
+```
+
+For imperative `Deck`/`MapLibreOverlay` integrations, update the existing canvas
+style when the theme or mode changes; deck.gl's imperative `style` prop is only
+applied when creating the canvas:
+
+```typescript
+Object.assign(overlay.getCanvas().style, getFlowmapCanvasStyle(blending));
+```
+
+React `DeckGL` updates its canvas style automatically.
+
+The clear-color helper returns 0–255 values for a deck.gl **View**, not normalized
+WebGL clear values. In normal mode it returns `undefined`; disable the view clear
+when returning to normal. The style helper restores the examples' existing
+`screen` (dark) / `darken` (light) CSS behavior in normal mode. Its default theme,
+like FlowmapLayer's, is dark.
+
+Ensure the canvas and basemap share a CSS blending backdrop: an intervening
+stacking context can otherwise leave an opaque white/black rectangle. For
+MapLibre's separate overlay, the React example removes the top-left control
+container's `z-index` and isolates the map together with its background. Keep
+legends and other UI outside the canvas's CSS blending group.
+
+### Visual tradeoffs
+
+- Different hues can combine into a third color because each RGB channel is
+  compared independently. This is not a magnitude-preserving color mix.
+- White outlines in light mode and black outlines in dark mode are neutral. They
+  soften the flow's edge but cannot erase another flow underneath a crossing;
+  dense bundles have less separation and arrowheads can merge into them.
+- Faint flows can disappear over basemap channels already darker/lighter than
+  the flow. The result depends on basemap colors, unlike ordinary transparency.
+- A separate canvas composites all its content against the basemap, so highlights
+  and location circles may differ from their interleaved appearance. Basemap
+  labels sit below the separate flow canvas; interleaved labels can remain above.

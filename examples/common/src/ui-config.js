@@ -12,6 +12,7 @@ export const UI_INITIAL = {
   colorScheme: 'Teal',
   highlightColor: '#ff9b29',
   opacity: 1.0,
+  blendingMode: FlowmapLayer.defaultProps.blendingMode,
   fadeEnabled: FlowmapLayer.defaultProps.fadeEnabled,
   fadeOpacityEnabled: FlowmapLayer.defaultProps.fadeOpacityEnabled,
   fadeAmount: FlowmapLayer.defaultProps.fadeAmount,
@@ -33,6 +34,7 @@ export const UI_INITIAL = {
 
 export const initLilGui = (gui, {scaleLockEnabled = true} = {}) => {
   gui.add(UI_INITIAL, 'darkMode');
+  gui.add(UI_INITIAL, 'blendingMode', ['normal', 'non-accumulating']);
   gui.add(UI_INITIAL, 'colorScheme', Object.keys(COLOR_SCHEMES));
   gui.addColor(UI_INITIAL, 'highlightColor');
   const flowLinesRenderingMode = gui.add(UI_INITIAL, 'flowLinesRenderingMode', [
