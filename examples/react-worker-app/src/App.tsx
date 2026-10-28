@@ -20,7 +20,11 @@ import {
 } from './worker';
 import {Map as ReactMapGl} from 'react-map-gl/maplibre';
 import {initLilGui, UI_INITIAL, useUI} from '@flowmap.gl/examples-common';
+import {setWorkerUrl} from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+setWorkerUrl(maplibreWorkerUrl);
 
 const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';

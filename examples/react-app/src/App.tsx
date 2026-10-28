@@ -24,12 +24,16 @@ import {
   FlowmapLayerPickingInfo,
   PickingType,
 } from '@flowmap.gl/layers';
+import {setWorkerUrl} from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {ReactNode, useEffect, useState} from 'react';
 import {
   Map as ReactMapGl,
   ViewState as ViewportProps,
 } from 'react-map-gl/maplibre';
+
+setWorkerUrl(maplibreWorkerUrl);
 
 const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';

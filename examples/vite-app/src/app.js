@@ -5,12 +5,15 @@
  */
 
 import {Deck} from '@deck.gl/core';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import {FlowmapLayer} from '@flowmap.gl/layers';
 import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 const MAP_STYLE_DARK =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
