@@ -24,7 +24,7 @@ flowmap.gl requires the following peer dependencies:
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `deck.gl` | ^9.0.0 | WebGL-powered visualization framework |
+| `deck.gl` | ^9.4.0 | WebGL-powered visualization framework |
 | `react` | ^18.0.0 | Required for React integration |
 | `react-dom` | ^18.0.0 | Required for React integration |
 | `mapbox-gl` or `maplibre-gl` | ^2.0.0 | Background map (optional) |

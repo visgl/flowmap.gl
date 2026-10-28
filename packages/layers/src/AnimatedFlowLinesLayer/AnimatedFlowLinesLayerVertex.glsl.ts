@@ -15,7 +15,6 @@ in vec3 instanceTargetPositions;
 in vec3 instanceSourcePositions64Low;
 in vec3 instanceTargetPositions64Low;
 in vec4 instanceColors;
-in vec3 instancePickingColors;
 in float instanceWidths;
 in float instancePickable;
 in float instanceStaggering;
@@ -55,7 +54,7 @@ void main(void) {
   uv = positions.xy;
   geometry.uv = uv;
   if (instancePickable > 0.5) {
-    geometry.pickingColor = instancePickingColors;
+    geometry.pickingColor = picking_getPickingColorFromInstanceID();
   }
   
   // extrude

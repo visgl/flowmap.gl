@@ -19,7 +19,6 @@ in vec3 instanceSourcePositions;
 in vec3 instanceTargetPositions;
 in vec3 instanceSourcePositions64Low;
 in vec3 instanceTargetPositions64Low;
-in vec3 instancePickingColors;
 in vec2 instanceEndpointOffsets;
 in float instancePickable;
 
@@ -50,7 +49,7 @@ void main(void) {
   vBarycentrics = barycentrics;
   vEdgeMask = edgeMasks;
   if (instancePickable > 0.5) {
-    geometry.pickingColor = instancePickingColors;
+    geometry.pickingColor = picking_getPickingColorFromInstanceID();
   }
   
   // set the clamp limits in pixel size 

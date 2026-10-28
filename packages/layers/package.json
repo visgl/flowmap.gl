@@ -17,11 +17,11 @@
     "@flowmap.gl/data": "^9.4.0"
   },
   "peerDependencies": {
-    "@deck.gl/core": "^9.0.0",
-    "@deck.gl/layers": "^9.0.0",
-    "@luma.gl/core": "^9.0.0",
-    "@luma.gl/engine": "^9.0.0",
-    "@luma.gl/shadertools": "^9.0.0"
+    "@deck.gl/core": "^9.4.0",
+    "@deck.gl/layers": "^9.4.0",
+    "@luma.gl/core": "^9.4.0",
+    "@luma.gl/engine": "^9.4.0",
+    "@luma.gl/shadertools": "^9.4.0"
   },
   "gitHead": "c80d98fbc729b912b17f58142d4dc73da8c61cbe",
   "publishConfig": {
