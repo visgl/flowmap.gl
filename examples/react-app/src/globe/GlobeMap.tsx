@@ -3,11 +3,13 @@ import {MapLibreOverlay, type MapLibreOverlayProps} from '@deck.gl/maplibre';
 import {Map, NavigationControl, useControl} from 'react-map-gl/maplibre';
 
 type GlobeMapProps = Pick<MapLibreOverlayProps, 'layers' | 'widgets'> & {
+  darkMode: boolean;
   initialViewState: GlobeViewState;
   onMove: (event: {viewState: GlobeViewState}) => void;
 };
 
 export default function GlobeMap({
+  darkMode,
   initialViewState,
   onMove,
   layers,
@@ -18,7 +20,7 @@ export default function GlobeMap({
       projection="globe"
       initialViewState={initialViewState}
       onMove={onMove}
-      mapStyle="https://tiles.openfreemap.org/styles/positron"
+      mapStyle={`https://tiles.openfreemap.org/styles/${darkMode ? 'dark' : 'positron'}`}
       style={{isolation: 'isolate'}}
       dragRotate={false}
       touchPitch={false}

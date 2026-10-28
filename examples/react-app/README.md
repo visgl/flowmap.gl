@@ -27,7 +27,8 @@ From the repository root, run `yarn build` and then
   pinned to a snapshot. Both spherical and H3 clustering are available.
 - Globe mode uses MapLibre's globe camera and gestures with an interleaved
   deck.gl overlay, following deck.gl's `global-grids` example. The basemap uses
-  OpenFreeMap Positron vector tiles, with labels and attribution. Drag rotates
+  OpenFreeMap Dark or Positron vector tiles according to the dark-mode toggle,
+  with labels and attribution. Drag rotates
   the globe; wheel/pinch and the zoom buttons change scale. Tilt is disabled.
   The flights example defaults to light flow colors to match Positron.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser

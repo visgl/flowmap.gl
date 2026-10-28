@@ -203,6 +203,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
       </div>
       {globe ? (
         <GlobeMap
+          darkMode={config.darkMode}
           initialViewState={globeViewState}
           onMove={handleViewStateChange}
           layers={layers}
