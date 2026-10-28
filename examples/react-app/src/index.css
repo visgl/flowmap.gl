@@ -31,8 +31,11 @@ code {
 .flat.dark .maplibregl-map {
   opacity: 0.3;
 }
-.globe {
+.globe.dark {
   background: linear-gradient(0deg, #000, #223);
+}
+.globe.light {
+  background: linear-gradient(0deg, #f8fafc, #dfe8f0);
 }
 
 .tooltip {

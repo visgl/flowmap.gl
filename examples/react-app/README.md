@@ -30,7 +30,8 @@ From the repository root, run `yarn build` and then
   OpenFreeMap Dark or Positron vector tiles according to the dark-mode toggle,
   with labels and attribution. Drag rotates
   the globe; wheel/pinch and the zoom buttons change scale. Tilt is disabled.
-  The flights example defaults to light flow colors to match Positron.
+  The flights example defaults to dark mode. Light mode uses Positron and a
+  pale background around the globe.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
