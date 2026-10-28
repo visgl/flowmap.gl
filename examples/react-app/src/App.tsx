@@ -7,20 +7,10 @@
 import DeckGL from '@deck.gl/react';
 import {MapView, type GlobeViewState, type Layer} from '@deck.gl/core';
 import GlobeMap from './globe/GlobeMap';
-import {fetchGlobeData, flightsSourceUrl} from './globe/data';
-import {
-  getViewStateForLocations,
-  type FlowmapData,
-  type ScaleState,
-} from '@flowmap.gl/data';
-import {
-  fetchData,
-  FlowDatum,
-  initLilGui,
-  LocationDatum,
-  UI_INITIAL,
-  useUI,
-} from '@flowmap.gl/examples-common';
+import {fetchGlobeData} from './globe/data';
+import {initialConfig, initExampleGui} from './ui';
+import {type FlowmapData, type ScaleState} from '@flowmap.gl/data';
+import {FlowDatum, LocationDatum, useUI} from '@flowmap.gl/examples-common';
 import {
   FlowmapLayer,
   FlowmapLegendWidget,
@@ -45,16 +35,22 @@ type TooltipState = {
   content: ReactNode;
 };
 
-function App({globeExample = false}: {globeExample?: boolean}) {
-  const [globe, setGlobe] = useState(globeExample);
-  const [basemapLabels, setBasemapLabels] = useState(true);
+function App() {
   const [globeViewState, setGlobeViewState] = useState<GlobeViewState>({
     longitude: -25,
     latitude: 25,
     zoom: 1.6,
   });
-  const [config, setConfigValue] = useUI(UI_INITIAL, initLilGui);
-  const [viewState, setViewState] = useState<ViewportProps>();
+  const [config, setConfigValue] = useUI(initialConfig, initExampleGui);
+  const globe = config.globe;
+  const [viewState, setViewState] = useState<ViewportProps>({
+    longitude: 0,
+    latitude: 20,
+    zoom: 1,
+    pitch: 0,
+    bearing: 0,
+    padding: {top: 0, bottom: 0, left: 0, right: 0},
+  });
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
   const [dataError, setDataError] = useState<string>();
   const [tooltip, setTooltip] = useState<TooltipState>();
@@ -64,9 +60,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
     setDataError(undefined);
     (async () => {
       try {
-        const loadedData = await (globeExample
-          ? fetchGlobeData(config.clusteringMethod)
-          : fetchData(config.clusteringMethod));
+        const loadedData = await fetchGlobeData(config.clusteringMethod);
         if (!cancelled) setData(loadedData);
       } catch (error) {
         if (!cancelled) {
@@ -77,27 +71,11 @@ function App({globeExample = false}: {globeExample?: boolean}) {
     return () => {
       cancelled = true;
     };
-  }, [config.clusteringMethod, globeExample]);
+  }, [config.clusteringMethod]);
 
   useEffect(() => {
-    if (!viewState && data?.locations) {
-      const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
-      const viewState = getViewStateForLocations(
-        data.locations,
-        (loc: LocationDatum) => [loc.lon, loc.lat],
-        [width, height],
-      );
-      setViewState({
-        ...viewState,
-        latitude: viewState.latitude - 0.02,
-        zoom: viewState.zoom + 1,
-        ...(globeExample ? {longitude: 0, latitude: 20, zoom: 1} : {}),
-        // @ts-ignore
-        width,
-        height,
-      });
-    }
-  }, [data]);
+    setTooltip(undefined);
+  }, [globe]);
   const handleViewStateChange = ({viewState}: any) => {
     if (globe) setGlobeViewState(viewState);
     else setViewState(viewState);
@@ -161,9 +139,9 @@ function App({globeExample = false}: {globeExample?: boolean}) {
       }),
     );
   }
-  if (!viewState) {
+  if (!data) {
     return (
-      <div className="view-controls" role={dataError ? 'alert' : 'status'}>
+      <div className="basemap-status" role={dataError ? 'alert' : 'status'}>
         {dataError ? `Unable to load data: ${dataError}` : 'Loading data…'}
       </div>
     );
@@ -173,49 +151,15 @@ function App({globeExample = false}: {globeExample?: boolean}) {
       className={`flowmap-container ${config.darkMode ? 'dark' : 'light'} ${globe ? 'globe' : 'flat'}`}
       style={{position: 'relative'}}
     >
-      <div className="view-controls">
-        <label>
-          <input
-            type="checkbox"
-            checked={globe}
-            onChange={(event) => {
-              setGlobe(event.target.checked);
-              setTooltip(undefined);
-              if (!globeExample && event.target.checked) {
-                setGlobeViewState({
-                  longitude: viewState.longitude,
-                  latitude: viewState.latitude,
-                  zoom: Math.min(viewState.zoom, 12),
-                  maxZoom: 12,
-                });
-              }
-            }}
-          />{' '}
-          Globe
-        </label>
-        {globe && <span>Great-circle arrows</span>}
-        {globe && (
-          <label>
-            <input
-              type="checkbox"
-              checked={basemapLabels}
-              onChange={(event) => setBasemapLabels(event.target.checked)}
-            />{' '}
-            Basemap labels
-          </label>
-        )}
-        <a href={globeExample ? './index.html' : './globe.html'}>
-          {globeExample ? 'Bike trips example' : 'Global routes example'}
-        </a>
-        {globeExample && <a href={flightsSourceUrl}>Global flights data</a>}
-        {dataError && (
-          <span role="alert">Unable to load data: {dataError}</span>
-        )}
-      </div>
+      {dataError && (
+        <div className="basemap-status" role="alert">
+          Unable to load data: {dataError}
+        </div>
+      )}
       {globe ? (
         <GlobeMap
           darkMode={config.darkMode}
-          labelsEnabled={basemapLabels}
+          labelsEnabled={config.basemapLabels}
           initialViewState={globeViewState}
           onMove={handleViewStateChange}
           layers={layers}
