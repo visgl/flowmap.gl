@@ -498,7 +498,9 @@ const layer = new FlowmapLayer({
 ## Flow blending
 
 `blendingMode: 'normal' | 'non-accumulating'` defaults to `'normal'`, preserving
-existing rendering. Blending is independent of `fadeEnabled`.
+existing rendering. Blending is independent of `fadeEnabled`. The React, React
+worker, and vanilla examples explicitly default to `'non-accumulating'`; their
+controls can switch back to `'normal'`.
 
 With `'non-accumulating'`, light mode uses per-channel GPU **min** (darken) and
 dark mode uses **max** (lighten). Identical overlapping flows do not become

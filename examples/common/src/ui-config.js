@@ -12,7 +12,8 @@ export const UI_INITIAL = {
   colorScheme: 'Teal',
   highlightColor: '#ff9b29',
   opacity: 1.0,
-  blendingMode: FlowmapLayer.defaultProps.blendingMode,
+  // Showcase non-accumulating flows without changing the library default.
+  blendingMode: 'non-accumulating',
   fadeEnabled: FlowmapLayer.defaultProps.fadeEnabled,
   fadeOpacityEnabled: FlowmapLayer.defaultProps.fadeOpacityEnabled,
   fadeAmount: FlowmapLayer.defaultProps.fadeAmount,

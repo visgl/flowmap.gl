@@ -60,9 +60,10 @@ and Mercator clustering, with the same OpenFreeMap styles and label controls.
 
 ## Non-accumulating blending
 
-The `blendingMode` control defaults to `normal`. Select `non-accumulating` to
-use darken in light mode or lighten in dark mode without intensifying identical
-overlaps. Fading remains separately selectable; opacity and antialiasing fade
+The `blendingMode` control defaults to `non-accumulating`, using darken in
+light mode or lighten in dark mode without intensifying identical overlaps.
+Select `normal` to compare ordinary blending. The library default remains `normal`.
+Fading remains separately selectable; opacity and antialiasing fade
 RGB toward the neutral color. Neutral outlines do not separate crossing flows,
 and per-channel comparisons can alter mixed hues.
 
