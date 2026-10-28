@@ -174,7 +174,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
           />{' '}
           Globe
         </label>
-        {globe && <span>Great-circle arrows · clustering off</span>}
+        {globe && <span>Great-circle arrows</span>}
         <a href={globeExample ? './index.html' : './globe.html'}>
           {globeExample ? 'Bike trips example' : 'Global routes example'}
         </a>

@@ -5,6 +5,7 @@ import {
   AnimatedFlowLinesLayer,
   CurvedFlowLinesLayer,
 } from '@flowmap.gl/layers';
+import {checkClustering} from './clustering';
 import {isLocationVisibleOnGlobe} from '../../../packages/data/src/globe';
 
 const results = globalThis.document.getElementById('results');
@@ -24,6 +25,7 @@ const frames = async () => {
 };
 
 async function run() {
+  checkClustering(report);
   let deck;
   await new Promise((resolve) => {
     deck = new Deck({
@@ -77,6 +79,38 @@ async function run() {
       assert(pick([0, 0])?.index === 0, `${mode}: route not pickable`);
       report(`PASS globe forces curved and picks route: ${mode}`);
     }
+
+    const clusteredData = {
+      locations: [
+        {id: 'a', lon: 170, lat: 0},
+        {id: 'b', lon: 172, lat: 0},
+        {id: 'dest', lon: -130, lat: 0},
+      ],
+      flows: [
+        {origin: 'a', dest: 'dest', count: 30},
+        {origin: 'b', dest: 'dest', count: 70},
+      ],
+    };
+    for (const enabled of [true, false, true]) {
+      const layer = makeLayer('straight', clusteredData, {
+        clusteringEnabled: enabled,
+      });
+      deck.setProps({
+        viewState: {longitude: 180, latitude: 0, zoom: 1},
+        layers: [layer],
+      });
+      await frames();
+      const line = layer
+        .getSubLayers()
+        .find((l) => l instanceof CurvedFlowLinesLayer);
+      assert(
+        line.props.data.length === (enabled ? 1 : 2),
+        `Globe clustering toggle (${enabled}): expected ${enabled ? 1 : 2} flows, got ${line.props.data.length}`,
+      );
+      assert(pick([-170, 0])?.index >= 0, 'Clustered route not pickable');
+    }
+    report('PASS live globe clustering toggle, aggregated arrows, and picking');
+    deck.setProps({viewState: {longitude: 0, latitude: 0, zoom: 1}});
 
     // A hidden location projects inside the globe disk; it must not be picked.
     const data = route([-40, 0], [120, 0]);

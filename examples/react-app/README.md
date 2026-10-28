@@ -29,8 +29,12 @@ From the repository root, run `yarn build` and then
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
 Globe mode forces curved rendering with surface-following great-circle arrows.
-Clustering and the Mercator corridor-offset calculation are bypassed; the
-curviness setting does not change great-circle routes. Hidden-side geometry is
+Clustering uses a spherical hierarchy with weighted centers, so dateline and
+polar neighbors cluster correctly. Automatic levels follow the globe's actual
+scale; manual levels select the next available hierarchy level. Supplied
+hierarchies (such as H3) retain their own centers and zoom convention. Flat-map
+clustering retains the existing Mercator behavior. The Mercator corridor-offset
+calculation is bypassed on the globe; curviness does not change great-circle routes. Hidden-side geometry is
 clipped in both drawing and picking, without requiring an opaque globe beneath it.
 Location circles lie on the surface and foreshorten near the horizon.
 

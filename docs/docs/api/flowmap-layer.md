@@ -241,7 +241,9 @@ Controls how flow lines are rendered.
 
 With deck.gl's experimental `GlobeView`, `FlowmapLayer` currently forces
 `'curved'` rendering and draws arrows along great circles on the sphere.
-Clustering and Mercator corridor offsets are disabled for this prototype;
+Generated clusters use spherical distances and weighted spherical centers,
+including across the dateline and near the poles. Explicit `clusterLevels` are
+honored in both projections. Mercator corridor offsets are disabled on the globe;
 `flowLineCurviness` has no effect on globe routes. Switching back to a flat view
 restores the requested rendering mode and clustering settings. Hidden-side
 flows, circles, and labels are clipped, including during picking. Endpoint

@@ -363,10 +363,7 @@ export default class FlowmapLayer<
       adaptiveScalesEnabled:
         adaptiveScalesEnabled ?? defaults.adaptiveScalesEnabled,
       flowLinesRenderingMode: this._getResolvedFlowLinesRenderingMode(),
-      // The existing clustering hierarchy uses Mercator distances.
-      clusteringEnabled: this._isGlobe()
-        ? false
-        : (clusteringEnabled ?? defaults.clusteringEnabled),
+      clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
       clusteringLevel,
       fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
       fadeOpacityEnabled: fadeOpacityEnabled ?? defaults.fadeOpacityEnabled,
@@ -789,6 +786,9 @@ function pickViewportProps(viewport: Record<string, any>): ViewportProps {
     ...(viewport instanceof GlobeViewport
       ? {
           globe: {
+            // A sphere of radius 1/(2π) matches Mercator's equatorial units.
+            // Use the actual viewport scale to account for latitude zoom adjustment.
+            clusterZoom: Math.log2(viewport.scale * Math.PI),
             cameraPosition: Array.from(viewport.cameraPosition) as number[],
             viewProjectionMatrix: Array.from(
               viewport.viewProjectionMatrix,

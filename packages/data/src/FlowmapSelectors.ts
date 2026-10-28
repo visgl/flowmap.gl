@@ -122,7 +122,12 @@ export default class FlowmapSelectors<
   getLocationLabelsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.locationLabelsEnabled;
   getZoom = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.viewport.zoom;
+    // Supplied hierarchies retain their own zoom convention (e.g. H3).
+    !props.clusterLevels && state.viewport.globe
+      ? (state.viewport.globe.clusterZoom ?? state.viewport.zoom)
+      : state.viewport.zoom;
+  getClusterProjection = (state: FlowmapState) =>
+    state.viewport.globe ? ('globe' as const) : ('mercator' as const);
   getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport;
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -364,7 +369,8 @@ export default class FlowmapSelectors<
     this.getClusterLevelsFromProps,
     this.getLocationsHavingFlows,
     this.getLocationWeightGetter,
-    (clusterLevelsFromProps, locations, getLocationWeight) => {
+    this.getClusterProjection,
+    (clusterLevelsFromProps, locations, getLocationWeight, projection) => {
       if (clusterLevelsFromProps) return clusterLevelsFromProps;
       if (!locations || !getLocationWeight) return undefined;
       const clusterLevels = clusterLocations(
@@ -373,6 +379,7 @@ export default class FlowmapSelectors<
         getLocationWeight,
         {
           maxZoom: MAX_CLUSTER_ZOOM_LEVEL,
+          projection,
         },
       );
       return clusterLevels;
@@ -457,6 +464,12 @@ export default class FlowmapSelectors<
     if (!settings.clusteringEnabled) return undefined;
     if (settings.clusteringAuto || settings.clusteringLevel == null) {
       return this._getClusterZoom(state, props);
+    }
+    if (state.viewport.globe) {
+      const levels = this.getAvailableClusterZoomLevels(state, props);
+      return levels?.length
+        ? findAppropriateZoomLevel(levels, settings.clusteringLevel)
+        : undefined;
     }
     return settings.clusteringLevel;
   };
