@@ -22,14 +22,17 @@ code {
   width: 100vw;
   height: 100vh;
 }
-.light .maplibregl-map {
+.flat.light .maplibregl-map {
   opacity: 0.5;
 }
 .dark {
   background: #000;
 }
-.dark .maplibregl-map {
+.flat.dark .maplibregl-map {
   opacity: 0.3;
+}
+.globe {
+  background: linear-gradient(0deg, #000, #223);
 }
 
 .tooltip {

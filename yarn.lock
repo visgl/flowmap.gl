@@ -262,6 +262,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@deck.gl/maplibre@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "@deck.gl/maplibre@npm:9.4.0"
+  peerDependencies:
+    "@deck.gl/core": ~9.4.0
+    "@luma.gl/core": ~9.4.0
+    maplibre-gl: ^4.5.1 || ^5.0.0 || ^6.0.0
+  checksum: 10c0/bd742485e20f0924558c7403c4801e2600fed373c58a9efc3ed5955178f24cf808c37339c6357ba0e2b7d66dc68b5849448ff8275ee1243ab9b6760199b69d08
+  languageName: node
+  linkType: hard
+
 "@deck.gl/react@npm:^9.4.0":
   version: 9.4.0
   resolution: "@deck.gl/react@npm:9.4.0"
@@ -516,6 +527,7 @@ __metadata:
   dependencies:
     "@deck.gl/core": "npm:^9.4.0"
     "@deck.gl/layers": "npm:^9.4.0"
+    "@deck.gl/maplibre": "npm:^9.4.0"
     "@deck.gl/react": "npm:^9.4.0"
     "@deck.gl/widgets": "npm:^9.4.0"
     "@flowmap.gl/data": "workspace:*"

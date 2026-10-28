@@ -25,6 +25,11 @@ From the repository root, run `yarn build` and then
 - `/globe.html` loads 7,698 airports and 37,042 routes from the
   [Global Flights dataset](https://gist.github.com/ilyabo/15998ce470d8b4fe6ea5d94187adc89b),
   pinned to a snapshot. Both spherical and H3 clustering are available.
+- Globe mode uses MapLibre's globe camera and gestures with an interleaved
+  deck.gl overlay, following deck.gl's `global-grids` example. The basemap uses
+  OpenFreeMap Positron vector tiles, with labels and attribution. Drag rotates
+  the globe; wheel/pinch and the zoom buttons change scale. Tilt is disabled.
+  The flights example defaults to light flow colors to match Positron.
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
@@ -43,5 +48,5 @@ whose endpoints are both outside the visible viewport is omitted even if part of
 its path crosses the screen. Exactly antipodal endpoints use a deterministic
 fallback plane because their shortest route is ambiguous. Routes use 96 segments;
 this is not adaptive tessellation. The examples cap globe zoom at 12, before
-`GlobeView` switches to Mercator. Globe basemap land comes from Natural Earth,
-using the same source as deck.gl's globe example.
+`GlobeView` switches to Mercator. The flat example retains its existing deck.gl
+controller and Carto basemap styles.

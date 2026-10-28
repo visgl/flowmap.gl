@@ -5,8 +5,8 @@
  */
 
 import DeckGL from '@deck.gl/react';
-import type {GlobeViewState, Layer} from '@deck.gl/core';
-import {globeBackground, globeView, mapView} from './globe/background';
+import {MapView, type GlobeViewState, type Layer} from '@deck.gl/core';
+import GlobeMap from './globe/GlobeMap';
 import {fetchGlobeData, flightsSourceUrl} from './globe/data';
 import {
   getViewStateForLocations,
@@ -38,6 +38,7 @@ const MAP_STYLE_LIGHT =
   'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 const MAP_STYLE_DARK =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const mapView = new MapView({id: 'map'});
 
 type TooltipState = {
   position: {left: number; top: number};
@@ -101,7 +102,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
     else setViewState(viewState);
     setTooltip(undefined);
   };
-  const layers: Layer[] = globe ? globeBackground(config.darkMode) : [];
+  const layers: Layer[] = [];
   const widgets = [];
   if (data) {
     layers.push(
@@ -168,7 +169,7 @@ function App({globeExample = false}: {globeExample?: boolean}) {
   }
   return (
     <div
-      className={`flowmap-container ${config.darkMode ? 'dark' : 'light'}`}
+      className={`flowmap-container ${config.darkMode ? 'dark' : 'light'} ${globe ? 'globe' : 'flat'}`}
       style={{position: 'relative'}}
     >
       <div className="view-controls">
@@ -200,32 +201,33 @@ function App({globeExample = false}: {globeExample?: boolean}) {
           <span role="alert">Unable to load data: {dataError}</span>
         )}
       </div>
-      <DeckGL
-        key={globe ? 'globe' : 'map'}
-        views={globe ? globeView : mapView}
-        width="100%"
-        height="100%"
-        // viewState={viewState}
-        initialViewState={globe ? {...globeViewState, maxZoom: 12} : viewState}
-        onViewStateChange={handleViewStateChange}
-        controller={true}
-        // @ts-ignore
-        layers={layers}
-        widgets={widgets}
-        style={{
-          mixBlendMode: globe
-            ? 'normal'
-            : config.darkMode
-              ? 'screen'
-              : 'darken',
-        }}
-      >
-        {!globe && (
+      {globe ? (
+        <GlobeMap
+          initialViewState={globeViewState}
+          onMove={handleViewStateChange}
+          layers={layers}
+          widgets={widgets}
+        />
+      ) : (
+        <DeckGL
+          views={mapView}
+          width="100%"
+          height="100%"
+          initialViewState={viewState}
+          onViewStateChange={handleViewStateChange}
+          controller={true}
+          // @ts-ignore
+          layers={layers}
+          widgets={widgets}
+          style={{
+            mixBlendMode: config.darkMode ? 'screen' : 'darken',
+          }}
+        >
           <ReactMapGl
             mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
           />
-        )}
-      </DeckGL>
+        </DeckGL>
+      )}
       {tooltip && (
         <div className="tooltip" style={tooltip.position}>
           {tooltip.content}
