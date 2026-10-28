@@ -8,13 +8,14 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@deck.gl/core": "^9.3.2",
-    "@deck.gl/layers": "^9.3.2",
+    "@deck.gl/core": "^9.4.0",
+    "@deck.gl/layers": "^9.4.0",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
-    "@loaders.gl/core": "^4.4.1",
-    "@luma.gl/core": "^9.3.3",
-    "@luma.gl/engine": "^9.3.3",
+    "@loaders.gl/core": "^4.5.4",
+    "@luma.gl/core": "^9.4.2",
+    "@luma.gl/engine": "^9.4.2",
+    "@luma.gl/shadertools": "^9.4.2",
     "d3-fetch": "^3.0.1",
     "lil-gui": "^0.21.0",
     "maplibre-gl": "^5.0.0"

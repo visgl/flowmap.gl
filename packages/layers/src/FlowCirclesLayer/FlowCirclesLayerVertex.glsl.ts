@@ -16,7 +16,6 @@ in float instanceInRadius;
 in float instanceOutRadius;
 in vec4 instanceColors;
 in float instanceOutOfScale;
-in vec3 instancePickingColors;
 
 out vec4 vColor;
 out vec2 unitPosition;
@@ -35,7 +34,7 @@ void main(void) {
   // position on the containing square in [-1, 1] space
   unitPosition = positions.xy;
   geometry.uv = unitPosition;
-  geometry.pickingColor = instancePickingColors;
+  geometry.pickingColor = picking_getPickingColorFromInstanceID();
                                                                                                     
   // Find the center of the point and add the current vertex
   vec3 offset = positions * project_pixel_size(outerRadiusPixels);
