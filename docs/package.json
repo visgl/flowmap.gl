@@ -38,9 +38,13 @@
     ]
   },
   "engines": {
-    "node": ">=16.14"
+    "node": "^20.0.0 || >=22.0.0"
   },
   "resolutions": {
-    "webpack": "5.97.1"
+    "webpack": "5.104.1",
+    "tinypool": "^2.2.0",
+    "serialize-javascript": "^7.1.4",
+    "sockjs/uuid": "^11.1.1",
+    "express/qs": "^6.17.0"
   }
 }
