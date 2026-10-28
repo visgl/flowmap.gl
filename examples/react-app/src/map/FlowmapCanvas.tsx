@@ -82,6 +82,8 @@ export default function FlowmapCanvas({
           layers={layers}
           widgets={widgets}
           interleaved
+          // StrictMode can remount the control while its shared device is still initializing.
+          deviceProps={{_reuseDevices: true}}
           // These are 2D overlays: don't occlude basemap labels drawn afterward.
           parameters={{depthWriteEnabled: false, depthCompare: 'always'}}
         />

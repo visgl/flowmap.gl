@@ -18,10 +18,10 @@
     "@luma.gl/shadertools": "^9.4.2",
     "d3-fetch": "^3.0.1",
     "lil-gui": "^0.21.0",
-    "maplibre-gl": "^5.0.0"
+    "maplibre-gl": "^6.4.1"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
-    "vite": "^8.0.8"
+    "vite": "^8.1.6"
   }
 }

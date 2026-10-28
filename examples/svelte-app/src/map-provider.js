@@ -4,7 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+
+// Rollup emits the module worker alongside the application bundle.
+maplibregl.setWorkerUrl(
+  new URL('build/maplibre-gl-worker.mjs', document.baseURI).href,
+);
 
 const key = {};
 
