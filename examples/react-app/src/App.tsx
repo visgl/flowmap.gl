@@ -5,6 +5,9 @@
  */
 
 import DeckGL from '@deck.gl/react';
+import type {GlobeViewState, Layer} from '@deck.gl/core';
+import {globeBackground, globeView, mapView} from './globe/background';
+import {globeData} from './globe/data';
 import {
   getViewStateForLocations,
   type FlowmapData,
@@ -41,7 +44,13 @@ type TooltipState = {
   content: ReactNode;
 };
 
-function App() {
+function App({globeExample = false}: {globeExample?: boolean}) {
+  const [globe, setGlobe] = useState(globeExample);
+  const [globeViewState, setGlobeViewState] = useState<GlobeViewState>({
+    longitude: -25,
+    latitude: 25,
+    zoom: 1.6,
+  });
   const [config, setConfigValue] = useUI(UI_INITIAL, initLilGui);
   const [viewState, setViewState] = useState<ViewportProps>();
   const [data, setData] = useState<FlowmapData<LocationDatum, FlowDatum>>();
@@ -49,9 +58,11 @@ function App() {
   const [scaleState, setScaleState] = useState<ScaleState>();
   useEffect(() => {
     (async () => {
-      setData(await fetchData(config.clusteringMethod));
+      setData(
+        globeExample ? globeData : await fetchData(config.clusteringMethod),
+      );
     })();
-  }, [config.clusteringMethod]);
+  }, [config.clusteringMethod, globeExample]);
 
   useEffect(() => {
     if (!viewState && data?.locations) {
@@ -65,6 +76,7 @@ function App() {
         ...viewState,
         latitude: viewState.latitude - 0.02,
         zoom: viewState.zoom + 1,
+        ...(globeExample ? {longitude: 0, latitude: 20, zoom: 1} : {}),
         // @ts-ignore
         width,
         height,
@@ -72,10 +84,11 @@ function App() {
     }
   }, [data]);
   const handleViewStateChange = ({viewState}: any) => {
-    setViewState(viewState);
+    if (globe) setGlobeViewState(viewState);
+    else setViewState(viewState);
     setTooltip(undefined);
   };
-  const layers = [];
+  const layers: Layer[] = globe ? globeBackground(config.darkMode) : [];
   const widgets = [];
   if (data) {
     layers.push(
@@ -141,21 +154,57 @@ function App() {
       className={`flowmap-container ${config.darkMode ? 'dark' : 'light'}`}
       style={{position: 'relative'}}
     >
+      <div className="view-controls">
+        <label>
+          <input
+            type="checkbox"
+            checked={globe}
+            onChange={(event) => {
+              setGlobe(event.target.checked);
+              setTooltip(undefined);
+              if (!globeExample && event.target.checked) {
+                setGlobeViewState({
+                  longitude: viewState.longitude,
+                  latitude: viewState.latitude,
+                  zoom: Math.min(viewState.zoom, 12),
+                  maxZoom: 12,
+                });
+              }
+            }}
+          />{' '}
+          Globe
+        </label>
+        {globe && <span>Great-circle arrows · clustering off</span>}
+        <a href={globeExample ? './index.html' : './globe.html'}>
+          {globeExample ? 'Bike trips example' : 'Global routes example'}
+        </a>
+        {globeExample && <span>Synthetic route counts</span>}
+      </div>
       <DeckGL
+        key={globe ? 'globe' : 'map'}
+        views={globe ? globeView : mapView}
         width="100%"
         height="100%"
         // viewState={viewState}
-        initialViewState={viewState}
+        initialViewState={globe ? {...globeViewState, maxZoom: 12} : viewState}
         onViewStateChange={handleViewStateChange}
         controller={true}
         // @ts-ignore
         layers={layers}
         widgets={widgets}
-        style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
+        style={{
+          mixBlendMode: globe
+            ? 'normal'
+            : config.darkMode
+              ? 'screen'
+              : 'darken',
+        }}
       >
-        <ReactMapGl
-          mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
-        />
+        {!globe && (
+          <ReactMapGl
+            mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
+          />
+        )}
       </DeckGL>
       {tooltip && (
         <div className="tooltip" style={tooltip.position}>

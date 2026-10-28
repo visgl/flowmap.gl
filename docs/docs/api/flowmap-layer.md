@@ -239,6 +239,14 @@ Controls how flow lines are rendered.
 - `'animated-straight'`: animated straight flow lines
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
+With deck.gl's experimental `GlobeView`, `FlowmapLayer` currently forces
+`'curved'` rendering and draws arrows along great circles on the sphere.
+Clustering and Mercator corridor offsets are disabled for this prototype;
+`flowLineCurviness` has no effect on globe routes. Switching back to a flat view
+restores the requested rendering mode and clustering settings. Hidden-side
+flows, circles, and labels are clipped, including during picking. Endpoint
+visibility still follows `flowEndpointsInViewportMode`.
+
 #### `clusteringEnabled`
 
 - Type: `boolean`

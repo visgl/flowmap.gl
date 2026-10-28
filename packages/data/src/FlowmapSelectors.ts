@@ -11,6 +11,7 @@ import {createSelector, createSelectorCreator, lruMemoize} from 'reselect';
 import {alea} from 'seedrandom';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
 import {FlowmapState} from './FlowmapState';
+import {isLocationVisibleOnGlobe} from './globe';
 import {
   ClusterIndex,
   LocationWeightGetter,
@@ -779,7 +780,30 @@ export default class FlowmapSelectors<
     createSelector(
       this.getLocationsTree,
       this.getViewportBoundingBox,
-      (tree: KDBushTree, bbox: [number, number, number, number]) => {
+      this.getViewport,
+      this.getMaxLocationCircleSize,
+      (
+        tree: KDBushTree,
+        bbox: [number, number, number, number],
+        viewport,
+        padding,
+      ) => {
+        if (viewport.globe) {
+          return new Set(
+            tree?.points
+              .filter((location: L | ClusterNode) =>
+                isLocationVisibleOnGlobe(
+                  this.accessors.getLocationLon(location),
+                  this.accessors.getLocationLat(location),
+                  viewport,
+                  padding,
+                ),
+              )
+              .map((location: L | ClusterNode) =>
+                this.accessors.getLocationId(location),
+              ) as string[],
+          );
+        }
         const ids = this._getLocationsInBboxIndices(tree, bbox);
         if (ids) {
           return new Set(
@@ -1440,7 +1464,7 @@ export default class FlowmapSelectors<
         : undefined;
 
     const curveOffsets =
-      flowLinesRenderingMode === 'curved'
+      flowLinesRenderingMode === 'curved' && !viewport.globe
         ? calculateCurveOffsets(
             flows,
             viewport,

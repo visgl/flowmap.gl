@@ -10,7 +10,7 @@ import {Geometry, Model} from '@luma.gl/engine';
 import {flowLinesUniforms} from '../FlowLinesLayer/FlowLinesLayerUniforms';
 import {LayerProps} from '../types';
 import FragmentShader from './CurvedFlowLinesLayerFragment.glsl';
-import VertexShader from './CurvedFlowLinesLayerVertex.glsl';
+import getVertexShader from './CurvedFlowLinesLayerVertex.glsl';
 
 export interface Props<F> extends LayerProps {
   id: string;
@@ -30,11 +30,12 @@ export interface Props<F> extends LayerProps {
   getEndpointOffsets?: (d: F) => [number, number];
   getCurveOffset?: (d: F) => number;
   curviness?: number;
+  /** Number of segments along the route. Defaults to 24. */
+  numSegments?: number;
 }
 
 const DEFAULT_COLOR: RGBA = [0, 132, 193, 255];
 const SHAFT_SEGMENTS = 24;
-const HEAD_START_T = 1 - 1 / SHAFT_SEGMENTS;
 
 type GeometryBuffers = {
   positions: Float32Array;
@@ -61,14 +62,21 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
     outlineThickness: 1,
     outlineColor: [255, 255, 255, 255],
     curviness: 1,
+    numSegments: {type: 'number', value: SHAFT_SEGMENTS, min: 2, max: 512},
     parameters: {
       depthTest: false,
     },
   };
 
+  private get numSegments(): number {
+    const value =
+      (this.props as unknown as Props<F>).numSegments ?? SHAFT_SEGMENTS;
+    return Math.max(2, Math.min(512, Math.round(value)));
+  }
+
   getShaders(): Record<string, unknown> {
     return super.getShaders({
-      vs: VertexShader,
+      vs: getVertexShader(this.numSegments),
       fs: FragmentShader,
       modules: [project32, picking, flowLinesUniforms],
     });
@@ -120,9 +128,13 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
 
   updateState(params: any): void {
     super.updateState(params);
-    const {changeFlags} = params;
+    const {changeFlags, props, oldProps} = params;
 
-    if (!this.state.model || changeFlags.extensionsChanged) {
+    if (
+      !this.state.model ||
+      changeFlags.extensionsChanged ||
+      props.numSegments !== oldProps.numSegments
+    ) {
       this.state.model?.destroy();
       this.setState({model: this._getModel()});
       this.getAttributeManager()!.invalidateAll();
@@ -161,7 +173,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
 
   _getModel(): Model {
     const {id} = this.props as unknown as Props<F>;
-    const geometry = buildGeometry();
+    const geometry = buildGeometry(this.numSegments);
 
     return new Model(this.context.device as any, {
       id,
@@ -180,7 +192,8 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
   }
 }
 
-function buildGeometry(): GeometryBuffers {
+function buildGeometry(segments: number): GeometryBuffers {
+  const HEAD_START_T = 1 - 1 / segments;
   const positions: number[] = [];
   const barycentrics: number[] = [];
   const edgeMasks: number[] = [];
@@ -196,9 +209,9 @@ function buildGeometry(): GeometryBuffers {
     edgeMasks.push(...mask, ...mask, ...mask);
   };
 
-  for (let index = 0; index < SHAFT_SEGMENTS - 1; index++) {
-    const t0 = index / SHAFT_SEGMENTS;
-    const t1 = (index + 1) / SHAFT_SEGMENTS;
+  for (let index = 0; index < segments - 1; index++) {
+    const t0 = index / segments;
+    const t1 = (index + 1) / segments;
     pushTriangle(
       [t0, 1, 0],
       [t1, 1, 0],

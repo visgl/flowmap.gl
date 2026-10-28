@@ -113,6 +113,11 @@ export interface CountByTime {
 }
 
 export interface ViewportProps {
+  /** Serializable globe camera for visibility filtering, including worker providers. */
+  globe?: {
+    cameraPosition: number[];
+    viewProjectionMatrix: number[];
+  };
   width: number;
   height: number;
   latitude: number;

@@ -3,7 +3,9 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-import {CompositeLayer} from '@deck.gl/core';
+import {CompositeLayer, _GlobeViewport as GlobeViewport} from '@deck.gl/core';
+import GlobeOcclusionExtension from './GlobeOcclusionExtension';
+
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
   FilterState,
@@ -38,6 +40,8 @@ import {
   PickingInfo,
   PickingType,
 } from './types';
+
+const globeOcclusion = new GlobeOcclusionExtension();
 
 export type FlowmapLayerProps<
   L extends Record<string, any>,
@@ -358,9 +362,11 @@ export default class FlowmapLayer<
         locationLabelsEnabled ?? defaults.locationLabelsEnabled,
       adaptiveScalesEnabled:
         adaptiveScalesEnabled ?? defaults.adaptiveScalesEnabled,
-      flowLinesRenderingMode:
-        flowLinesRenderingMode ?? this._getResolvedFlowLinesRenderingMode(),
-      clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
+      flowLinesRenderingMode: this._getResolvedFlowLinesRenderingMode(),
+      // The existing clustering hierarchy uses Mercator distances.
+      clusteringEnabled: this._isGlobe()
+        ? false
+        : (clusteringEnabled ?? defaults.clusteringEnabled),
       clusteringLevel,
       fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
       fadeOpacityEnabled: fadeOpacityEnabled ?? defaults.fadeOpacityEnabled,
@@ -384,7 +390,28 @@ export default class FlowmapLayer<
     };
   }
 
+  private _isGlobe(): boolean {
+    return this.context.viewport instanceof GlobeViewport;
+  }
+
+  protected getSubLayerProps(props: Record<string, any> = {}): any {
+    const sublayerProps = super.getSubLayerProps(props);
+    if (!this._isGlobe()) return sublayerProps;
+    return {
+      ...sublayerProps,
+      extensions: [...(sublayerProps.extensions ?? []), globeOcclusion],
+      // Occlusion is handled in the shader, without a globe depth buffer.
+      parameters: {
+        ...sublayerProps.parameters,
+        cullMode: 'none',
+        depthCompare: 'always',
+        depthWriteEnabled: false,
+      },
+    };
+  }
+
   private _getResolvedFlowLinesRenderingMode(): FlowLinesRenderingMode {
+    if (this._isGlobe()) return 'curved';
     const {animationEnabled, flowLinesRenderingMode} = this.typedProps;
     if (flowLinesRenderingMode !== undefined) {
       if (
@@ -623,6 +650,7 @@ export default class FlowmapLayer<
                   outlineColor: outlineColor,
                   thicknessUnit: 12 * flowLineThicknessScale,
                   curviness: flowLineCurviness,
+                  numSegments: this._isGlobe() ? 96 : 24,
                 }),
               }),
             );
@@ -693,6 +721,7 @@ export default class FlowmapLayer<
                       outlineThickness: 1.5,
                       thicknessUnit: 12 * flowLineThicknessScale,
                       curviness: flowLineCurviness,
+                      numSegments: this._isGlobe() ? 96 : 24,
                       parameters: {
                         depthTest: false,
                       },
@@ -757,6 +786,16 @@ export default class FlowmapLayer<
 function pickViewportProps(viewport: Record<string, any>): ViewportProps {
   const {width, height, longitude, latitude, zoom, pitch, bearing} = viewport;
   return {
+    ...(viewport instanceof GlobeViewport
+      ? {
+          globe: {
+            cameraPosition: Array.from(viewport.cameraPosition) as number[],
+            viewProjectionMatrix: Array.from(
+              viewport.viewProjectionMatrix,
+            ) as number[],
+          },
+        }
+      : {}),
     width,
     height,
     longitude,
