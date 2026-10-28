@@ -21,6 +21,7 @@ export interface FilterState {
 
 export interface SettingsState {
   flowLinesRenderingMode: FlowLinesRenderingMode;
+  blendingMode?: 'normal' | 'non-accumulating';
   fadeEnabled: boolean;
   fadeOpacityEnabled: boolean;
   locationsEnabled: boolean;

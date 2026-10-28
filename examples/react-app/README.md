@@ -57,3 +57,26 @@ fallback plane because their shortest route is ambiguous. Routes use 96 segments
 this is not adaptive tessellation. The examples cap globe zoom at 12, before
 `GlobeView` switches to Mercator. Flat mode retains its existing flow rendering modes
 and Mercator clustering, with the same OpenFreeMap styles and label controls.
+
+## Non-accumulating blending
+
+The `blendingMode` control defaults to `non-accumulating`, using darken in
+light mode or lighten in dark mode without intensifying identical overlaps.
+Select `normal` to compare ordinary blending. The library default remains `normal`.
+Fading remains separately selectable; opacity and antialiasing fade
+RGB toward the neutral color. Neutral outlines do not separate crossing flows,
+and per-channel comparisons can alter mixed hues.
+
+`canvasRendering` selects `interleaved` or `separate`; `auto` preserves the
+existing interleaved default for both projections. `dataset` switches between
+the default global flights and the Bixi flat-map dataset. Bixi fits Montreal;
+returning to flights restores the initial global cameras.
+
+For a dense view, disable clustering and location circles. Try `Sunset` for
+colored crossings, then toggle both themes, fading, opacity, and projection.
+`/tests/blending.html` checks GPU pixels for twelve identical overlaps in both
+themes, all flat render modes and globe, neutral and tinted backgrounds, opacity,
+edge coverage, picking, visible highlights, and live mode/fade changes.
+`/tests/globe.html?blendingMode=non-accumulating` runs the globe/clustering suite
+with the new mode, including hidden-hemisphere picking and horizon clipping.
+These test pages are served only by the development server.

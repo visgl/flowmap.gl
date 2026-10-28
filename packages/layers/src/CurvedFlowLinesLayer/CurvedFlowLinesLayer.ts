@@ -9,10 +9,16 @@ import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {Geometry, Model} from '@luma.gl/engine';
 import {flowLinesUniforms} from '../FlowLinesLayer/FlowLinesLayerUniforms';
 import {LayerProps} from '../types';
+import {
+  flowBlending,
+  applyFlowBlending,
+  getFlowBlendingUniforms,
+  type FlowBlendingProps,
+} from '../flowBlending';
 import FragmentShader from './CurvedFlowLinesLayerFragment.glsl';
 import getVertexShader from './CurvedFlowLinesLayerVertex.glsl';
 
-export interface Props<F> extends LayerProps {
+export interface Props<F> extends LayerProps, FlowBlendingProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
@@ -78,7 +84,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: getVertexShader(this.numSegments),
       fs: FragmentShader,
-      modules: [project32, picking, flowLinesUniforms],
+      modules: [project32, picking, flowBlending, flowLinesUniforms],
     });
   }
 
@@ -141,7 +147,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
     }
   }
 
-  draw(): void {
+  draw(options: Parameters<Layer['draw']>[0]): void {
     const {
       drawOutline = true,
       outlineColor = [255, 255, 255, 255],
@@ -154,6 +160,7 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
       return;
     }
     model.shaderInputs.setProps({
+      flowBlending: getFlowBlendingUniforms(this.props as unknown as Props<F>),
       flowLines: {
         outlineColor: outlineColor.map((x: number) => x / 255) as [
           number,
@@ -168,6 +175,11 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
         curviness,
       },
     });
+    applyFlowBlending(
+      model,
+      this.props as unknown as Props<F>,
+      Boolean(options.shaderModuleProps?.picking?.isActive),
+    );
     model.draw(this.context.renderPass as any);
   }
 

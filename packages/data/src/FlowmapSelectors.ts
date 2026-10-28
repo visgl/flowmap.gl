@@ -545,6 +545,7 @@ export default class FlowmapSelectors<
     this.getFadeOpacityEnabled,
     this.getFadeAmount,
     this.getAnimate,
+    (state: FlowmapState) => state.settings.blendingMode,
     getColors,
   );
 
