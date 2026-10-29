@@ -190,6 +190,67 @@ export function checkClustering(report) {
       .every((l) => l.nodes.every((n) => !String(n.id).includes('globe:'))),
     'Globe hierarchy leaked into flat mode',
   );
+  const selectionData = {
+    locations: unequalPairs,
+    flows: [
+      {origin: 'a', dest: 'b', count: 10},
+      {origin: 'c', dest: 'd', count: 20},
+    ],
+  };
+  const flatCluster = selectors
+    .getClusterLevels(flat, selectionData)
+    .flatMap((level) => level.nodes)
+    .find((node) => node.children);
+  const globeCluster = selectors
+    .getClusterLevels(state, selectionData)
+    .flatMap((level) => level.nodes)
+    .find((node) => node.children);
+  for (const [target, staleId] of [
+    [state, flatCluster.id],
+    [flat, globeCluster.id],
+  ]) {
+    const selected = {...target, filter: {selectedLocations: [staleId]}};
+    assert(
+      selectors.getSelectedLocations(selected, selectionData) === undefined,
+      'Foreign cluster selection was retained',
+    );
+    assert(
+      JSON.stringify(
+        selectors.getAvailableClusterZoomLevels(selected, selectionData),
+      ) ===
+        JSON.stringify(
+          selectors.getAvailableClusterZoomLevels(target, selectionData),
+        ),
+      'Stale selection constrained cluster levels',
+    );
+    const mixed = {...selected, filter: {selectedLocations: [staleId, 'a']}};
+    assert(
+      JSON.stringify(selectors.getSelectedLocations(mixed, selectionData)) ===
+        '["a"]',
+      'Real airport selection was cleared',
+    );
+    assert(
+      selectors.getSelectedLocations(selected, supplied)[0] === staleId,
+      'Supplied hierarchy selection was cleared',
+    );
+  }
+  assert(
+    selectors.getLocationsTree(state, data) === undefined,
+    'Globe built an unused Mercator tree',
+  );
+  const points = selectors.getGlobeLocationPoints(state, data);
+  assert(
+    points ===
+      selectors.getGlobeLocationPoints(
+        {...state, viewport: {...state.viewport, longitude: 90}},
+        data,
+      ),
+    'Rotation reprojected locations',
+  );
+  assert(selectors.getLocationsTree(flat, data), 'Flat Mercator tree missing');
+  report(
+    'PASS projection-specific selections and cached globe points without Mercator indexing',
+  );
   report(
     'PASS projection switching, manual levels, stable hierarchy, supplied clusters',
   );

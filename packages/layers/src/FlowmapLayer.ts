@@ -3,7 +3,11 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-import {CompositeLayer, _GlobeViewport as GlobeViewport} from '@deck.gl/core';
+import {
+  CompositeLayer,
+  _GlobeViewport as GlobeViewport,
+  type Viewport,
+} from '@deck.gl/core';
 import GlobeOcclusionExtension from './GlobeOcclusionExtension';
 
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
@@ -50,6 +54,8 @@ export type FlowmapLayerProps<
 > = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
+  /** Bind this layer and its data state to one view. Defaults to the first view. */
+  viewId?: string;
   filter?: FilterState;
   locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
@@ -83,6 +89,7 @@ export type FlowmapLayerProps<
 
 const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'filter',
+  'viewId',
   'locationsEnabled',
   'locationTotalsEnabled',
   'locationLabelsEnabled',
@@ -393,8 +400,25 @@ export default class FlowmapLayer<
     };
   }
 
+  private _getViewport(): Viewport {
+    const viewports = this.context.deck?.getViewports() ?? [
+      this.context.viewport,
+    ];
+    const viewId = this.typedProps.viewId;
+    const viewport = viewId
+      ? viewports.find((view) => view.id === viewId)
+      : viewports[0];
+    if (!viewport)
+      throw new Error(`FlowmapLayer: view "${viewId}" was not found`);
+    return viewport;
+  }
+
+  filterSubLayer({viewport}: {viewport: Viewport}): boolean {
+    return viewport.id === this._getViewport().id;
+  }
+
   private _isGlobe(): boolean {
-    return this.context.viewport instanceof GlobeViewport;
+    return this._getViewport() instanceof GlobeViewport;
   }
 
   protected getSubLayerProps(props: Record<string, any> = {}): any {
@@ -405,10 +429,11 @@ export default class FlowmapLayer<
       extensions: [...(sublayerProps.extensions ?? []), globeOcclusion],
       // Occlusion is handled in the shader, without a globe depth buffer.
       parameters: {
-        ...sublayerProps.parameters,
         cullMode: 'none',
         depthCompare: 'always',
         depthWriteEnabled: false,
+        ...(this.typedProps.parameters as Record<string, unknown>),
+        ...sublayerProps.parameters,
       },
     };
   }
@@ -443,7 +468,7 @@ export default class FlowmapLayer<
   private _getFlowmapState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
     return {
-      viewport: pickViewportProps(this.context.viewport),
+      viewport: pickViewportProps(this._getViewport()),
       filter: props.filter,
       settings: this._getSettingsState(lockedScaleDomains),
     };
@@ -601,6 +626,7 @@ export default class FlowmapLayer<
   renderLayers(): Array<any> {
     const props = this.typedProps;
     const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
+    const numSegments = this._isGlobe() ? 96 : 24;
     const locationsEnabled =
       props.locationsEnabled ?? FlowmapLayer.defaultProps.locationsEnabled;
     const highlightColor =
@@ -655,7 +681,7 @@ export default class FlowmapLayer<
                   outlineColor: outlineColor,
                   thicknessUnit: 12 * flowLineThicknessScale,
                   curviness: flowLineCurviness,
-                  numSegments: this._isGlobe() ? 96 : 24,
+                  numSegments,
                 }),
               }),
             );
@@ -726,7 +752,7 @@ export default class FlowmapLayer<
                       outlineThickness: 1.5,
                       thicknessUnit: 12 * flowLineThicknessScale,
                       curviness: flowLineCurviness,
-                      numSegments: this._isGlobe() ? 96 : 24,
+                      numSegments,
                       parameters: {
                         depthTest: false,
                       },

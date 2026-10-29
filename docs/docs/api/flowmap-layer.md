@@ -248,7 +248,31 @@ honored in both projections. Mercator corridor offsets are disabled on the globe
 `flowLineCurviness` has no effect on globe routes. Switching back to a flat view
 restores the requested rendering mode and clustering settings. Hidden-side
 flows, circles, and labels are clipped, including during picking. Endpoint
-visibility still follows `flowEndpointsInViewportMode`.
+visibility follows `flowEndpointsInViewportMode`: globe `'any'` also keeps great-circle
+arcs that cross the screen with both endpoints off-screen; `'both'` still requires
+both endpoints. Generated cluster selections from the other projection are ignored
+while real location selections and supplied-hierarchy selections are retained.
+
+#### `viewId`
+
+- Type: `string` (optional)
+- Default: the first deck.gl view
+
+A flowmap's clustering, visibility, scales, and rendering mode belong to one view.
+For simultaneous globe and flat views, create one `FlowmapLayer` per view with a
+unique layer ID and matching `viewId`. The layers automatically draw and pick only
+in their assigned views, independent of view order. Share the raw data, but use
+separate data-provider instances if supplying `dataProvider`.
+
+```typescript
+const layers = [
+  new FlowmapLayer({...flowProps, id: 'globe-flows', viewId: 'globe'}),
+  new FlowmapLayer({...flowProps, id: 'flat-flows', viewId: 'minimap'}),
+];
+```
+
+Globe depth and culling parameters are defaults; explicit layer or sublayer
+`parameters` take precedence.
 
 #### `clusteringEnabled`
 
@@ -339,7 +363,7 @@ Maximum number of flows to display. Flows are sorted by magnitude and only the t
 
 Controls when a flow is considered visible based on endpoint locations:
 
-- `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport
+- `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport; on the globe, also keep arcs crossing the viewport
 - `'both'`: Show flows only if both endpoints (origin AND destination) are in viewport
 
 The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.

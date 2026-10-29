@@ -67,15 +67,18 @@ export default function FlowmapCanvas({
     () => sourceStyle && prepareBasemapStyle(sourceStyle, labelsEnabled),
     [sourceStyle, labelsEnabled],
   );
-  const clearColor = interleaved
-    ? undefined
-    : getFlowmapCanvasClearColor({blendingMode, darkMode});
-  const View = globe ? GlobeView : MapView;
-  const views = new View({
-    id: 'maplibre',
-    clear: Boolean(clearColor),
-    clearColor,
-  });
+  const views = useMemo(() => {
+    const clearColor = interleaved
+      ? undefined
+      : getFlowmapCanvasClearColor({blendingMode, darkMode});
+    const View = globe ? GlobeView : MapView;
+    return new View({id: 'maplibre', clear: Boolean(clearColor), clearColor});
+  }, [globe, interleaved, blendingMode, darkMode]);
+  const canvasStyle = useMemo(
+    () =>
+      interleaved ? undefined : getFlowmapCanvasStyle({blendingMode, darkMode}),
+    [interleaved, blendingMode, darkMode],
+  );
   if (!mapStyle) {
     return (
       <div className="basemap-status" role={styleError ? 'alert' : 'status'}>
@@ -116,11 +119,7 @@ export default function FlowmapCanvas({
           parameters={{depthWriteEnabled: false, depthCompare: 'always'}}
           // MapLibreOverlay's DeckProps default incorrectly narrows views to null.
           views={views as unknown as MapLibreOverlayProps['views']}
-          style={
-            interleaved
-              ? undefined
-              : getFlowmapCanvasStyle({blendingMode, darkMode})
-          }
+          style={canvasStyle}
         />
       </Map>
     </>

@@ -12,7 +12,6 @@ import {LayerProps} from '../types';
 import {
   flowBlending,
   applyFlowBlending,
-  getFlowBlendingUniforms,
   type FlowBlendingProps,
 } from '../flowBlending';
 import FragmentShader from './CurvedFlowLinesLayerFragment.glsl';
@@ -160,7 +159,6 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
       return;
     }
     model.shaderInputs.setProps({
-      flowBlending: getFlowBlendingUniforms(this.props as unknown as Props<F>),
       flowLines: {
         outlineColor: outlineColor.map((x: number) => x / 255) as [
           number,

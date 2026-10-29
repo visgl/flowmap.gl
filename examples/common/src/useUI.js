@@ -32,8 +32,10 @@ function writeParamsToUrl(state, defaults) {
     }
   }
   const qs = params.toString();
-  const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
-  window.history.replaceState(null, '', url);
+  const url = qs
+    ? `${window.location.pathname}?${qs}`
+    : window.location.pathname;
+  window.history.replaceState(null, '', url + window.location.hash);
 }
 
 export default function useUI(initialState, initUi) {

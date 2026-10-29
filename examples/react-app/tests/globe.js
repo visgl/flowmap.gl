@@ -7,7 +7,11 @@ import {
 } from '@flowmap.gl/layers';
 import {LocalFlowmapDataProvider} from '@flowmap.gl/data';
 import {checkClustering} from './clustering';
-import {isLocationVisibleOnGlobe} from '../../../packages/data/src/globe';
+import {
+  isLocationVisibleOnGlobe,
+  getGlobeVisibility,
+  projectGlobeLocation,
+} from '../../../packages/data/src/globe';
 
 const blendingMode =
   new globalThis.URLSearchParams(globalThis.location.search).get(
@@ -200,7 +204,104 @@ async function run() {
       !isLocationVisibleOnGlobe(90, 0, state, 0),
       'Perspective horizon ignored',
     );
+    const visibility = getGlobeVisibility(state, 0);
+    assert(
+      !visibility.arc(
+        projectGlobeLocation(150, 0),
+        projectGlobeLocation(-150, 0),
+      ),
+      'Hidden hemisphere arc accepted',
+    );
+    for (let i = 0; i < 300; i++) {
+      const a = projectGlobeLocation(
+        ((i * 137.5) % 360) - 180,
+        Math.sin(i) * 85,
+      );
+      const b = projectGlobeLocation(
+        ((i * 31.7 + 120) % 360) - 180,
+        Math.cos(i) * 85,
+      );
+      const angle = Math.acos(
+        Math.max(
+          -1,
+          Math.min(
+            1,
+            a.reduce((sum, x, j) => sum + x * b[j], 0),
+          ),
+        ),
+      );
+      if (Math.sin(angle) < 1e-6) continue;
+      for (let j = 0; j <= 64; j++) {
+        const t = j / 64;
+        const sample = a.map(
+          (x, k) =>
+            (x * Math.sin((1 - t) * angle) + b[k] * Math.sin(t * angle)) /
+            Math.sin(angle),
+        );
+        assert(
+          !visibility.point(sample) || visibility.arc(a, b),
+          'Arc culling discarded a visible sample',
+        );
+      }
+    }
+    report('PASS conservative arc culling against 19,500 spherical samples');
     report('PASS CPU visibility agrees with front, back, and horizon');
+
+    for (const mode of ['any', 'both']) {
+      deck.setProps({
+        viewState: {longitude: 0, latitude: 0, zoom: 4},
+        layers: [
+          makeLayer('curved', route([-40, 0], [40, 0]), {
+            flowEndpointsInViewportMode: mode,
+          }),
+        ],
+      });
+      await frames();
+      const v = deck.getViewports()[0];
+      const zoomedState = {
+        width: v.width,
+        height: v.height,
+        globe: {
+          cameraPosition: v.cameraPosition,
+          viewProjectionMatrix: v.viewProjectionMatrix,
+        },
+      };
+      assert(
+        !isLocationVisibleOnGlobe(-40, 0, zoomedState, 17) &&
+          !isLocationVisibleOnGlobe(40, 0, zoomedState, 17),
+        'Crossing test endpoints should be outside screen',
+      );
+      assert(
+        Boolean(pick([0, 0])) === (mode === 'any'),
+        `Crossing route visibility failed for ${mode}`,
+      );
+    }
+    report(
+      'PASS zoomed globe crossing arc survives off-screen endpoints; both mode stays strict',
+    );
+
+    const parameterLayer = makeLayer('curved', route([-40, 0], [40, 0]), {
+      parameters: {
+        depthCompare: 'less-equal',
+        depthWriteEnabled: true,
+        cullMode: 'back',
+      },
+    });
+    deck.setProps({
+      layers: [parameterLayer],
+      viewState: {longitude: 0, latitude: 0, zoom: 1},
+    });
+    await frames();
+    const parameters = parameterLayer
+      .getSubLayers()
+      .find((layer) => layer instanceof CurvedFlowLinesLayer).props.parameters;
+    assert(
+      parameters.depthCompare === 'less-equal' &&
+        parameters.depthWriteEnabled &&
+        parameters.cullMode === 'back',
+      'Explicit globe render parameters overwritten',
+    );
+    report('PASS explicit globe render parameters are preserved');
 
     for (const [name, source, target, center, midpoint] of [
       ['dateline', [170, 0], [-170, 0], [180, 0], [180, 0]],
@@ -248,6 +349,71 @@ async function run() {
       );
       report(`PASS switch back to flat: ${mode}`);
     }
+    const globeView = new GlobeView({id: 'globe-view', x: 0, width: '50%'});
+    const flatView = new MapView({id: 'flat-view', x: '50%', width: '50%'});
+    const multiData = {
+      locations: [
+        ...route([-40, 0], [40, 0]).locations,
+        {id: 'c', lon: 120, lat: 0},
+        {id: 'd', lon: 160, lat: 0},
+      ],
+      flows: [
+        {origin: 'a', dest: 'b', count: 100},
+        {origin: 'c', dest: 'd', count: 90},
+      ],
+    };
+    for (const views of [
+      [globeView, flatView],
+      [flatView, globeView],
+    ]) {
+      const globeCenter = views[0] === globeView ? 0 : 140;
+      const flatCenter = views[0] === globeView ? 140 : 0;
+      const globeLayer = makeLayer('straight', multiData, {
+        id: 'globe-flows',
+        viewId: 'globe-view',
+      });
+      const flatLayer = makeLayer('straight', multiData, {
+        id: 'flat-flows',
+        viewId: 'flat-view',
+      });
+      deck.setProps({
+        views,
+        viewState: {
+          'globe-view': {longitude: globeCenter, latitude: 0, zoom: 1},
+          'flat-view': {longitude: flatCenter, latitude: 0, zoom: 1},
+        },
+        layers: [globeLayer, flatLayer],
+      });
+      await frames();
+      assert(
+        globeLayer
+          .getSubLayers()
+          .some((layer) => layer instanceof CurvedFlowLinesLayer),
+        'Mixed-view globe did not force curved mode',
+      );
+      assert(
+        flatLayer
+          .getSubLayers()
+          .some((layer) => layer instanceof FlowLinesLayer),
+        'Mixed-view flat mode inherited globe rendering',
+      );
+      for (const v of deck.getViewports()) {
+        const [x, y] = v.project([
+          v.id === 'globe-view' ? globeCenter : flatCenter,
+          0,
+        ]);
+        const hit = deck.pickObject({x: x + v.x, y: y + v.y, radius: 12});
+        const expectedId = v.id === 'globe-view' ? 'globe-flows' : 'flat-flows';
+        assert(
+          hit?.layer.id.startsWith(expectedId),
+          `Picking leaked between views: ${v.id}`,
+        );
+      }
+    }
+    report(
+      'PASS independently bound globe/flat views render and pick in both view orders',
+    );
+
     assert(errors.length === 0, errors.join('\n'));
     report('ALL CHECKS PASSED');
   } finally {

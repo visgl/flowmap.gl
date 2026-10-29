@@ -1,3 +1,4 @@
+import {picking} from '@deck.gl/core';
 import type {ShaderModule} from '@luma.gl/shadertools';
 import type {Model} from '@luma.gl/engine';
 import type {Parameters} from '@luma.gl/core';
@@ -37,6 +38,7 @@ export function applyFlowBlending(
   props: FlowBlendingProps,
   pickingActive: boolean,
 ) {
+  model.shaderInputs.setProps({flowBlending: getFlowBlendingUniforms(props)});
   if (props.blendingMode === 'non-accumulating' && !pickingActive) {
     model.setParameters({
       ...model.parameters,
@@ -81,6 +83,8 @@ export function getFlowmapCanvasClearColor(
 
 export const flowBlending = {
   name: 'flowBlending',
+  // deck.gl 9.4 widens several picking uniform types to string.
+  dependencies: [picking as ShaderModule],
   fs: `
 layout(std140) uniform flowBlendingUniforms {
   float enabled;

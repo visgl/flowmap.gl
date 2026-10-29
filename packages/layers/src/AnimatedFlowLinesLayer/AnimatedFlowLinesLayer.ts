@@ -13,7 +13,6 @@ import {LayerProps} from '../types';
 import {
   flowBlending,
   applyFlowBlending,
-  getFlowBlendingUniforms,
   type FlowBlendingProps,
 } from '../flowBlending';
 import {animatedFlowLinesUniforms} from './AnimatedFlowLinesLayerUniforms';
@@ -152,7 +151,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       return;
     }
     model.shaderInputs.setProps({
-      flowBlending: getFlowBlendingUniforms(this.props as unknown as Props<F>),
       animatedFlowLines: {
         thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,

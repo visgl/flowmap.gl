@@ -188,8 +188,20 @@ async function run() {
       deck.setProps({
         views: new MapView({clear: true, clearColor: [0, 0, 0, 255]}),
       });
-      const primitive = new Primitive({
+      class DependencyOnlyPrimitive extends Primitive {
+        getShaders() {
+          const shaders = super.getShaders();
+          return {
+            ...shaders,
+            modules: shaders.modules.filter(
+              (module) => module.name !== 'picking',
+            ),
+          };
+        }
+      }
+      const primitive = new DependencyOnlyPrimitive({
         id: 'primitive',
+        pickable: true,
         data: [{}, {}, {}],
         darkMode: true,
         drawOutline: false,
@@ -206,6 +218,10 @@ async function run() {
       });
       const nonAccumulatingPixels = await capture([nonAccumulating]);
       assert(
+        deck.pickObjects({x: 0, y: 0, width: 480, height: 360}).length > 0,
+        'Transitive picking shader dependency missing',
+      );
+      assert(
         difference(normal, nonAccumulatingPixels) > 10,
         'Primitive did not use min/max with source alpha',
       );
@@ -217,7 +233,7 @@ async function run() {
         'Cloned primitive retained stale min/max parameters',
       );
       report(
-        `PASS ${Primitive.layerName}: source alpha, direct use, clone back to normal`,
+        `PASS ${Primitive.layerName}: source alpha, transitive picking dependency, clone back to normal`,
       );
     }
     assert(

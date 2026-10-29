@@ -50,9 +50,10 @@ calculation is bypassed on the globe; curviness does not change great-circle rou
 clipped in both drawing and picking, without requiring an opaque globe beneath it.
 Location circles lie on the surface and foreshorten near the horizon.
 
-This prototype retains endpoint-based flow filtering (`any` / `both`), so a route
-whose endpoints are both outside the visible viewport is omitted even if part of
-its path crosses the screen. Exactly antipodal endpoints use a deterministic
+Globe `any` filtering conservatively tests the great-circle arc, including routes
+whose endpoints are both off-screen. `both` still requires both endpoints to be
+visible. Globe location coordinates are cached across camera moves; no Mercator
+index is built for globe visibility. Exactly antipodal endpoints use a deterministic
 fallback plane because their shortest route is ambiguous. Routes use 96 segments;
 this is not adaptive tessellation. The examples cap globe zoom at 12, before
 `GlobeView` switches to Mercator. Flat mode retains its existing flow rendering modes
