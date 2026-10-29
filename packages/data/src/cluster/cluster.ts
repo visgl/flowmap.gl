@@ -5,6 +5,12 @@
  */
 
 import {min, rollup} from 'd3-array';
+import {
+  projectGlobe,
+  globeCentroid,
+  unprojectGlobe,
+  indexGlobePoints,
+} from './globe-projection';
 import KDBush from 'kdbush';
 import {LocationWeightGetter} from './ClusterIndex';
 import {Cluster, ClusterLevel, ClusterNode, LocationAccessors} from '../types';
@@ -30,6 +36,8 @@ import {Cluster, ClusterLevel, ClusterNode, LocationAccessors} from '../types';
  */
 
 export interface Options {
+  /** Distance and centroid model. Mercator preserves the existing flat-map hierarchy. */
+  projection?: 'mercator' | 'globe';
   minZoom: number; // min zoom to generate clusters on
   maxZoom: number; // max zoom level to cluster the points on
   radius: number; // cluster radius in pixels
@@ -40,6 +48,7 @@ export interface Options {
 }
 
 const defaultOptions: Options = {
+  projection: 'mercator',
   minZoom: 0,
   maxZoom: 16,
   radius: 40,
@@ -52,6 +61,7 @@ const defaultOptions: Options = {
 interface BasePoint {
   x: number; // projected point coordinates
   y: number;
+  z?: number; // sphere coordinate; absent for the unchanged Mercator path
   weight: number;
   zoom: number; // the last zoom the point was processed at
   parentId: number; // parent cluster id
@@ -92,6 +102,9 @@ export function clusterLocations<L>(
     ...defaultOptions,
     ...options,
   };
+  if (opts.projection === 'globe' && !options?.makeClusterId) {
+    opts.makeClusterId = (id) => `{[globe:${id}]}`;
+  }
   const {minZoom, maxZoom, nodeSize, makeClusterName, makeClusterId} = opts;
 
   const trees = new Array<ZoomLevelKDBush>(maxZoom + 1);
@@ -103,8 +116,9 @@ export function clusterLocations<L>(
     const x = getLocationLon(location);
     const y = getLocationLat(location);
     clusters.push({
-      x: lngX(x), // projected point coordinates
-      y: latY(y),
+      ...(opts.projection === 'globe'
+        ? projectGlobe(x, y)
+        : {x: lngX(x), y: latY(y)}),
       weight: getLocationWeight(getLocationId(location)),
       zoom: Infinity, // the last zoom the point was processed at
       index: locationsCount, // index of the source feature in the original input array,
@@ -115,6 +129,7 @@ export function clusterLocations<L>(
   }
 
   const makeBush = (points: Point<L>[]) => {
+    if (opts.projection === 'globe') return {points};
     const bush = new KDBush(points.length, nodeSize, Float32Array);
     for (let i = 0; i < points.length; i++) {
       bush.add(points[i].x, points[i].y);
@@ -132,7 +147,11 @@ export function clusterLocations<L>(
   for (let z = maxZoom; z >= minZoom; z--) {
     // create a new set of clusters for the zoom and index them with a KD-tree
     const _clusters = cluster(clusters, z, trees[prevZoom], opts);
-    if (_clusters.length === clusters.length) {
+    if (_clusters.length === clusters.length && opts.projection === 'globe') {
+      // No merge: keep the previous level's original zoom boundary and nodes.
+      // Relabeling it with this lower zoom would split clusters prematurely.
+      clusters = _clusters;
+    } else if (_clusters.length === clusters.length) {
       // same number of clusters => move the higher level clusters up
       // no need to keep the same data on multiple levels
       trees[z] = trees[prevZoom];
@@ -219,8 +238,9 @@ export function clusterLocations<L>(
           id: makeClusterId(id),
           name: makeClusterName(id, numPoints),
           zoom,
-          lat: yLat(y),
-          lon: xLng(x),
+          ...(opts.projection === 'globe'
+            ? unprojectGlobe(point)
+            : {lat: yLat(y), lon: xLng(x)}),
           children: children ?? [],
         } as Cluster;
         nodes.push(cluster);
@@ -241,10 +261,12 @@ function createCluster(
   id: number,
   numPoints: number,
   weight: number,
+  z?: number,
 ): ClusterPoint {
   return {
     x, // weighted cluster center
     y,
+    ...(z !== undefined ? {z} : {}),
     zoom: Infinity, // the last zoom the cluster was processed at
     id, // encodes index of the first child of the cluster and its zoom level
     parentId: -1, // parent cluster id
@@ -260,8 +282,12 @@ function cluster<L>(
   options: Options,
 ) {
   const clusters: Point<L>[] = [];
+  const carriedClusters: {index: number; point: ClusterPoint; id: number}[] =
+    [];
   const {radius, extent} = options;
   const r = radius / (extent * Math.pow(2, zoom));
+  const globeNeighbors =
+    options.projection === 'globe' ? indexGlobePoints(points, r) : undefined;
 
   // loop through each point
   for (let i = 0; i < points.length; i++) {
@@ -273,12 +299,16 @@ function cluster<L>(
     p.zoom = zoom;
 
     // find all nearby points
-    const neighborIds = tree.within(p.x, p.y, r);
+    const neighborIds = globeNeighbors
+      ? globeNeighbors(p)
+      : tree.within(p.x, p.y, r);
+    let merged = false;
 
     let weight = p.weight || 1;
     let numPoints = isClusterPoint(p) ? p.numPoints : 1;
     let wx = p.x * weight;
     let wy = p.y * weight;
+    let wz = (p.z ?? 0) * weight;
 
     // encode both zoom and point index on which the cluster originated
     const id = (i << 5) + (zoom + 1);
@@ -289,11 +319,20 @@ function cluster<L>(
       if (b.zoom <= zoom) {
         continue;
       }
+      // Grid cells supply candidates; test full sphere chord distance.
+      if (
+        options.projection === 'globe' &&
+        Math.hypot(b.x - p.x, b.y - p.y, b.z! - p.z!) > r
+      ) {
+        continue;
+      }
+      merged = true;
       b.zoom = zoom; // save the zoom (so it doesn't get processed twice)
 
       const weight2 = b.weight || 1;
       const numPoints2 = b.numPoints || 1;
       wx += b.x * weight2; // accumulate coordinates for calculating weighted center
+      wz += (b.z ?? 0) * weight2;
       wy += b.y * weight2;
 
       weight += weight2;
@@ -301,16 +340,41 @@ function cluster<L>(
       b.parentId = id;
     }
 
-    if (numPoints === 1) {
+    if (numPoints === 1 || (options.projection === 'globe' && !merged)) {
+      if (options.projection === 'globe' && isClusterPoint(p)) {
+        carriedClusters.push({index: clusters.length, point: p, id});
+      }
       clusters.push(p);
     } else {
       p.parentId = id;
-      clusters.push(
-        createCluster(wx / weight, wy / weight, id, numPoints, weight),
-      );
+      if (options.projection === 'globe') {
+        const center = globeCentroid(wx, wy, wz, p);
+        clusters.push(
+          createCluster(center.x, center.y, id, numPoints, weight, center.z),
+        );
+      } else {
+        clusters.push(
+          createCluster(wx / weight, wy / weight, id, numPoints, weight),
+        );
+      }
     }
   }
 
+  if (clusters.length < points.length) {
+    // A merge elsewhere retains this zoom. Give carried clusters their own
+    // parent node here, so every retained level links to the previous one.
+    for (const {index, point, id} of carriedClusters) {
+      point.parentId = id;
+      clusters[index] = createCluster(
+        point.x,
+        point.y,
+        id,
+        point.numPoints,
+        point.weight,
+        point.z,
+      );
+    }
+  }
   return clusters;
 }
 

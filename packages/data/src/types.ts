@@ -113,6 +113,13 @@ export interface CountByTime {
 }
 
 export interface ViewportProps {
+  /** Serializable globe camera for visibility filtering, including worker providers. */
+  globe?: {
+    /** Effective zoom for the generated spherical cluster hierarchy. */
+    clusterZoom?: number;
+    cameraPosition: number[];
+    viewProjectionMatrix: number[];
+  };
   width: number;
   height: number;
   latitude: number;

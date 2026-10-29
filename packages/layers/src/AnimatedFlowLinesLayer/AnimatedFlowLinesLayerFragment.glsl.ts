@@ -22,5 +22,7 @@ void main(void) {
   fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(sourceToTarget)));
 
   DECKGL_FILTER_COLOR(fragColor, geometry);
+  float coverage = smoothstep(0.0, max(fwidth(uv.y), 1e-4), 1.0 - abs(uv.y));
+  fragColor = flow_blend_color(fragColor, coverage);
 }
 `;

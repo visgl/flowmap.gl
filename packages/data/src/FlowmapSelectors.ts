@@ -12,6 +12,11 @@ import {alea} from 'seedrandom';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
 import {FlowmapState} from './FlowmapState';
 import {
+  getGlobeVisibility,
+  projectGlobeLocation,
+  type GlobePoint,
+} from './globe';
+import {
   ClusterIndex,
   LocationWeightGetter,
   buildIndex,
@@ -108,8 +113,30 @@ export default class FlowmapSelectors<
     state: FlowmapState,
     props: FlowmapData<L, F>,
   ) => state.settings.flowEndpointsInViewportMode;
-  getSelectedLocations = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.filter?.selectedLocations;
+  getSelectedLocations = createSelector(
+    (state: FlowmapState) => state.filter?.selectedLocations,
+    (state: FlowmapState, props: FlowmapData<L, F>) => props.clusterLevels,
+    (state: FlowmapState) => Boolean(state.viewport.globe),
+    (state: FlowmapState, props: FlowmapData<L, F>) =>
+      this.getLocationsById(state, props),
+    (selected, suppliedLevels, globe, locationsById) => {
+      if (!selected || suppliedLevels) return selected;
+      // Generated cluster IDs belong to one projection. Ignore stale cluster
+      // selections in the other projection, retaining real location IDs.
+      const foreignCluster = globe ? /^\{\[\d+\]\}$/ : /^\{\[globe:\d+\]\}$/;
+      const retained = selected.filter(
+        (id) =>
+          typeof id !== 'string' ||
+          !foreignCluster.test(id) ||
+          locationsById?.has(id),
+      );
+      return retained.length === selected.length
+        ? selected
+        : retained.length
+          ? retained
+          : undefined;
+    },
+  );
   getLocationFilterMode = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.filter?.locationFilterMode;
   getClusteringEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -121,7 +148,12 @@ export default class FlowmapSelectors<
   getLocationLabelsEnabled = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.settings.locationLabelsEnabled;
   getZoom = (state: FlowmapState, props: FlowmapData<L, F>) =>
-    state.viewport.zoom;
+    // Supplied hierarchies retain their own zoom convention (e.g. H3).
+    !props.clusterLevels && state.viewport.globe
+      ? (state.viewport.globe.clusterZoom ?? state.viewport.zoom)
+      : state.viewport.zoom;
+  getClusterProjection = (state: FlowmapState) =>
+    state.viewport.globe ? ('globe' as const) : ('mercator' as const);
   getViewport = (state: FlowmapState, props: FlowmapData<L, F>) =>
     state.viewport;
   getSelectedTimeRange = (state: FlowmapState, props: FlowmapData<L, F>) =>
@@ -363,7 +395,8 @@ export default class FlowmapSelectors<
     this.getClusterLevelsFromProps,
     this.getLocationsHavingFlows,
     this.getLocationWeightGetter,
-    (clusterLevelsFromProps, locations, getLocationWeight) => {
+    this.getClusterProjection,
+    (clusterLevelsFromProps, locations, getLocationWeight, projection) => {
       if (clusterLevelsFromProps) return clusterLevelsFromProps;
       if (!locations || !getLocationWeight) return undefined;
       const clusterLevels = clusterLocations(
@@ -372,6 +405,7 @@ export default class FlowmapSelectors<
         getLocationWeight,
         {
           maxZoom: MAX_CLUSTER_ZOOM_LEVEL,
+          projection,
         },
       );
       return clusterLevels;
@@ -457,6 +491,12 @@ export default class FlowmapSelectors<
     if (settings.clusteringAuto || settings.clusteringLevel == null) {
       return this._getClusterZoom(state, props);
     }
+    if (state.viewport.globe) {
+      const levels = this.getAvailableClusterZoomLevels(state, props);
+      return levels?.length
+        ? findAppropriateZoomLevel(levels, settings.clusteringLevel)
+        : undefined;
+    }
     return settings.clusteringLevel;
   };
 
@@ -531,6 +571,7 @@ export default class FlowmapSelectors<
     this.getFadeOpacityEnabled,
     this.getFadeAmount,
     this.getAnimate,
+    (state: FlowmapState) => state.settings.blendingMode,
     getColors,
   );
 
@@ -754,8 +795,9 @@ export default class FlowmapSelectors<
 
   getLocationsTree: Selector<L, F, KDBushTree> = createSelector(
     this.getLocationsForZoom,
-    (locations) => {
-      if (!locations) {
+    this.getClusterProjection,
+    (locations, projection) => {
+      if (!locations || projection === 'globe') {
         return undefined;
       }
       const nodes = Array.isArray(locations)
@@ -775,11 +817,52 @@ export default class FlowmapSelectors<
     },
   );
 
-  _getLocationIdsInViewport: Selector<L, F, Set<string> | undefined> =
+  getGlobeLocationPoints = createSelector(
+    this.getLocationsForZoom,
+    this.getClusterProjection,
+    (locations, projection): Map<string | number, GlobePoint> | undefined => {
+      if (!locations || projection !== 'globe') return undefined;
+      const points = new Map<string | number, GlobePoint>();
+      for (const location of locations) {
+        points.set(
+          this.accessors.getLocationId(location),
+          projectGlobeLocation(
+            this.accessors.getLocationLon(location),
+            this.accessors.getLocationLat(location),
+          ),
+        );
+      }
+      return points;
+    },
+  );
+
+  getGlobeViewportVisibility = createSelector(
+    (state: FlowmapState) =>
+      state.viewport.globe ? state.viewport : undefined,
+    this.getMaxLocationCircleSize,
+    (viewport, padding) =>
+      viewport ? getGlobeVisibility(viewport, padding) : undefined,
+  );
+
+  _getLocationIdsInViewport: Selector<L, F, Set<string | number> | undefined> =
     createSelector(
       this.getLocationsTree,
       this.getViewportBoundingBox,
-      (tree: KDBushTree, bbox: [number, number, number, number]) => {
+      this.getGlobeViewportVisibility,
+      this.getGlobeLocationPoints,
+      (
+        tree: KDBushTree,
+        bbox: [number, number, number, number],
+        globeVisibility,
+        globePoints,
+      ) => {
+        if (globeVisibility) {
+          const ids = new Set<string | number>();
+          for (const [id, point] of globePoints ?? []) {
+            if (globeVisibility.point(point)) ids.add(id);
+          }
+          return ids;
+        }
         const ids = this._getLocationsInBboxIndices(tree, bbox);
         if (ids) {
           return new Set(
@@ -797,8 +880,8 @@ export default class FlowmapSelectors<
       memoize: lruMemoize,
       memoizeOptions: {
         equalityCheck: (
-          s1: Set<string> | undefined,
-          s2: Set<string> | undefined,
+          s1: Set<string | number> | undefined,
+          s2: Set<string | number> | undefined,
         ) => {
           if (s1 === s2) return true;
           if (s1 == null || s2 == null) return false;
@@ -809,7 +892,7 @@ export default class FlowmapSelectors<
       },
     })(
       this._getLocationIdsInViewport,
-      (locationIds: Set<string> | undefined) => {
+      (locationIds: Set<string | number> | undefined) => {
         if (!locationIds) return undefined;
         return locationIds;
       },
@@ -887,6 +970,8 @@ export default class FlowmapSelectors<
       this.getLocationFilterMode,
       this.getMaxTopFlowsDisplayNum,
       this.getFlowEndpointsInViewportMode,
+      this.getGlobeViewportVisibility,
+      this.getGlobeLocationPoints,
       (
         flows,
         locationIdsInViewport,
@@ -894,6 +979,8 @@ export default class FlowmapSelectors<
         locationFilterMode,
         maxTopFlowsDisplayNum,
         flowEndpointsInViewportMode,
+        globeVisibility,
+        globePoints,
       ) => {
         if (!flows || !locationIdsInViewport) return undefined;
         const picked: (F | AggregateFlow)[] = [];
@@ -903,10 +990,21 @@ export default class FlowmapSelectors<
           const dest = this.accessors.getFlowDestId(flow);
           const originInView = locationIdsInViewport.has(origin);
           const destInView = locationIdsInViewport.has(dest);
-          const isInViewport =
+          let isInViewport =
             flowEndpointsInViewportMode === 'both'
               ? originInView && destInView
               : originInView || destInView;
+          if (
+            !isInViewport &&
+            globeVisibility &&
+            flowEndpointsInViewportMode !== 'both'
+          ) {
+            const source = globePoints?.get(origin);
+            const target = globePoints?.get(dest);
+            isInViewport = Boolean(
+              source && target && globeVisibility.arc(source, target),
+            );
+          }
           if (isInViewport) {
             if (
               this.isFlowInSelection(
@@ -1440,7 +1538,7 @@ export default class FlowmapSelectors<
         : undefined;
 
     const curveOffsets =
-      flowLinesRenderingMode === 'curved'
+      flowLinesRenderingMode === 'curved' && !viewport.globe
         ? calculateCurveOffsets(
             flows,
             viewport,

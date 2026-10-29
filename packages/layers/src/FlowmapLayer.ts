@@ -3,7 +3,14 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-import {CompositeLayer} from '@deck.gl/core';
+import {
+  CompositeLayer,
+  _GlobeViewport as GlobeViewport,
+  log,
+  type Viewport,
+} from '@deck.gl/core';
+import GlobeOcclusionExtension from './GlobeOcclusionExtension';
+
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
   FilterState,
@@ -28,6 +35,7 @@ import {
   isFlowmapData,
   isFlowmapDataProvider,
 } from '@flowmap.gl/data';
+import {type BlendingMode} from './flowBlending';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
 import FlowCirclesLayer from './FlowCirclesLayer';
@@ -39,12 +47,16 @@ import {
   PickingType,
 } from './types';
 
+const globeOcclusion = new GlobeOcclusionExtension();
+
 export type FlowmapLayerProps<
   L extends Record<string, any>,
   F extends Record<string, any>,
 > = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
+  /** Bind to one view. Unset retains legacy drawing in every flat view. */
+  viewId?: string;
   filter?: FilterState;
   locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
@@ -56,6 +68,7 @@ export type FlowmapLayerProps<
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
   clusteringLevel?: number;
+  blendingMode?: BlendingMode;
   fadeEnabled?: boolean;
   fadeOpacityEnabled?: boolean;
   clusteringAuto?: boolean;
@@ -77,6 +90,7 @@ export type FlowmapLayerProps<
 
 const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'filter',
+  'viewId',
   'locationsEnabled',
   'locationTotalsEnabled',
   'locationLabelsEnabled',
@@ -85,6 +99,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'animationEnabled',
   'clusteringEnabled',
   'clusteringLevel',
+  'blendingMode',
   'fadeEnabled',
   'fadeOpacityEnabled',
   'clusteringAuto',
@@ -139,6 +154,7 @@ export default class FlowmapLayer<
 
   static defaultProps = {
     darkMode: true,
+    blendingMode: 'normal' as BlendingMode,
     fadeAmount: 50,
     locationsEnabled: true,
     locationTotalsEnabled: true,
@@ -338,6 +354,7 @@ export default class FlowmapLayer<
       flowLinesRenderingMode,
       clusteringEnabled,
       clusteringLevel,
+      blendingMode,
       fadeEnabled,
       fadeOpacityEnabled,
       clusteringAuto,
@@ -358,10 +375,10 @@ export default class FlowmapLayer<
         locationLabelsEnabled ?? defaults.locationLabelsEnabled,
       adaptiveScalesEnabled:
         adaptiveScalesEnabled ?? defaults.adaptiveScalesEnabled,
-      flowLinesRenderingMode:
-        flowLinesRenderingMode ?? this._getResolvedFlowLinesRenderingMode(),
+      flowLinesRenderingMode: this._getResolvedFlowLinesRenderingMode(),
       clusteringEnabled: clusteringEnabled ?? defaults.clusteringEnabled,
       clusteringLevel,
+      blendingMode: blendingMode ?? defaults.blendingMode,
       fadeEnabled: fadeEnabled ?? defaults.fadeEnabled,
       fadeOpacityEnabled: fadeOpacityEnabled ?? defaults.fadeOpacityEnabled,
       clusteringAuto: clusteringAuto ?? defaults.clusteringAuto,
@@ -384,7 +401,62 @@ export default class FlowmapLayer<
     };
   }
 
+  private _getViewports(): Viewport[] {
+    return this.context.deck?.getViewports() ?? [this.context.viewport];
+  }
+
+  private _getViewport(): Viewport {
+    const viewports = this._getViewports();
+    const viewId = this.typedProps.viewId;
+    if (viewId !== undefined) {
+      const viewport = viewports.find((view) => view.id === viewId);
+      if (viewport) return viewport;
+      log.warn(
+        `FlowmapLayer: view "${viewId}" was not found; layer is hidden`,
+      )();
+    } else if (viewports.some((view) => view instanceof GlobeViewport)) {
+      // Mixed projections cannot share one set of clustered/rendered data.
+      return viewports[0];
+    }
+    // Preserve the original flat-only viewport state, and tolerate a view list
+    // that is temporarily empty during setup. Missing explicit bindings are
+    // still excluded from every draw and picking pass by filterSubLayer.
+    return this.context.viewport;
+  }
+
+  filterSubLayer({viewport}: {viewport: Viewport}): boolean {
+    const viewId = this.typedProps.viewId;
+    if (viewId !== undefined) return viewport.id === viewId;
+    const viewports = this._getViewports();
+    return (
+      !viewports.some((view) => view instanceof GlobeViewport) ||
+      viewport.id === viewports[0].id
+    );
+  }
+
+  private _isGlobe(): boolean {
+    return this._getViewport() instanceof GlobeViewport;
+  }
+
+  protected getSubLayerProps(props: Record<string, any> = {}): any {
+    const sublayerProps = super.getSubLayerProps(props);
+    if (!this._isGlobe()) return sublayerProps;
+    return {
+      ...sublayerProps,
+      extensions: [...(sublayerProps.extensions ?? []), globeOcclusion],
+      // Occlusion is handled in the shader, without a globe depth buffer.
+      parameters: {
+        cullMode: 'none',
+        depthCompare: 'always',
+        depthWriteEnabled: false,
+        ...(this.typedProps.parameters as Record<string, unknown>),
+        ...sublayerProps.parameters,
+      },
+    };
+  }
+
   private _getResolvedFlowLinesRenderingMode(): FlowLinesRenderingMode {
+    if (this._isGlobe()) return 'curved';
     const {animationEnabled, flowLinesRenderingMode} = this.typedProps;
     if (flowLinesRenderingMode !== undefined) {
       if (
@@ -413,7 +485,7 @@ export default class FlowmapLayer<
   private _getFlowmapState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
     return {
-      viewport: pickViewportProps(this.context.viewport),
+      viewport: pickViewportProps(this._getViewport()),
       filter: props.filter,
       settings: this._getSettingsState(lockedScaleDomains),
     };
@@ -571,6 +643,7 @@ export default class FlowmapLayer<
   renderLayers(): Array<any> {
     const props = this.typedProps;
     const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
+    const numSegments = this._isGlobe() ? 96 : 24;
     const locationsEnabled =
       props.locationsEnabled ?? FlowmapLayer.defaultProps.locationsEnabled;
     const highlightColor =
@@ -592,6 +665,8 @@ export default class FlowmapLayer<
         );
         const commonLineLayerProps = {
           data: lineAttributes,
+          blendingMode: props.blendingMode,
+          darkMode: props.darkMode,
           parameters: {
             ...((props.parameters as Record<string, unknown> | undefined) ??
               {}),
@@ -623,6 +698,7 @@ export default class FlowmapLayer<
                   outlineColor: outlineColor,
                   thicknessUnit: 12 * flowLineThicknessScale,
                   curviness: flowLineCurviness,
+                  numSegments,
                 }),
               }),
             );
@@ -693,6 +769,7 @@ export default class FlowmapLayer<
                       outlineThickness: 1.5,
                       thicknessUnit: 12 * flowLineThicknessScale,
                       curviness: flowLineCurviness,
+                      numSegments,
                       parameters: {
                         depthTest: false,
                       },
@@ -757,6 +834,19 @@ export default class FlowmapLayer<
 function pickViewportProps(viewport: Record<string, any>): ViewportProps {
   const {width, height, longitude, latitude, zoom, pitch, bearing} = viewport;
   return {
+    ...(viewport instanceof GlobeViewport
+      ? {
+          globe: {
+            // A sphere of radius 1/(2π) matches Mercator's equatorial units.
+            // Use the actual viewport scale to account for latitude zoom adjustment.
+            clusterZoom: Math.log2(viewport.scale * Math.PI),
+            cameraPosition: Array.from(viewport.cameraPosition) as number[],
+            viewProjectionMatrix: Array.from(
+              viewport.viewProjectionMatrix,
+            ) as number[],
+          },
+        }
+      : {}),
     width,
     height,
     longitude,

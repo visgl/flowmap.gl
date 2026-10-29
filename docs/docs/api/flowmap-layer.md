@@ -99,7 +99,8 @@ const legend = new FlowmapLegendWidget({
     section: 'space-y-1',
     row: 'grid items-center gap-2',
     line: 'rounded',
-    lockButton: 'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
+    lockButton:
+      'mt-3 flex w-full items-center justify-center gap-1 rounded border px-2 py-1',
     lockButtonLocked: 'border-teal-200 bg-teal-200/20',
   },
   unstyled: true,
@@ -239,6 +240,51 @@ Controls how flow lines are rendered.
 - `'animated-straight'`: animated straight flow lines
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
+With deck.gl's experimental `GlobeView`, `FlowmapLayer` currently forces
+`'curved'` rendering and draws arrows along great circles on the sphere.
+Generated clusters use spherical distances and weighted spherical centers,
+including across the dateline and near the poles. Explicit `clusterLevels` are
+honored in both projections. Mercator corridor offsets are disabled on the globe;
+`flowLineCurviness` has no effect on globe routes. Switching back to a flat view
+restores the requested rendering mode and clustering settings. Hidden-side
+flows, circles, and labels are clipped, including during picking. Endpoint
+visibility follows `flowEndpointsInViewportMode`: globe `'any'` also keeps great-circle
+arcs that cross the screen with both endpoints off-screen; `'both'` still requires
+both endpoints. Generated cluster selections from the other projection are ignored
+while real location selections and supplied-hierarchy selections are retained.
+This only changes the effective map filter: `filter.selectedLocations` is controlled
+by the caller and is never mutated. Applications should clear or remap generated
+cluster selections on projection changes if their selection UI must stay in sync.
+An ignored selection becomes effective again when switching back to its projection.
+
+#### `viewId`
+
+- Type: `string` (optional)
+- Default: unset
+
+When unset, flat-only setups retain the existing behavior of drawing in every view,
+with shared data state derived from the current viewport. If any view is a globe,
+an unbound flowmap draws only in the first view to avoid mixing projection-specific
+data and shaders. Explicit `viewId` bindings draw and pick only in that view. If
+the bound view is temporarily absent, the layer warns and stays hidden until it
+returns, without throwing.
+
+A bound flowmap's clustering, visibility, scales, and rendering mode belong to one view.
+For simultaneous globe and flat views, create one `FlowmapLayer` per view with a
+unique layer ID and matching `viewId`. The layers automatically draw and pick only
+in their assigned views, independent of view order. Share the raw data, but use
+separate data-provider instances if supplying `dataProvider`.
+
+```typescript
+const layers = [
+  new FlowmapLayer({...flowProps, id: 'globe-flows', viewId: 'globe'}),
+  new FlowmapLayer({...flowProps, id: 'flat-flows', viewId: 'minimap'}),
+];
+```
+
+Globe depth and culling parameters are defaults; explicit layer or sublayer
+`parameters` take precedence.
+
 #### `clusteringEnabled`
 
 - Type: `boolean`
@@ -328,7 +374,7 @@ Maximum number of flows to display. Flows are sorted by magnitude and only the t
 
 Controls when a flow is considered visible based on endpoint locations:
 
-- `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport
+- `'any'`: Show flows if at least one endpoint (origin OR destination) is in viewport; on the globe, also keep arcs crossing the viewport
 - `'both'`: Show flows only if both endpoints (origin AND destination) are in viewport
 
 The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.
@@ -483,3 +529,79 @@ const layer = new FlowmapLayer({
   },
 });
 ```
+
+## Flow blending
+
+`blendingMode: 'normal' | 'non-accumulating'` defaults to `'normal'`, preserving
+existing rendering. Blending is independent of `fadeEnabled`. The React, React
+worker, and vanilla examples explicitly default to `'non-accumulating'`; their
+controls can switch back to `'normal'`.
+
+With `'non-accumulating'`, light mode uses per-channel GPU **min** (darken) and
+dark mode uses **max** (lighten). Identical overlapping flows do not become
+stronger, including at antialiased edges. This applies to straight, animated,
+and curved flows, including globe routes. Picking and globe horizon clipping
+remain active; highlights retain ordinary blending so they stay visible.
+
+`fadeEnabled` and `fadeAmount` fade weaker flows toward white in light mode and
+black in dark mode. `fadeOpacityEnabled` adds further fading. Flow color alpha,
+layer `opacity` (including deck.gl's opacity scaling), outline alpha, animation
+tails, and antialias coverage are folded into RGB toward that same neutral color:
+min/max ignore source/destination alpha blend factors. Output alpha is opaque.
+
+### Separate canvases
+
+Interleaved rendering blends directly against the basemap and needs no canvas
+configuration. **Do not clear the interleaved canvas.** With a separate canvas,
+clear to opaque white/black and use matching CSS `darken`/`lighten`:
+
+```typescript
+import {MapView} from '@deck.gl/core';
+import {
+  FlowmapLayer,
+  getFlowmapCanvasClearColor,
+  getFlowmapCanvasStyle,
+} from '@flowmap.gl/layers';
+
+const blending = {blendingMode: 'non-accumulating', darkMode: false} as const;
+const clearColor = getFlowmapCanvasClearColor(blending);
+const view = new MapView({id: 'map', clear: Boolean(clearColor), clearColor});
+// Pass views: view and style: getFlowmapCanvasStyle(blending) to Deck/DeckGL.
+// GlobeView works the same way. MapLibreOverlay uses view id 'maplibre'.
+const layer = new FlowmapLayer({...flowmapProps, ...blending});
+```
+
+For imperative `Deck`/`MapLibreOverlay` integrations, update the existing canvas
+style when the theme or mode changes; deck.gl's imperative `style` prop is only
+applied when creating the canvas:
+
+```typescript
+Object.assign(overlay.getCanvas().style, getFlowmapCanvasStyle(blending));
+```
+
+React `DeckGL` updates its canvas style automatically.
+
+The clear-color helper returns 0–255 values for a deck.gl **View**, not normalized
+WebGL clear values. In normal mode it returns `undefined`; disable the view clear
+when returning to normal. The style helper restores the examples' existing
+`screen` (dark) / `darken` (light) CSS behavior in normal mode. Its default theme,
+like FlowmapLayer's, is dark.
+
+Ensure the canvas and basemap share a CSS blending backdrop: an intervening
+stacking context can otherwise leave an opaque white/black rectangle. For
+MapLibre's separate overlay, the React example removes the top-left control
+container's `z-index` and isolates the map together with its background. Keep
+legends and other UI outside the canvas's CSS blending group.
+
+### Visual tradeoffs
+
+- Different hues can combine into a third color because each RGB channel is
+  compared independently. This is not a magnitude-preserving color mix.
+- White outlines in light mode and black outlines in dark mode are neutral. They
+  soften the flow's edge but cannot erase another flow underneath a crossing;
+  dense bundles have less separation and arrowheads can merge into them.
+- Faint flows can disappear over basemap channels already darker/lighter than
+  the flow. The result depends on basemap colors, unlike ordinary transparency.
+- A separate canvas composites all its content against the basemap, so highlights
+  and location circles may differ from their interleaved appearance. Basemap
+  labels sit below the separate flow canvas; interleaved labels can remain above.

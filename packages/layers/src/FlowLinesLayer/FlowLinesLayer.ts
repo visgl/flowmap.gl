@@ -8,11 +8,16 @@ import {Layer, picking, project32} from '@deck.gl/core';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {Geometry, Model} from '@luma.gl/engine';
 import {LayerProps} from '../types';
+import {
+  flowBlending,
+  applyFlowBlending,
+  type FlowBlendingProps,
+} from '../flowBlending';
 import FragmentShader from './FlowLinesLayerFragment.glsl';
 import {flowLinesUniforms} from './FlowLinesLayerUniforms';
 import VertexShader from './FlowLinesLayerVertex.glsl';
 
-export interface Props<F> extends LayerProps {
+export interface Props<F> extends LayerProps, FlowBlendingProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
@@ -171,7 +176,7 @@ class FlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking, flowLinesUniforms],
+      modules: [project32, picking, flowBlending, flowLinesUniforms],
     });
   }
 
@@ -225,7 +230,7 @@ class FlowLinesLayer<F> extends Layer {
     }
   }
 
-  draw(): void {
+  draw(options: Parameters<Layer['draw']>[0]): void {
     const {
       drawOutline = true,
       outlineColor = [255, 255, 255, 255],
@@ -251,6 +256,11 @@ class FlowLinesLayer<F> extends Layer {
         curviness: 1.0,
       },
     });
+    applyFlowBlending(
+      model,
+      this.props as unknown as Props<F>,
+      Boolean(options.shaderModuleProps?.picking?.isActive),
+    );
     model.draw(this.context.renderPass as any);
   }
 

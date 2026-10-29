@@ -32,7 +32,11 @@ import {
 } from 'd3-scale-chromatic';
 import {range} from 'd3-array';
 import {scalePow, scaleSequential, scaleSequentialPow} from 'd3-scale';
-import {interpolateBasis, interpolateRgbBasis} from 'd3-interpolate';
+import {
+  interpolateBasis,
+  interpolateRgbBasis,
+  interpolateRgb,
+} from 'd3-interpolate';
 import {color as d3color, hcl, rgb as colorRgb} from 'd3-color';
 import {SettingsState} from './FlowmapState';
 import {FlowLinesRenderingMode} from './types';
@@ -349,6 +353,7 @@ export function getFlowmapColors(settings: SettingsState): Colors | DiffColors {
     settings.fadeOpacityEnabled,
     settings.fadeAmount,
     isAnimatedFlowLinesMode(settings.flowLinesRenderingMode),
+    settings.blendingMode,
   );
 }
 
@@ -366,6 +371,7 @@ export function getColors(
   fadeOpacityEnabled: boolean,
   fadeAmount: number,
   animate: boolean,
+  blendingMode: SettingsState['blendingMode'] = 'normal',
 ): Colors | DiffColors {
   if (diffMode) {
     return diffColors;
@@ -415,6 +421,14 @@ export function getColors(
           const color = colorScale(i);
           const a = amount(i);
           if (color == null || a == null) return '#000';
+          if (blendingMode === 'non-accumulating') {
+            const fade = Math.max(0, Math.min(1, a));
+            const col = colorRgb(
+              interpolateRgb(color, darkMode ? '#000' : '#fff')(fade),
+            );
+            if (fadeOpacityEnabled) col.opacity *= 1 - fade;
+            return col.toString();
+          }
           const col = hcl(color);
           col.l = darkMode ? col.l - col.l * a : col.l + (100 - col.l) * a;
           col.c = col.c - col.c * (a / 4);

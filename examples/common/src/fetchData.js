@@ -14,24 +14,31 @@ const path =
   // BIXI rides
   `${base}/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
 
-let cachedData;
+const dataByUrl = new Map();
 
-export default async function fetchData(clusterMethod = 'HCA') {
-  if (!cachedData) {
-    cachedData = await Promise.all([
-      csv(`${path}/locations.csv`, (row, i) => ({
+export default async function fetchData(clusterMethod = 'HCA', dataUrl = path) {
+  if (!dataByUrl.has(dataUrl)) {
+    const pendingData = Promise.all([
+      csv(`${dataUrl}/locations.csv`, (row) => ({
         id: row.id,
         name: row.name,
         lat: Number(row.lat),
         lon: Number(row.lon),
       })),
-      csv(`${path}/flows.csv`, (row) => ({
+      csv(`${dataUrl}/flows.csv`, (row) => ({
         origin: row.origin,
         dest: row.dest,
         count: Number(row.count),
       })),
-    ]).then(([locations, flows]) => ({locations, flows}));
+    ])
+      .then(([locations, flows]) => ({locations, flows}))
+      .catch((error) => {
+        dataByUrl.delete(dataUrl);
+        throw error;
+      });
+    dataByUrl.set(dataUrl, pendingData);
   }
+  const cachedData = await dataByUrl.get(dataUrl);
   return {
     ...cachedData,
     ...(clusterMethod === 'H3'
