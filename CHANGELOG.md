@@ -1,9 +1,15 @@
 # Change log
 
+## Unreleased
+
+- Add optional `FlowmapLayer.viewId` for independent per-view data and rendering.
+  Without it, flat-only multi-view drawing is unchanged; setups containing a globe
+  draw an unbound flowmap only in the first view. Missing bound views hide the layer
+  without throwing. Use separate bound layers for mixed globe/flat displays.
+
 ## [9.1.0] - 2026-04-13
 
 - Curved flow line layer
-
 
 ## [9.0.0] - 2026-04-11
 

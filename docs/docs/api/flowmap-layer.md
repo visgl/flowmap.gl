@@ -252,13 +252,24 @@ visibility follows `flowEndpointsInViewportMode`: globe `'any'` also keeps great
 arcs that cross the screen with both endpoints off-screen; `'both'` still requires
 both endpoints. Generated cluster selections from the other projection are ignored
 while real location selections and supplied-hierarchy selections are retained.
+This only changes the effective map filter: `filter.selectedLocations` is controlled
+by the caller and is never mutated. Applications should clear or remap generated
+cluster selections on projection changes if their selection UI must stay in sync.
+An ignored selection becomes effective again when switching back to its projection.
 
 #### `viewId`
 
 - Type: `string` (optional)
-- Default: the first deck.gl view
+- Default: unset
 
-A flowmap's clustering, visibility, scales, and rendering mode belong to one view.
+When unset, flat-only setups retain the existing behavior of drawing in every view,
+with shared data state derived from the current viewport. If any view is a globe,
+an unbound flowmap draws only in the first view to avoid mixing projection-specific
+data and shaders. Explicit `viewId` bindings draw and pick only in that view. If
+the bound view is temporarily absent, the layer warns and stays hidden until it
+returns, without throwing.
+
+A bound flowmap's clustering, visibility, scales, and rendering mode belong to one view.
 For simultaneous globe and flat views, create one `FlowmapLayer` per view with a
 unique layer ID and matching `viewId`. The layers automatically draw and pick only
 in their assigned views, independent of view order. Share the raw data, but use

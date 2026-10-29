@@ -6,6 +6,7 @@
 import {
   CompositeLayer,
   _GlobeViewport as GlobeViewport,
+  log,
   type Viewport,
 } from '@deck.gl/core';
 import GlobeOcclusionExtension from './GlobeOcclusionExtension';
@@ -54,7 +55,7 @@ export type FlowmapLayerProps<
 > = {
   data?: FlowmapData<L, F>;
   dataProvider?: FlowmapDataProvider<L, F>;
-  /** Bind this layer and its data state to one view. Defaults to the first view. */
+  /** Bind to one view. Unset retains legacy drawing in every flat view. */
   viewId?: string;
   filter?: FilterState;
   locationsEnabled?: boolean;
@@ -400,21 +401,37 @@ export default class FlowmapLayer<
     };
   }
 
+  private _getViewports(): Viewport[] {
+    return this.context.deck?.getViewports() ?? [this.context.viewport];
+  }
+
   private _getViewport(): Viewport {
-    const viewports = this.context.deck?.getViewports() ?? [
-      this.context.viewport,
-    ];
+    const viewports = this._getViewports();
     const viewId = this.typedProps.viewId;
-    const viewport = viewId
-      ? viewports.find((view) => view.id === viewId)
-      : viewports[0];
-    if (!viewport)
-      throw new Error(`FlowmapLayer: view "${viewId}" was not found`);
-    return viewport;
+    if (viewId !== undefined) {
+      const viewport = viewports.find((view) => view.id === viewId);
+      if (viewport) return viewport;
+      log.warn(
+        `FlowmapLayer: view "${viewId}" was not found; layer is hidden`,
+      )();
+    } else if (viewports.some((view) => view instanceof GlobeViewport)) {
+      // Mixed projections cannot share one set of clustered/rendered data.
+      return viewports[0];
+    }
+    // Preserve the original flat-only viewport state, and tolerate a view list
+    // that is temporarily empty during setup. Missing explicit bindings are
+    // still excluded from every draw and picking pass by filterSubLayer.
+    return this.context.viewport;
   }
 
   filterSubLayer({viewport}: {viewport: Viewport}): boolean {
-    return viewport.id === this._getViewport().id;
+    const viewId = this.typedProps.viewId;
+    if (viewId !== undefined) return viewport.id === viewId;
+    const viewports = this._getViewports();
+    return (
+      !viewports.some((view) => view instanceof GlobeViewport) ||
+      viewport.id === viewports[0].id
+    );
   }
 
   private _isGlobe(): boolean {

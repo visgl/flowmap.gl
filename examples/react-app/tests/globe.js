@@ -414,6 +414,73 @@ async function run() {
       'PASS independently bound globe/flat views render and pick in both view orders',
     );
 
+    const flatViews = [
+      new MapView({id: 'left', x: 0, width: '50%'}),
+      new MapView({id: 'right', x: '50%', width: '50%'}),
+    ];
+    for (const viewId of [undefined, 'left']) {
+      deck.setProps({
+        views: flatViews,
+        viewState: {longitude: 0, latitude: 0, zoom: 1},
+        layers: [makeLayer('straight', route([-40, 0], [40, 0]), {viewId})],
+      });
+      await frames();
+      for (const v of deck.getViewports()) {
+        const [x, y] = v.project([0, 0]);
+        const hit = deck.pickObject({x: x + v.x, y: y + v.y, radius: 12});
+        assert(
+          Boolean(hit) === (viewId === undefined || v.id === viewId),
+          `Flat multi-view visibility failed for binding ${viewId}, view ${v.id}`,
+        );
+      }
+    }
+    report(
+      'PASS legacy unbound flat multi-view drawing and explicit view isolation',
+    );
+
+    const pendingLayer = makeLayer('straight', route([-40, 0], [40, 0]), {
+      id: 'pending-view-flows',
+      viewId: 'late-view',
+    });
+    deck.setProps({layers: [pendingLayer]});
+    for (let i = 0; i < 2; i++) {
+      deck.setProps({views: flatViews});
+      await frames();
+      assert(
+        deck.pickObjects({x: 0, y: 0, width: 800, height: 600}).length === 0,
+        'Missing bound view leaked into another view',
+      );
+      deck.setProps({views: new GlobeView({id: 'late-view'})});
+      await frames();
+      assert(
+        pick([0, 0]),
+        'Restored bound view did not recover rendering/picking',
+      );
+      assert(
+        pendingLayer
+          .getSubLayers()
+          .some((layer) => layer instanceof CurvedFlowLinesLayer),
+        'Restored globe binding retained flat rendering',
+      );
+    }
+    report(
+      'PASS missing bound view stays hidden and recovers after addition/removal',
+    );
+
+    const fallbackViewport = deck.getViewports()[0];
+    for (const viewId of [undefined, 'late-view']) {
+      const uninitializedLayer = makeLayer('straight', undefined, {viewId});
+      uninitializedLayer.context = {
+        viewport: fallbackViewport,
+        deck: {getViewports: () => []},
+      };
+      assert(
+        uninitializedLayer._getViewport() === fallbackViewport,
+        'Empty viewport list did not use the initialization context',
+      );
+    }
+    report('PASS empty viewport list safely uses the initialization context');
+
     assert(errors.length === 0, errors.join('\n'));
     report('ALL CHECKS PASSED');
   } finally {
