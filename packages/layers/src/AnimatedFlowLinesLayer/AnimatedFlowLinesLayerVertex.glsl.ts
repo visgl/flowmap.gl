@@ -68,7 +68,18 @@ void main(void) {
     DECKGL_FILTER_SIZE(offset, geometry);
     geometry.position = vec4(normalize(point + offset) * length(point), 1.0);
     gl_Position = project_common_position_to_clipspace(geometry.position);
-    routeLength = 3.0 * globeArc_length(arc) / project_pixel_size(1.0) / project.viewportSize.y;
+    // At zero pitch, a flat route covering one CSS pixel has a clip-space
+    // length of 3 / height vertically and 3 / width horizontally (clip space
+    // includes the camera's w of 1.5). Weight these by the route's on-screen
+    // direction so that spacing matches the flat map in any orientation.
+    vec4 startClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 0.0, 0.0), 1.0));
+    vec4 endClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 1.0, 0.0), 1.0));
+    vec2 screenDirection = (endClip.xy / endClip.w - startClip.xy / startClip.w) * project.viewportSize;
+    vec2 clipPerPixel = 3.0 * project.devicePixelRatio / project.viewportSize;
+    float clipPerRoutePixel = length(screenDirection) > 1e-6
+      ? length(normalize(screenDirection) * clipPerPixel)
+      : clipPerPixel.y;
+    routeLength = globeArc_length(arc) / project_pixel_size(1.0) * clipPerRoutePixel;
   } else {
     vec4 source_commonspace;
     vec4 target_commonspace;
