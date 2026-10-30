@@ -180,6 +180,7 @@ async function run() {
         }
       }
     }
+    let primitiveIndex = 0;
     for (const Primitive of [
       FlowLinesLayer,
       CurvedFlowLinesLayer,
@@ -200,7 +201,9 @@ async function run() {
         }
       }
       const primitive = new DependencyOnlyPrimitive({
-        id: 'primitive',
+        // deck.gl matches layers by id; a shared id would carry one class's
+        // state (model, attributes) into the next.
+        id: `primitive-${primitiveIndex++}`,
         pickable: true,
         data: [{}, {}, {}],
         darkMode: true,
