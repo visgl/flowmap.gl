@@ -76,10 +76,11 @@ async function run() {
     ],
     flows: [{origin: 'a', dest: 'b', count: 100}],
   });
-  const pick = (position) => {
+  const xy = (position, [dx, dy] = [0, 0]) => {
     const [x, y] = deck.getViewports()[0].project(position);
-    return deck.pickObject({x, y, radius: 12});
+    return {x: x + dx, y: y + dy};
   };
+  const pick = (position) => deck.pickObject({...xy(position), radius: 12});
   try {
     for (const clusteringEnabled of [false, true]) {
       for (const locations of [undefined, []]) {
@@ -122,17 +123,92 @@ async function run() {
       'PASS missing/empty globe locations recover when data arrives, with and without clustering',
     );
 
-    for (const mode of ['straight', 'animated-straight', 'curved']) {
+    for (const [mode, expected, curviness] of [
+      ['straight', CurvedFlowLinesLayer, 0],
+      ['animated-straight', AnimatedFlowLinesLayer, undefined],
+      ['curved', CurvedFlowLinesLayer, 1],
+    ]) {
       const layer = makeLayer(mode, route([-40, 0], [40, 0]));
       deck.setProps({layers: [layer]});
       await frames();
+      const subLayers = layer.getSubLayers();
+      const line = subLayers.find((l) => l instanceof expected);
+      assert(line, `${mode}: ${expected.name} missing on globe`);
       assert(
-        layer.getSubLayers().some((l) => l instanceof CurvedFlowLinesLayer),
-        `${mode}: curved layer missing`,
+        !subLayers.some((l) => l instanceof FlowLinesLayer),
+        `${mode}: FlowLinesLayer has no globe path`,
       );
-      assert(pick([0, 0])?.index === 0, `${mode}: route not pickable`);
-      report(`PASS globe forces curved and picks route: ${mode}`);
+      assert(
+        line.props.numSegments === 96,
+        `${mode}: expected 96 globe segments, got ${line.props.numSegments}`,
+      );
+      if (curviness !== undefined) {
+        assert(
+          line.props.curviness === curviness,
+          `${mode}: expected curviness ${curviness}, got ${line.props.curviness}`,
+        );
+      }
+      const info = pick([0, 0]);
+      assert(info?.index === 0, `${mode}: route not pickable`);
+
+      // Highlights need a globe path too: all modes use the curved arrows.
+      layer.props.onHover(info, {});
+      deck.setProps({layers: [layer]});
+      await frames();
+      const highlight = layer
+        .getSubLayers()
+        .find((l) => l.id.endsWith('flow-highlight'));
+      assert(
+        highlight instanceof CurvedFlowLinesLayer &&
+          highlight.props.curviness === (mode === 'curved' ? 1 : 0),
+        `${mode}: globe flow highlight should be an unbowed or matching curved arrow`,
+      );
+      report(`PASS globe ${mode} uses ${expected.name}, picks and highlights`);
     }
+
+    // Opposite directions of a curved route bow apart into separate corridors.
+    const twoWay = route([-40, 0], [40, 0]);
+    twoWay.flows.push({origin: 'b', dest: 'a', count: 50});
+    for (const mode of ['curved', 'straight']) {
+      const layer = makeLayer(mode, twoWay);
+      deck.setProps({layers: [layer]});
+      await frames();
+      const offsets =
+        layer.state.layersData.lineAttributes.attributes.getCurveOffset?.value;
+      if (mode === 'curved') {
+        assert(
+          offsets?.length === 2 && offsets.every((d) => d > 0),
+          `Globe curved routes missing corridor offsets: ${offsets}`,
+        );
+        // Each direction bows to its own right of travel: south for a→b
+        // heading east, north for b→a heading west.
+        // Picking objects resolve asynchronously; name flows by source longitude.
+        const sources =
+          layer.state.layersData.lineAttributes.attributes.getSourcePosition
+            .value;
+        const origins = (side) => {
+          const hits = new Set();
+          for (let dy = 2; dy <= 40; dy += 2) {
+            const info = deck.pickObject({
+              ...xy([0, 0], [0, side * dy]),
+              radius: 0,
+            });
+            if (info) hits.add(sources[info.index * 3] < 0 ? 'a' : 'b');
+          }
+          return [...hits].join();
+        };
+        const [north, south] = [origins(-1), origins(1)];
+        assert(
+          north === 'b' && south === 'a',
+          `Opposite curved globe routes did not separate (north: ${north}, south: ${south})`,
+        );
+      } else {
+        assert(!offsets, 'Globe straight routes should not bow');
+      }
+    }
+    report(
+      'PASS globe curved corridors bow opposite directions apart; straight stays unbowed',
+    );
 
     const clusteredData = {
       locations: [
@@ -308,13 +384,18 @@ async function run() {
       ['polar', [-90, 60], [90, 60], [0, 80], [0, 90]],
       ['antipodal', [0, 0], [180, 0], [0, 0], [30, 0]],
     ]) {
-      deck.setProps({
-        viewState: {longitude: center[0], latitude: center[1], zoom: 1},
-        layers: [makeLayer('curved', route(source, target))],
-      });
-      await frames();
-      assert(pick(midpoint)?.index === 0, `${name} route not pickable`);
-      report(`PASS ${name} great-circle route`);
+      for (const mode of ['straight', 'animated-straight', 'curved']) {
+        deck.setProps({
+          viewState: {longitude: center[0], latitude: center[1], zoom: 1},
+          layers: [makeLayer(mode, route(source, target))],
+        });
+        await frames();
+        assert(
+          pick(midpoint)?.index === 0,
+          `${name} route not pickable: ${mode}`,
+        );
+      }
+      report(`PASS ${name} great-circle route in all rendering modes`);
     }
 
     deck.setProps({
@@ -389,7 +470,7 @@ async function run() {
         globeLayer
           .getSubLayers()
           .some((layer) => layer instanceof CurvedFlowLinesLayer),
-        'Mixed-view globe did not force curved mode',
+        'Mixed-view globe straight did not use the curved arrows',
       );
       assert(
         flatLayer

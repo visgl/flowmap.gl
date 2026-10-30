@@ -35,6 +35,8 @@ export interface Props<F> extends LayerProps, FlowBlendingProps {
   getColor?: (d: F) => RGBA;
   getThickness?: (d: F) => number;
   getEndpointOffsets?: (d: F) => [number, number];
+  /** Number of segments along the route. Globe routes need enough to follow the sphere. */
+  numSegments?: number;
 }
 
 // https://deck.gl/#/documentation/developer-guide/using-layers?section=accessors
@@ -67,6 +69,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     getColor: {type: 'accessor', value: DEFAULT_COLOR},
     getThickness: {type: 'accessor', value: 1},
     thicknessUnit: 12,
+    numSegments: {type: 'number', value: 1, min: 1, max: 512},
     parameters: {
       depthTest: false,
     },
@@ -74,6 +77,11 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
 
   constructor(props: Props<F>) {
     super(props);
+  }
+
+  private get numSegments(): number {
+    const value = (this.props as unknown as Props<F>).numSegments ?? 1;
+    return Math.max(1, Math.min(512, Math.round(value)));
   }
 
   getShaders(): Record<string, unknown> {
@@ -131,9 +139,13 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
 
   updateState(params: any): void {
     super.updateState(params);
-    const {changeFlags} = params;
+    const {changeFlags, props, oldProps} = params;
 
-    if (!this.state.model || changeFlags.extensionsChanged) {
+    if (
+      !this.state.model ||
+      changeFlags.extensionsChanged ||
+      props.numSegments !== oldProps.numSegments
+    ) {
       this.state.model?.destroy();
       this.setState({model: this._getModel()});
       this.getAttributeManager()!.invalidateAll();
@@ -173,8 +185,14 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
      *       o      _,-"      o
      *       |  _,-"          |
      *   (0, 1)"-------------(1, 1)
+     *
+     * With more segments, the strip repeats this quad along the route.
      */
-    const positions = [0, -1, 0, 0, 1, 0, 1, -1, 0, 1, 1, 0];
+    const positions: number[] = [];
+    for (let i = 0; i <= this.numSegments; i++) {
+      const t = i / this.numSegments;
+      positions.push(t, -1, 0, t, 1, 0);
+    }
 
     return new Model(this.context.device as any, {
       ...this.getShaders(),

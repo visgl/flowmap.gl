@@ -1538,8 +1538,8 @@ export default class FlowmapSelectors<
         : undefined;
 
     const curveOffsets =
-      flowLinesRenderingMode === 'curved' && !viewport.globe
-        ? calculateCurveOffsets(
+      flowLinesRenderingMode === 'curved'
+        ? (viewport.globe ? calculateGlobeCurveOffsets : calculateCurveOffsets)(
             flows,
             viewport,
             locationsById,
@@ -1959,15 +1959,18 @@ export function getFlowLineAttributesByIndex(
   };
 }
 
-type FlowLineScreenGeometry = {
+type CorridorEntry = {
   index: number;
   originId: string | number;
   destId: string | number;
+  chordLengthPx: number;
+};
+
+type FlowLineScreenGeometry = CorridorEntry & {
   sx: number;
   sy: number;
   tx: number;
   ty: number;
-  chordLengthPx: number;
 };
 
 function calculateCurveOffsets<L, F>(
@@ -2035,6 +2038,81 @@ function calculateCurveOffsets<L, F>(
     corridorBuckets.set(key, bucket);
   });
 
+  assignCorridorOffsets(corridorBuckets, curveOffsets);
+  return curveOffsets;
+}
+
+/**
+ * Globe counterpart of calculateCurveOffsets: routes share a corridor when
+ * their great circles nearly coincide (nearby poles) and have similar lengths.
+ */
+function calculateGlobeCurveOffsets<L, F>(
+  flows: (F | AggregateFlow)[],
+  viewport: ViewportProps,
+  locationsById: Map<string | number, L | ClusterNode> | undefined,
+  getFlowOriginId: (flow: F | AggregateFlow) => string | number,
+  getFlowDestId: (flow: F | AggregateFlow) => string | number,
+  getLocationLon: (location: L | ClusterNode) => number,
+  getLocationLat: (location: L | ClusterNode) => number,
+): Float32Array {
+  const curveOffsets = new Float32Array(flows.length);
+  const corridorBuckets = new Map<string, CorridorEntry[]>();
+  // Globe radius in pixels, using the Mercator-equivalent zoom of the globe scale.
+  const radiusPx =
+    (512 * Math.pow(2, viewport.globe?.clusterZoom ?? viewport.zoom ?? 0)) /
+    (2 * Math.PI);
+  // An 18px lateral shift of a route tilts its pole by 18 / radiusPx radians.
+  const poleStep = Math.min(18 / radiusPx, (6 * Math.PI) / 180);
+
+  flows.forEach((flow, index) => {
+    const originId = getFlowOriginId(flow);
+    const destId = getFlowDestId(flow);
+    const origin = locationsById?.get(originId);
+    const dest = locationsById?.get(destId);
+    if (!origin || !dest) {
+      return;
+    }
+
+    const [ax, ay, az] = projectGlobeLocation(
+      getLocationLon(origin),
+      getLocationLat(origin),
+    );
+    const [bx, by, bz] = projectGlobeLocation(
+      getLocationLon(dest),
+      getLocationLat(dest),
+    );
+    let pole = [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
+    const sinAngle = Math.hypot(...pole);
+    const chordLengthPx =
+      Math.atan2(sinAngle, ax * bx + ay * by + az * bz) * radiusPx;
+    if (!isFinite(chordLengthPx) || chordLengthPx < 1 || sinAngle < 1e-9) {
+      return;
+    }
+
+    // Both directions of a route share one corridor.
+    pole = pole.map((value) => value / sinAngle);
+    const [px, py, pz] = pole;
+    if (pz < 0 || (pz === 0 && (py < 0 || (py === 0 && px < 0)))) {
+      pole = pole.map((value) => -value);
+    }
+    const key = [
+      ...pole.map((value) => Math.round(value / poleStep)),
+      Math.round(chordLengthPx / 24),
+    ].join(':');
+
+    const bucket = corridorBuckets.get(key) ?? [];
+    bucket.push({index, originId, destId, chordLengthPx});
+    corridorBuckets.set(key, bucket);
+  });
+
+  assignCorridorOffsets(corridorBuckets, curveOffsets);
+  return curveOffsets;
+}
+
+function assignCorridorOffsets(
+  corridorBuckets: Map<string, CorridorEntry[]>,
+  curveOffsets: Float32Array,
+) {
   corridorBuckets.forEach((bucket) => {
     bucket
       .sort((a, b) => {
@@ -2052,8 +2130,6 @@ function calculateCurveOffsets<L, F>(
         );
       });
   });
-
-  return curveOffsets;
 }
 
 function compareIds(a: string | number, b: string | number): number {

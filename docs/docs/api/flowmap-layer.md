@@ -240,12 +240,38 @@ Controls how flow lines are rendered.
 - `'animated-straight'`: animated straight flow lines
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
-With deck.gl's experimental `GlobeView`, `FlowmapLayer` currently forces
-`'curved'` rendering and draws arrows along great circles on the sphere.
+With deck.gl's experimental `GlobeView`, all three modes follow the sphere's
+surface. A great circle is the straight route on a globe, so the modes keep
+their flat meaning, measured along the surface:
+
+- `'straight'`: arrows along the great circle. Opposite directions sit side by
+  side, separated by the same gap as on the flat map.
+- `'animated-straight'`: the same great circle, with the animated pulses. Pulse
+  spacing matches the flat map at the same on-screen route length.
+- `'curved'`: the great circle bowed to the right of travel, largest mid-route
+  and zero at the endpoints. Overlapping corridors get increasing bows from the
+  same corridor offsets as the flat map (computed from nearly coinciding great
+  circles), scaled by `flowLineCurviness`.
+
+Routes stay on the surface; raised 3D arcs are not supported.
+
+| Mode                          | Flat view                | Globe view                                       |
+| ----------------------------- | ------------------------ | ------------------------------------------------ |
+| `'straight'`                  | `FlowLinesLayer`         | `CurvedFlowLinesLayer`, without a bow            |
+| `'animated-straight'`         | `AnimatedFlowLinesLayer` | `AnimatedFlowLinesLayer`, along the great circle |
+| `'curved'`                    | `CurvedFlowLinesLayer`   | `CurvedFlowLinesLayer`, bowed                    |
+| Flow highlight in `'curved'`  | `CurvedFlowLinesLayer`   | `CurvedFlowLinesLayer`, bowed                    |
+| Flow highlight in other modes | `FlowLinesLayer`         | `CurvedFlowLinesLayer`, without a bow            |
+
+`FlowLinesLayer` has no globe path: on the globe, straight arrows and all
+non-curved highlights use `CurvedFlowLinesLayer` without a bow. As a result,
+globe straight arrows have the curved layer's arrowhead, which differs slightly
+from the flat straight arrowhead. See [Rendering performance](#rendering-performance)
+for the cost of each layer.
+
 Generated clusters use spherical distances and weighted spherical centers,
 including across the dateline and near the poles. Explicit `clusterLevels` are
-honored in both projections. Mercator corridor offsets are disabled on the globe;
-`flowLineCurviness` has no effect on globe routes. Switching back to a flat view
+honored in both projections. Switching back to a flat view
 restores the requested rendering mode and clustering settings. Hidden-side
 flows, circles, and labels are clipped, including during picking. Endpoint
 visibility follows `flowEndpointsInViewportMode`: globe `'any'` also keeps great-circle
@@ -378,6 +404,31 @@ Controls when a flow is considered visible based on endpoint locations:
 - `'both'`: Show flows only if both endpoints (origin AND destination) are in viewport
 
 The `'both'` mode is useful for stricter local views where you only want to see flows fully contained in the visible area.
+
+#### Rendering performance
+
+The flow line layers draw every flow as one instance of a fixed mesh, so the
+vertex work grows with the number of displayed flows times the vertices per
+flow:
+
+| Layer                    | Vertices per flow, flat | Vertices per flow, globe | Used for                              |
+| ------------------------ | ----------------------- | ------------------------ | ------------------------------------- |
+| `FlowLinesLayer`         | 9 (3 triangles)         | —                        | Flat `'straight'` and flat highlights |
+| `AnimatedFlowLinesLayer` | 4 (2 triangles)         | 194 (96 segments)        | `'animated-straight'`                 |
+| `CurvedFlowLinesLayer`   | 144 (24 segments)       | 576 (96 segments)        | `'curved'`, and all globe arrows      |
+
+- Flat `'straight'` is the cheapest mode and the default. `FlowLinesLayer` is
+  kept for that reason, and so that flat straight arrows look exactly as before.
+- Flat `'curved'` has 16 times the vertex work of flat `'straight'`. It also
+  computes corridor offsets on the CPU on every viewport change.
+- On the globe, every mode uses a 96-segment mesh so that routes follow the
+  sphere. Globe arrows have 4 times the vertices of flat curved arrows and 64
+  times those of flat straight arrows. The segment count is fixed, not adaptive.
+- Globe `'curved'` additionally computes corridor offsets on every viewport
+  change, like flat `'curved'`; globe `'straight'` and `'animated-straight'`
+  skip this step.
+- `maxTopFlowsDisplayNum` bounds all of the above. Lower it first if rendering
+  is slow, especially on the globe or on low-end GPUs.
 
 ### Event Handlers
 

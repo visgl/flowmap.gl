@@ -40,13 +40,15 @@ From the repository root, run `yarn build` and then
 - `/tests/globe.html` runs WebGL rendering/picking regression checks in the browser
   and prints `ALL CHECKS PASSED` when complete. It is not included in production builds.
 
-Globe mode forces curved rendering with surface-following great-circle arrows.
+Globe mode supports all flow rendering modes along surface-following great circles:
+`straight` and `animated-straight` follow the great circle, and `curved` bows
+overlapping corridors to the right of travel. See the `FlowmapLayer` API docs for
+which layer draws each mode and the performance tradeoffs.
 Clustering uses a spherical hierarchy with weighted centers, so dateline and
 polar neighbors cluster correctly. Automatic levels follow the globe's actual
 scale; manual levels select the next available hierarchy level. Supplied
 hierarchies (such as H3) retain their own centers and zoom convention. Flat-map
-clustering retains the existing Mercator behavior. The Mercator corridor-offset
-calculation is bypassed on the globe; curviness does not change great-circle routes. Hidden-side geometry is
+clustering retains the existing Mercator behavior. Hidden-side geometry is
 clipped in both drawing and picking, without requiring an opaque globe beneath it.
 Location circles lie on the surface and foreshorten near the horizon.
 

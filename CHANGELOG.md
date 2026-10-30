@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Support all flow line rendering modes on deck.gl `GlobeView`: `'straight'` and
+  `'animated-straight'` follow great circles, and `'curved'` bows overlapping
+  corridors along the surface with `flowLineCurviness`. Adds a `numSegments` prop to
+  `AnimatedFlowLinesLayer`. Flat rendering is unchanged.
 - Add optional `FlowmapLayer.viewId` for independent per-view data and rendering.
   Without it, flat-only multi-view drawing is unchanged; setups containing a globe
   draw an unbound flowmap only in the first view. Missing bound views hide the layer
