@@ -272,6 +272,30 @@ async function run() {
       'PASS bowed horizon corridors survive filtering and serialized state; both mode stays strict',
     );
 
+    // A live curviness change on the same layer must reach its data provider:
+    // the globe route bound used for culling depends on it.
+    const providedBound = (layer) =>
+      layer.state.dataProvider.getFlowmapState().viewport.globe
+        .maxFlowDisplacement;
+    let liveLayer = makeLayer('curved', horizonCorridors, {
+      id: 'live-curviness',
+      flowLineCurviness: 0,
+    });
+    deck.setProps({layers: [liveLayer]});
+    await frames();
+    const unbowedBound = providedBound(liveLayer);
+    liveLayer = makeLayer('curved', horizonCorridors, {
+      id: 'live-curviness',
+      flowLineCurviness: 2,
+    });
+    deck.setProps({layers: [liveLayer]});
+    await frames();
+    assert(
+      providedBound(liveLayer) > unbowedBound,
+      'Live curviness change did not refresh the globe route bound',
+    );
+    report('PASS live globe curviness change refreshes the culling bound');
+
     const clusteredData = {
       locations: [
         {id: 'a', lon: 170, lat: 0},

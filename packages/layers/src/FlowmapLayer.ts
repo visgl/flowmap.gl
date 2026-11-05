@@ -318,7 +318,12 @@ export default class FlowmapLayer<
         (PROPS_TO_CAUSE_LAYER_DATA_UPDATE.some(
           (prop) => oldProps[prop] !== props[prop],
         ) ||
-          !areScaleLocksEqual(oldProps.scaleLock, props.scaleLock)))
+          !areScaleLocksEqual(oldProps.scaleLock, props.scaleLock) ||
+          // Curviness only changes the shader bow on flat maps, but on the
+          // globe it widens the route bound used for viewport culling.
+          (oldProps.flowLineCurviness !== props.flowLineCurviness &&
+            this._isGlobe() &&
+            this._getResolvedFlowLinesRenderingMode() === 'curved')))
     ) {
       const {dataProvider} = this.state || {};
       if (dataProvider) {
