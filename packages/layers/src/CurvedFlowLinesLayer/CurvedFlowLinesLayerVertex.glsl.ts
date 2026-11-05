@@ -52,7 +52,13 @@ void main(void) {
   vec3 offsetCommon;
   float curveT;
   if (project.projectionMode == PROJECTION_MODE_GLOBE) {
-    getGlobeFlowPosition(${HEAD_START_T}, curvePoint, offsetCommon, curveT);
+    getGlobeFlowPosition(
+      ${HEAD_START_T},
+      project_pixel_size(abs(instanceCurveOffset)) * flowLines.curviness,
+      curvePoint,
+      offsetCommon,
+      curveT
+    );
   } else {
   vec4 source_commonspace;
   vec4 target_commonspace;
