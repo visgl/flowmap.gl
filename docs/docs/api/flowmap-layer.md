@@ -247,13 +247,19 @@ their flat meaning, measured along the surface:
 - `'straight'`: arrows along the great circle. Opposite directions sit side by
   side, separated by the same gap as on the flat map.
 - `'animated-straight'`: the same great circle, with the animated pulses. Pulse
-  spacing matches the flat map at the same on-screen route length.
+  spacing is measured along the sphere's surface, calibrated to the flat map
+  locally at the view center. Perspective and foreshortening compress the pulses
+  toward the horizon; spacing is not constant in screen pixels.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
   and zero at the endpoints. Overlapping corridors get increasing bows from the
   same corridor offsets as the flat map (computed from nearly coinciding great
   circles), scaled by `flowLineCurviness`.
 
-Routes stay on the surface; raised 3D arcs are not supported.
+Routes stay on the surface; raised 3D arcs are not supported. Globe flow visibility
+uses a conservative bound for the bow and arrowhead, so routes that bow into view
+are retained even when their unbowed great circles are hidden. The shader clips
+hidden geometry; `flowEndpointsInViewportMode: 'both'` still requires both endpoints
+in view.
 
 | Mode                          | Flat view                | Globe view                                       |
 | ----------------------------- | ------------------------ | ------------------------------------------------ |

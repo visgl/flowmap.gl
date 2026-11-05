@@ -5,6 +5,9 @@
 
 // Shared great-circle helpers for flow line layers in globe projection.
 // Positions are deck.gl globe common-space coordinates.
+// This module describes only the route and its local frame. Ribbon width,
+// endpoint trimming, arrowheads, and animation belong to the consuming layer.
+// Other projections will need projected route samples, not this sphere formula.
 export default `
 struct GlobeArc {
   vec3 start;

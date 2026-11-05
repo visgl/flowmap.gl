@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Retain globe routes whose bow or arrowhead enters the viewport, using a
+  conservative displacement bound shared with worker data providers. Document
+  surface-distance globe pulse spacing and its foreshortening near the horizon.
+
 - Support all flow line rendering modes on deck.gl `GlobeView`: `'straight'` and
   `'animated-straight'` follow great circles, and `'curved'` bows overlapping
   corridors along the surface with `flowLineCurviness`. Adds a `numSegments` prop to

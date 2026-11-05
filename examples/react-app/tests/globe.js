@@ -210,6 +210,68 @@ async function run() {
       'PASS globe curved corridors bow opposite directions apart; straight stays unbowed',
     );
 
+    // Every unbowed route is behind the horizon. Only the wider corridor bows
+    // enter the visible hemisphere; CPU filtering must retain them first.
+    const horizonCorridors = {locations: [], flows: []};
+    for (let i = 0; i < 3; i++) {
+      horizonCorridors.locations.push(
+        {id: `a${i}`, lon: -70, lat: 67},
+        {id: `b${i}`, lon: 70, lat: 67},
+      );
+      horizonCorridors.flows.push({origin: `a${i}`, dest: `b${i}`, count: 100});
+    }
+    let previousBound = 0;
+    for (const curviness of [0, 1, 2]) {
+      const layer = makeLayer('curved', horizonCorridors, {
+        flowLineThicknessScale: 0.6,
+        flowLineCurviness: curviness,
+      });
+      deck.setProps({layers: [layer]});
+      await frames();
+      const flowState = JSON.parse(JSON.stringify(layer._getFlowmapState()));
+      const visibility = getGlobeVisibility(flowState.viewport, 0);
+      assert(
+        !visibility.point(projectGlobeLocation(-70, 67)) &&
+          !visibility.point(projectGlobeLocation(70, 67)),
+        'Flow bounds must not expand endpoint visibility',
+      );
+      assert(
+        flowState.viewport.globe.maxFlowDisplacement > previousBound,
+        'Live curviness changes must update the serialized route bound',
+      );
+      previousBound = flowState.viewport.globe.maxFlowDisplacement;
+      const provider = new LocalFlowmapDataProvider(accessors);
+      provider.setFlowmapData(horizonCorridors);
+      await provider.setFlowmapState(flowState);
+      assert(
+        (await provider.getLayersData()).lineAttributes.length === 3,
+        'Serialized viewport lost horizon corridor candidates',
+      );
+      let picked = false;
+      for (let y = 155; y < 185; y++) {
+        picked ||= Boolean(deck.pickObject({x: 400, y, radius: 0}));
+      }
+      assert(
+        curviness > 0 ? picked : !picked,
+        'Bowed horizon corridor picking mismatch',
+      );
+    }
+    deck.setProps({
+      layers: [
+        makeLayer('curved', horizonCorridors, {
+          flowEndpointsInViewportMode: 'both',
+        }),
+      ],
+    });
+    await frames();
+    assert(
+      !deck.pickObject({x: 400, y: 162, radius: 3}),
+      'Both-endpoint policy accepted a hidden endpoint',
+    );
+    report(
+      'PASS bowed horizon corridors survive filtering and serialized state; both mode stays strict',
+    );
+
     const clusteredData = {
       locations: [
         {id: 'a', lon: 170, lat: 0},

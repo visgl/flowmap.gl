@@ -50,8 +50,9 @@ void main(void) {
     geometry.pickingColor = picking_getPickingColorFromInstanceID();
   }
 
-  // Route length in the units of the flat clip-space length below, so that
-  // the pulses keep the same on-screen spacing in both projections.
+  // Globe pulses advance uniformly along surface distance. The conversion
+  // matches flat spacing locally at the view center; perspective and
+  // foreshortening compress the pulses toward the horizon.
   float routeLength;
   if (project.projectionMode == PROJECTION_MODE_GLOBE) {
     // Follow the great circle on the sphere's surface.
@@ -71,7 +72,8 @@ void main(void) {
     // At zero pitch, a flat route covering one CSS pixel has a clip-space
     // length of 3 / height vertically and 3 / width horizontally (clip space
     // includes the camera's w of 1.5). Weight these by the route's on-screen
-    // direction so that spacing matches the flat map in any orientation.
+    // direction to calibrate surface distance against the flat reference.
+    // This is not the projected screen length of the globe route.
     vec4 startClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 0.0, 0.0), 1.0));
     vec4 endClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 1.0, 0.0), 1.0));
     vec2 screenDirection = (endClip.xy / endClip.w - startClip.xy / startClip.w) * project.viewportSize;

@@ -1,4 +1,20 @@
 import globeArc from '../globe-arc.glsl';
+import {MAX_FLOW_CURVE_OFFSET_PX} from '@flowmap.gl/data';
+
+/** Bound the rendered ribbon before corridor assignment and viewport filtering. */
+export function getGlobeFlowMaxDisplacementPixels(
+  thicknessScale: number,
+  curviness: number,
+): number {
+  // Flowmap's normalized thickness is clamped to 0.5; draw() doubles the 12px unit.
+  // Include the furthest arrowhead corner (1.7, -4.4) and the 0.5px gap.
+  const thickness = 12 * Math.abs(thicknessScale);
+  const ribbon = Math.hypot(1.7 * thickness + 0.5, 4.4 * thickness);
+  // Normalizing a displaced point moves it by at most twice the offset.
+  // The bow is perpendicular to the great circle, so its peak (t=0.5)
+  // bounds its normalized displacement directly.
+  return MAX_FLOW_CURVE_OFFSET_PX * 0.5 * Math.abs(curviness) + 2 * ribbon;
+}
 
 // Surface-following great-circle routes, optionally bowed to the right of
 // travel like the flat curved arrows. Width and endpoint offsets use the same

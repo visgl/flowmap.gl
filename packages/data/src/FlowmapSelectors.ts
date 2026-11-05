@@ -78,6 +78,9 @@ export type Selector<L, F, T> = (
   props: FlowmapData<L, F>,
 ) => T;
 
+/** Maximum control-point displacement before applying flowLineCurviness. */
+export const MAX_FLOW_CURVE_OFFSET_PX = 72;
+
 export default class FlowmapSelectors<
   L extends Record<string, any>,
   F extends Record<string, any>,
@@ -1539,7 +1542,9 @@ export default class FlowmapSelectors<
 
     const curveOffsets =
       flowLinesRenderingMode === 'curved'
-        ? (viewport.globe ? calculateGlobeCurveOffsets : calculateCurveOffsets)(
+        ? (viewport.globe
+            ? calculateGlobeCurveOffsets
+            : calculateMercatorCurveOffsets)(
             flows,
             viewport,
             locationsById,
@@ -1973,7 +1978,7 @@ type FlowLineScreenGeometry = CorridorEntry & {
   ty: number;
 };
 
-function calculateCurveOffsets<L, F>(
+function calculateMercatorCurveOffsets<L, F>(
   flows: (F | AggregateFlow)[],
   viewport: ViewportProps,
   locationsById: Map<string | number, L | ClusterNode> | undefined,
@@ -2043,7 +2048,7 @@ function calculateCurveOffsets<L, F>(
 }
 
 /**
- * Globe counterpart of calculateCurveOffsets: routes share a corridor when
+ * Globe counterpart of calculateMercatorCurveOffsets: routes share a corridor when
  * their great circles nearly coincide (nearby poles) and have similar lengths.
  */
 function calculateGlobeCurveOffsets<L, F>(
@@ -2123,7 +2128,10 @@ function assignCorridorOffsets(
         return a.index - b.index;
       })
       .forEach((entry, bucketIndex) => {
-        const maxOffsetPx = Math.min(72, entry.chordLengthPx * 0.35);
+        const maxOffsetPx = Math.min(
+          MAX_FLOW_CURVE_OFFSET_PX,
+          entry.chordLengthPx * 0.35,
+        );
         curveOffsets[entry.index] = Math.min(
           maxOffsetPx,
           (bucketIndex + 1) * 18,

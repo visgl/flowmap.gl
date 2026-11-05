@@ -38,6 +38,7 @@ import {
 import {type BlendingMode} from './flowBlending';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
+import {getGlobeFlowMaxDisplacementPixels} from './CurvedFlowLinesLayer/globe-flow.glsl';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import FlowLinesLayer from './FlowLinesLayer';
 import {
@@ -483,8 +484,21 @@ export default class FlowmapLayer<
 
   private _getFlowmapState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
+    const viewport = this._getViewport();
+    const viewportProps = pickViewportProps(viewport);
+    if (viewportProps.globe) {
+      viewportProps.globe.maxFlowDisplacement =
+        getGlobeFlowMaxDisplacementPixels(
+          props.flowLineThicknessScale ??
+            FlowmapLayer.defaultProps.flowLineThicknessScale,
+          this._getResolvedFlowLinesRenderingMode() === 'curved'
+            ? (props.flowLineCurviness ??
+                FlowmapLayer.defaultProps.flowLineCurviness)
+            : 0,
+        ) / viewport.scale;
+    }
     return {
-      viewport: pickViewportProps(this._getViewport()),
+      viewport: viewportProps,
       filter: props.filter,
       settings: this._getSettingsState(lockedScaleDomains),
     };
