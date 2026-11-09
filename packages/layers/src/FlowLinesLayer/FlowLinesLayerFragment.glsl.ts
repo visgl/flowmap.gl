@@ -20,6 +20,7 @@ void main(void) {
   if (vColor.a == 0.0) {
     discard;
   }
+  antimeridian_clip();
 
   geometry.uv = uv;
   fragColor = vColor;

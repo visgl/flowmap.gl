@@ -48,6 +48,10 @@ void main(void) {
   geometry.worldPosition = instanceSourcePositions;
   geometry.worldPositionAlt = instanceTargetPositions;
 
+  vec3 sourcePosition = instanceSourcePositions;
+  vec3 targetPosition = instanceTargetPositions;
+  bool drawn = antimeridian_wrap(sourcePosition, targetPosition);
+
   vec3 curvePoint;
   vec3 offsetCommon;
   float curveT;
@@ -63,13 +67,13 @@ void main(void) {
   vec4 source_commonspace;
   vec4 target_commonspace;
   project_position_to_clipspace(
-    instanceSourcePositions,
+    sourcePosition,
     instanceSourcePositions64Low,
     vec3(0.0),
     source_commonspace
   );
   project_position_to_clipspace(
-    instanceTargetPositions,
+    targetPosition,
     instanceTargetPositions64Low,
     vec3(0.0),
     target_commonspace
@@ -178,7 +182,10 @@ void main(void) {
     position_commonspace.xyz = normalize(position_commonspace.xyz) * length(curvePoint);
     geometry.position = position_commonspace;
   }
-  gl_Position = project_common_position_to_clipspace(position_commonspace);
+  antimeridian_setPosition(position_commonspace.xyz);
+  gl_Position = drawn
+    ? project_common_position_to_clipspace(position_commonspace)
+    : vec4(0.0);
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   vec4 fillColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);

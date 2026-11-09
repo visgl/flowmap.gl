@@ -83,3 +83,13 @@ edge coverage, picking, visible highlights, and live mode/fade changes.
 `/tests/globe.html?blendingMode=non-accumulating` runs the globe/clustering suite
 with the new mode, including hidden-hemisphere picking and horizon clipping.
 These test pages are served only by the development server.
+
+## Antimeridian wrapping
+
+The `wrapLongitude` control (on by default in this example) passes deck.gl's
+`wrapLongitude` to `FlowmapLayer`. Flat-map flights then cross the Pacific instead of
+the rest of the world. Drag the flat map to center the Pacific to compare.
+`/tests/antimeridian.html` checks every flat rendering mode: both halves meet at
+the meridian without a gap or overlap, each half is clipped and pickable only on
+its own side, routes that do not cross and globe routes are unchanged, repeated
+viewports find locations beyond ±180°, and wrapped curved corridors bow apart.

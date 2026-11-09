@@ -9,6 +9,7 @@ import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {Geometry, Model} from '@luma.gl/engine';
 import {flowLinesUniforms} from '../FlowLinesLayer/FlowLinesLayerUniforms';
 import {LayerProps} from '../types';
+import {antimeridian, getAntimeridianPasses} from '../antimeridian';
 import {
   flowBlending,
   applyFlowBlending,
@@ -83,8 +84,19 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: getVertexShader(this.numSegments),
       fs: FragmentShader,
-      modules: [project32, picking, flowBlending, flowLinesUniforms],
+      modules: [
+        project32,
+        picking,
+        flowBlending,
+        flowLinesUniforms,
+        antimeridian,
+      ],
     });
+  }
+
+  // Drawn in two passes instead; see antimeridian.ts.
+  get wrapLongitude(): boolean {
+    return false;
   }
 
   initializeState(): void {
@@ -178,7 +190,10 @@ export default class CurvedFlowLinesLayer<F> extends Layer {
       this.props as unknown as Props<F>,
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
-    model.draw(this.context.renderPass as any);
+    for (const side of getAntimeridianPasses(this)) {
+      model.shaderInputs.setProps({antimeridian: {side}});
+      model.draw(this.context.renderPass as any);
+    }
   }
 
   _getModel(): Model {
