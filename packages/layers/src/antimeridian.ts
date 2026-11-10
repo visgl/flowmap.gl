@@ -22,9 +22,9 @@ import type {ShaderModule} from '@luma.gl/shadertools';
  *
  * deck.gl splits a line's geometry at the meridian. Flow arrows have heads,
  * outlines and bows that cannot be split as simply, so each pass draws the
- * whole arrow and clips its fragments at the meridian instead. The two halves
- * are translations of each other by 360°, so where the map repeats copies of
- * the world they meet without a seam or overlap.
+ * whole arrow and clips its fragments at the meridian's line on screen
+ * instead. The two halves are translations of each other by 360°, so where the
+ * map repeats copies of the world they meet without a seam or overlap.
  */
 export const antimeridian = {
   name: 'antimeridian',
@@ -65,15 +65,31 @@ bool antimeridian_wrap(inout vec3 source, inout vec3 target) {
   return true;
 }
 
-// Records how far past this pass's meridian a vertex lies, in common space.
-// Mercator x is linear in longitude, so this interpolates exactly.
-void antimeridian_setPosition(vec3 position_commonspace) {
+// Records which side of this pass's meridian a vertex is drawn on, from its
+// final clip-space position. Call it after DECKGL_FILTER_GL_POSITION.
+//
+// The meridian and the camera span a plane. In clip space it holds the eye,
+// (0, 0, z, 0), so it is a homogeneous line in (x, y, w): the one through the
+// meridian's projected point and the vanishing point of its direction. A
+// fragment is past the meridian when its pixel's view ray is, wherever
+// extrusion in screen or common space put the vertex. The test is linear in
+// clip coordinates, so perspective-correct interpolation keeps it exact.
+void antimeridian_setPosition(vec4 position_clipspace) {
   if (antimeridian_crossing) {
     // Project at the origin's latitude to share the vertices' offset path.
-    float meridian = project_position(
+    vec4 meridian = project_common_position_to_clipspace(vec4(project_position(
       vec3(180.0 * antimeridian.side, project.coordinateOrigin.y, 0.0)
-    ).x;
-    antimeridian_vDistance = antimeridian.side * (position_commonspace.x - meridian);
+    ), 1.0));
+    vec3 line = cross(
+      meridian.xyw,
+      (project.viewProjectionMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyw
+    );
+    // Orient the line so it is positive beyond the meridian.
+    float beyond = dot(
+      line,
+      (project.viewProjectionMatrix * vec4(antimeridian.side, 0.0, 0.0, 0.0)).xyw
+    );
+    antimeridian_vDistance = sign(beyond) * dot(line, position_clipspace.xyw);
   }
 }
 `,

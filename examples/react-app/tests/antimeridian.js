@@ -158,6 +158,43 @@ async function run() {
         `${mode}: picking does not match the drawn halves`,
       );
 
+      // Under pitch and bearing the meridian is a slanted line on screen, and
+      // the animated strip is extruded in screen space rather than on the map.
+      // Every drawn pixel must still lie on its pass's side of the meridian,
+      // and the halves must reach it.
+      for (const [longitude, side] of [
+        [175, 1],
+        [-175, -1],
+      ]) {
+        deck.setProps({
+          viewState: {longitude, latitude: 0, zoom: 4, pitch: 60, bearing: 30},
+        });
+        const pixels = await capture([
+          makeLayer(`pitched${side}`, crossing, {
+            ...wrapProps,
+            flowLineThicknessScale: 6,
+          }),
+        ]);
+        const viewport = deck.getViewports()[0];
+        let past = 0;
+        let nearest = Infinity;
+        for (let y = 0; y < HEIGHT; y++) {
+          for (let x = 0; x < WIDTH; x++) {
+            const i = ((HEIGHT - 1 - y) * WIDTH + x) * 4;
+            if (pixels[i] + pixels[i + 1] + pixels[i + 2] <= 30) continue;
+            const [lng] = viewport.unproject([x + 0.5, y + 0.5]);
+            const beyond = side * (lng - side * 180);
+            if (beyond > 1e-3) past++;
+            nearest = Math.min(nearest, -beyond);
+          }
+        }
+        assert(
+          past === 0 && nearest < 0.05,
+          `${mode}: pitched pass ${side} clipped off the meridian (${past} pixels past it, nearest ${nearest.toFixed(3)}°)`,
+        );
+      }
+      deck.setProps({viewState: {longitude: 0, latitude: 0, zoom: 3}});
+
       // Routes that do not cross are drawn exactly once, unchanged.
       view(0);
       const regularOff = await capture([makeLayer('r-off', regular, props)]);

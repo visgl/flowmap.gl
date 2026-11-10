@@ -182,11 +182,11 @@ void main(void) {
     position_commonspace.xyz = normalize(position_commonspace.xyz) * length(curvePoint);
     geometry.position = position_commonspace;
   }
-  antimeridian_setPosition(position_commonspace.xyz);
   gl_Position = drawn
     ? project_common_position_to_clipspace(position_commonspace)
     : vec4(0.0);
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
+  antimeridian_setPosition(gl_Position);
 
   vec4 fillColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
   vColor = fillColor;

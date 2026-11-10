@@ -87,12 +87,12 @@ void main(void) {
   DECKGL_FILTER_SIZE(offsetCommon, geometry);
   vec4 position_commonspace = mix(source_commonspace, target_commonspace, sourceOrTarget);
   vec4 offset_commonspace = vec4(offsetCommon, 0.0);
-  antimeridian_setPosition(position_commonspace.xyz + offset_commonspace.xyz);
   gl_Position = drawn
     ? project_common_position_to_clipspace(position_commonspace + offset_commonspace)
     : vec4(0.0);
       
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
+  antimeridian_setPosition(gl_Position);
   
   vec4 fillColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
   vColor = fillColor;

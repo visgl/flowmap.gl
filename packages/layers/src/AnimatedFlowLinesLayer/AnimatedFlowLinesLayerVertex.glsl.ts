@@ -104,17 +104,10 @@ void main(void) {
     DECKGL_FILTER_SIZE(offset, geometry);
     gl_Position = p + vec4(project_pixel_size_to_clipspace(offset.xy), 0.0, 0.0);
     routeLength = length(source - target);
-    // The strip is extruded in screen space. Without pitch, the same extrusion
-    // in common space finds the vertex's position exactly.
-    vec2 directionCommon = normalize(target_commonspace.xy - source_commonspace.xy);
-    antimeridian_setPosition(geometry.position.xyz + vec3(
-      vec2(-directionCommon.y, directionCommon.x) *
-        project_pixel_size(positions.y * widthPixels / 2.0),
-      0.0
-    ));
     if (!drawn) gl_Position = vec4(0.0);
   }
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
+  antimeridian_setPosition(gl_Position);
 
   // Color
   vColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
