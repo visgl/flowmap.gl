@@ -20,6 +20,7 @@ in float instanceWidths;
 in float instancePickable;
 in float instanceHasReverseFlow;
 in float instanceStaggering;
+in float instanceGlobePhaseOffset;
 
 out vec4 vColor;
 out float sourceToTarget;
@@ -125,7 +126,7 @@ void main(void) {
   DECKGL_FILTER_COLOR(vColor, geometry);
 
   sourceToTarget = project.projectionMode == PROJECTION_MODE_GLOBE
-    ? positions.x * routeLength * NUM_PARTS - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
+    ? positions.x * routeLength * NUM_PARTS + instanceGlobePhaseOffset - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
     : 0.0;
 }
 `;

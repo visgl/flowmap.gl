@@ -326,7 +326,9 @@ their flat meaning, measured along the surface:
 - `'animated-straight'`: the same great circle, with the animated pulses. Pulse
   spacing is measured along the sphere's surface, calibrated to the flat map
   locally at the view center. Perspective and foreshortening compress the pulses
-  toward the horizon; spacing is not constant in screen pixels.
+  toward the horizon; spacing is not constant in screen pixels. Zoom preserves
+  pulse phase near the visible part of each route instead of shifting it from a
+  distant source. Panning retains the existing surface-relative motion.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
   and zero at the endpoints. Bends use great-circle distance with the same
   length-based rule as the flat map, scaled by `flowLineCurviness`.
