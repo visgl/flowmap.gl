@@ -134,6 +134,7 @@ function App() {
       locationTotalsEnabled: config.locationTotalsEnabled,
       locationLabelsEnabled: config.locationLabelsEnabled,
       locationLabelProps: {
+        characterSet: 'auto',
         getSize: 12,
         maxWidth: 14,
         wordBreak: 'break-word',
