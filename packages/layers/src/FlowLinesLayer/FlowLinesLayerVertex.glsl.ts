@@ -56,10 +56,10 @@ void main(void) {
     geometry.pickingColor = picking_getPickingColorFromInstanceID();
   }
   
-  // set the clamp limits in pixel size 
+  // Clamp the magnitude-scaled shaft and arrowhead offsets in common space.
   float lengthCommon = length(target_commonspace - source_commonspace);    
   vec2 limitedOffsetDistances = clamp(   
-    project_pixel_size(positions.yz) * flowLines.thicknessUnit,
+    project_pixel_size(instanceThickness * positions.yz * flowLines.thicknessUnit),
     -lengthCommon*.8, lengthCommon*.8
   );
   float startOffsetCommon = project_pixel_size(instanceEndpointOffsets[0]);
@@ -79,8 +79,8 @@ void main(void) {
   vec2 pixelOffsetCommon = project_pixel_size(pixelOffsets + outlinePixelOffset);
   float gapCommon = project_pixel_size(flowLines.gap);
   vec3 offsetCommon = vec3(
-    flowlineDir * (instanceThickness * limitedOffsetDistances[1] + pixelOffsetCommon.y + endpointOffset * 1.05) -
-    perpendicularDir * (instanceThickness * limitedOffsetDistances[0] + gapCommon + pixelOffsetCommon.x),
+    flowlineDir * (limitedOffsetDistances[1] + pixelOffsetCommon.y + endpointOffset * 1.05) -
+    perpendicularDir * (limitedOffsetDistances[0] + gapCommon + pixelOffsetCommon.x),
     0.0
   );
   
