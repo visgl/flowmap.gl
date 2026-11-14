@@ -16,6 +16,7 @@
     "build": "turbo run build --filter './packages/*' --concurrency 1",
     "test:node": "pnpm build && node --test test/*.test.mjs",
     "build:docs": "pnpm --dir docs install --frozen-lockfile && pnpm --dir docs build",
+    "build:site": "pnpm build:example && pnpm build:docs && shx cp -r examples/react-app/dist docs/build/demo",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
     "prepare": "husky",
