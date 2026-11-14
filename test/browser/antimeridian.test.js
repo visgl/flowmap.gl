@@ -216,7 +216,7 @@ test('viewport queries wrap only when the map repeats', async () => {
   );
 });
 
-test('wrapped opposite routes share a curved corridor', async () => {
+test('wrapped opposite routes have equal length-based bends', async () => {
   view(180);
   const bothWays = {
     ...crossing,
@@ -231,9 +231,7 @@ test('wrapped opposite routes share a curved corridor', async () => {
     )
   ).lineAttributes.attributes.getCurveOffset.value;
   assert(
-    Array.from(offsets)
-      .sort((a, b) => a - b)
-      .join() === '18,36',
-    `Wrapped opposite routes did not share a corridor (${Array.from(offsets)})`,
+    offsets.length === 2 && offsets[0] > 0 && offsets[0] === offsets[1],
+    `Wrapped opposite routes have different bends (${Array.from(offsets)})`,
   );
 });

@@ -240,6 +240,13 @@ Controls how flow lines are rendered.
 - `'animated-straight'`: animated straight flow lines
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
+Curved routes use their endpoint distance to set the bend: longer routes bow
+farther than shorter routes, helping separate nearly collinear destinations.
+The bend changes smoothly with zoom and approaches a bounded maximum. It does
+not depend on location IDs, flow ordering, or which neighboring routes are
+visible. Equal-length routes have equal bends; this is not a general solution
+for avoiding all overlaps. `flowLineCurviness` scales the resulting bend.
+
 With deck.gl's experimental `GlobeView`, all three modes follow the sphere's
 surface. A great circle is the straight route on a globe, so the modes keep
 their flat meaning, measured along the surface:
@@ -251,9 +258,8 @@ their flat meaning, measured along the surface:
   locally at the view center. Perspective and foreshortening compress the pulses
   toward the horizon; spacing is not constant in screen pixels.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
-  and zero at the endpoints. Overlapping corridors get increasing bows from the
-  same corridor offsets as the flat map (computed from nearly coinciding great
-  circles), scaled by `flowLineCurviness`.
+  and zero at the endpoints. Bends use great-circle distance with the same
+  length-based rule as the flat map, scaled by `flowLineCurviness`.
 
 Routes stay on the surface; raised 3D arcs are not supported. Globe flow visibility
 uses a conservative bound for the bow and arrowhead, so routes that bow into view
@@ -347,8 +353,8 @@ the visible side of the meridian is drawn. Arrowheads, outlines and curved bows
 are not split: each part draws the whole arrow and discards the pixels beyond
 the meridian, so it looks the same as an unwrapped route.
 
-In `'curved'` mode, corridor offsets are computed from the wrapped routes, so
-both directions of a route across the antimeridian bow apart. Mercator
+In `'curved'` mode, bends use the length of the wrapped routes, so both
+directions of a route across the antimeridian bow equally to opposite sides. Mercator
 clustering does not group locations across the antimeridian.
 
 Independently of `wrapLongitude`, when the map repeats copies of the world,

@@ -1556,9 +1556,7 @@ export default class FlowmapSelectors<
 
     const curveOffsets =
       flowLinesRenderingMode === 'curved'
-        ? (viewport.globe
-            ? calculateGlobeCurveOffsets
-            : calculateMercatorCurveOffsets)(
+        ? calculateCurveOffsets(
             flows,
             viewport,
             locationsById,
@@ -1994,21 +1992,11 @@ export function getFlowLineAttributesByIndex(
   };
 }
 
-type CorridorEntry = {
-  index: number;
-  originId: string | number;
-  destId: string | number;
-  chordLengthPx: number;
-};
-
-type FlowLineScreenGeometry = CorridorEntry & {
-  sx: number;
-  sy: number;
-  tx: number;
-  ty: number;
-};
-
-function calculateMercatorCurveOffsets<L, F>(
+/**
+ * Each route owns its bend: changing zoom or the visible set of neighboring
+ * routes must not move it between discrete lanes.
+ */
+function calculateCurveOffsets<L, F>(
   flows: (F | AggregateFlow)[],
   viewport: ViewportProps,
   locationsById: Map<string | number, L | ClusterNode> | undefined,
@@ -2018,179 +2006,50 @@ function calculateMercatorCurveOffsets<L, F>(
   getLocationLat: (location: L | ClusterNode) => number,
   wrapLongitude = false,
 ): Float32Array {
-  const curveOffsets = new Float32Array(flows.length);
-  const corridorBuckets = new Map<string, FlowLineScreenGeometry[]>();
-  const worldScale = 512 * Math.pow(2, viewport.zoom ?? 0);
-
-  flows.forEach((flow, index) => {
-    const originId = getFlowOriginId(flow);
-    const destId = getFlowDestId(flow);
-    const origin = locationsById?.get(originId);
-    const dest = locationsById?.get(destId);
-    if (!origin || !dest) {
-      return;
-    }
+  const worldScale =
+    512 * Math.pow(2, viewport.globe?.clusterZoom ?? viewport.zoom ?? 0);
+  return Float32Array.from(flows, (flow) => {
+    const origin = locationsById?.get(getFlowOriginId(flow));
+    const dest = locationsById?.get(getFlowDestId(flow));
+    if (!origin || !dest) return 0;
 
     let sourceLon = getLocationLon(origin);
     const sourceLat = getLocationLat(origin);
     let targetLon = getLocationLon(dest);
     const targetLat = getLocationLat(dest);
-    if (wrapLongitude) {
-      // Match the drawn route, which takes the shorter way across the antimeridian.
-      sourceLon = normalizeLongitude(sourceLon);
-      targetLon = normalizeLongitude(targetLon);
-      if (targetLon - sourceLon > 180) targetLon -= 360;
-      else if (targetLon - sourceLon < -180) targetLon += 360;
+    let lengthPx: number;
+    if (viewport.globe) {
+      const [ax, ay, az] = projectGlobeLocation(sourceLon, sourceLat);
+      const [bx, by, bz] = projectGlobeLocation(targetLon, targetLat);
+      const sinAngle = Math.hypot(
+        ay * bz - az * by,
+        az * bx - ax * bz,
+        ax * by - ay * bx,
+      );
+      const angle = Math.atan2(sinAngle, ax * bx + ay * by + az * bz);
+      lengthPx = (angle * worldScale) / (2 * Math.PI);
+    } else {
+      if (wrapLongitude) {
+        // Use the same short route across the antimeridian as the shader.
+        sourceLon = normalizeLongitude(sourceLon);
+        targetLon = normalizeLongitude(targetLon);
+        if (targetLon - sourceLon > 180) targetLon -= 360;
+        else if (targetLon - sourceLon < -180) targetLon += 360;
+      }
+      lengthPx =
+        Math.hypot(
+          lngX(targetLon) - lngX(sourceLon),
+          latY(targetLat) - latY(sourceLat),
+        ) * worldScale;
     }
-    const sx = lngX(sourceLon) * worldScale;
-    const sy = latY(sourceLat) * worldScale;
-    const tx = lngX(targetLon) * worldScale;
-    const ty = latY(targetLat) * worldScale;
+    if (!Number.isFinite(lengthPx) || lengthPx <= 0) return 0;
 
-    let corridorSourceX = sx;
-    let corridorSourceY = sy;
-    let corridorTargetX = tx;
-    let corridorTargetY = ty;
-    if (
-      corridorSourceX > corridorTargetX ||
-      (corridorSourceX === corridorTargetX && corridorSourceY > corridorTargetY)
-    ) {
-      [corridorSourceX, corridorTargetX] = [corridorTargetX, corridorSourceX];
-      [corridorSourceY, corridorTargetY] = [corridorTargetY, corridorSourceY];
-    }
-    if (corridorSourceX < 0) {
-      // A wrapped route can start west of -180°. Both directions of a route
-      // must share one corridor, so measure it from the same world copy.
-      corridorSourceX += worldScale;
-      corridorTargetX += worldScale;
-    }
-
-    const dx = corridorTargetX - corridorSourceX;
-    const dy = corridorTargetY - corridorSourceY;
-    const chordLengthPx = Math.hypot(dx, dy);
-    if (!isFinite(chordLengthPx) || chordLengthPx < 1) {
-      return;
-    }
-
-    const angle = ((Math.atan2(dy, dx) % Math.PI) + Math.PI) % Math.PI;
-    const signedDistance =
-      (corridorSourceX * corridorTargetY - corridorSourceY * corridorTargetX) /
-      chordLengthPx;
-    const key = [
-      Math.round(angle / ((6 * Math.PI) / 180)),
-      Math.round(signedDistance / 18),
-      Math.round(chordLengthPx / 24),
-    ].join(':');
-
-    const bucket = corridorBuckets.get(key) ?? [];
-    bucket.push({index, originId, destId, sx, sy, tx, ty, chordLengthPx});
-    corridorBuckets.set(key, bucket);
-  });
-
-  assignCorridorOffsets(corridorBuckets, curveOffsets);
-  return curveOffsets;
-}
-
-/**
- * Globe counterpart of calculateMercatorCurveOffsets: routes share a corridor when
- * their great circles nearly coincide (nearby poles) and have similar lengths.
- */
-function calculateGlobeCurveOffsets<L, F>(
-  flows: (F | AggregateFlow)[],
-  viewport: ViewportProps,
-  locationsById: Map<string | number, L | ClusterNode> | undefined,
-  getFlowOriginId: (flow: F | AggregateFlow) => string | number,
-  getFlowDestId: (flow: F | AggregateFlow) => string | number,
-  getLocationLon: (location: L | ClusterNode) => number,
-  getLocationLat: (location: L | ClusterNode) => number,
-): Float32Array {
-  const curveOffsets = new Float32Array(flows.length);
-  const corridorBuckets = new Map<string, CorridorEntry[]>();
-  // Globe radius in pixels, using the Mercator-equivalent zoom of the globe scale.
-  const radiusPx =
-    (512 * Math.pow(2, viewport.globe?.clusterZoom ?? viewport.zoom ?? 0)) /
-    (2 * Math.PI);
-  // An 18px lateral shift of a route tilts its pole by 18 / radiusPx radians.
-  const poleStep = Math.min(18 / radiusPx, (6 * Math.PI) / 180);
-
-  flows.forEach((flow, index) => {
-    const originId = getFlowOriginId(flow);
-    const destId = getFlowDestId(flow);
-    const origin = locationsById?.get(originId);
-    const dest = locationsById?.get(destId);
-    if (!origin || !dest) {
-      return;
-    }
-
-    const [ax, ay, az] = projectGlobeLocation(
-      getLocationLon(origin),
-      getLocationLat(origin),
+    // Longer routes bow farther, separating nested, nearly collinear routes.
+    // Smoothly approach the existing visibility bound instead of flattening
+    // all long routes at a hard cap. Short routes stay below 35% of their length.
+    return (
+      MAX_FLOW_CURVE_OFFSET_PX /
+      (1 + MAX_FLOW_CURVE_OFFSET_PX / (lengthPx * 0.35))
     );
-    const [bx, by, bz] = projectGlobeLocation(
-      getLocationLon(dest),
-      getLocationLat(dest),
-    );
-    let pole = [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
-    const sinAngle = Math.hypot(...pole);
-    const chordLengthPx =
-      Math.atan2(sinAngle, ax * bx + ay * by + az * bz) * radiusPx;
-    if (!isFinite(chordLengthPx) || chordLengthPx < 1 || sinAngle < 1e-9) {
-      return;
-    }
-
-    // Both directions of a route share one corridor.
-    pole = pole.map((value) => value / sinAngle);
-    const [px, py, pz] = pole;
-    if (pz < 0 || (pz === 0 && (py < 0 || (py === 0 && px < 0)))) {
-      pole = pole.map((value) => -value);
-    }
-    const key = [
-      ...pole.map((value) => Math.round(value / poleStep)),
-      Math.round(chordLengthPx / 24),
-    ].join(':');
-
-    const bucket = corridorBuckets.get(key) ?? [];
-    bucket.push({index, originId, destId, chordLengthPx});
-    corridorBuckets.set(key, bucket);
   });
-
-  assignCorridorOffsets(corridorBuckets, curveOffsets);
-  return curveOffsets;
-}
-
-function assignCorridorOffsets(
-  corridorBuckets: Map<string, CorridorEntry[]>,
-  curveOffsets: Float32Array,
-) {
-  corridorBuckets.forEach((bucket) => {
-    bucket
-      .sort((a, b) => {
-        const originCompare = compareIds(a.originId, b.originId);
-        if (originCompare !== 0) return originCompare;
-        const destCompare = compareIds(a.destId, b.destId);
-        if (destCompare !== 0) return destCompare;
-        return a.index - b.index;
-      })
-      .forEach((entry, bucketIndex) => {
-        const maxOffsetPx = Math.min(
-          MAX_FLOW_CURVE_OFFSET_PX,
-          entry.chordLengthPx * 0.35,
-        );
-        curveOffsets[entry.index] = Math.min(
-          maxOffsetPx,
-          (bucketIndex + 1) * 18,
-        );
-      });
-  });
-}
-
-function compareIds(a: string | number, b: string | number): number {
-  if (typeof a === 'number' && typeof b === 'number') {
-    return a - b;
-  }
-  const aString = String(a);
-  const bString = String(b);
-  if (aString < bString) return -1;
-  if (aString > bString) return 1;
-  return 0;
 }
