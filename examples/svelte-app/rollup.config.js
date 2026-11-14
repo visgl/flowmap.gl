@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import svelte from 'rollup-plugin-svelte';
 import commonjs from '@rollup/plugin-commonjs';
@@ -24,14 +25,10 @@ function serve() {
   return {
     writeBundle() {
       if (server) return;
-      server = require('child_process').spawn(
-        'npm',
-        ['run', 'start', '--', '--dev'],
-        {
-          stdio: ['ignore', 'inherit', 'inherit'],
-          shell: true,
-        },
-      );
+      server = spawn('pnpm', ['run', 'start', '--dev'], {
+        stdio: ['ignore', 'inherit', 'inherit'],
+        shell: true,
+      });
 
       process.on('SIGTERM', toExit);
       process.on('exit', toExit);
@@ -81,7 +78,7 @@ export default [
       }),
       commonjs(),
 
-      // In dev mode, call `npm run start` once
+      // In dev mode, call `pnpm start` once
       // the bundle has been generated
       !production && serve(),
 
@@ -89,8 +86,8 @@ export default [
       // browser on changes when not in production
       !production && livereload('public'),
 
-      // If we're building for production (npm run build
-      // instead of npm run dev), minify
+      // If we're building for production (pnpm build
+      // instead of pnpm dev), minify
       production && terser(),
     ],
     watch: {

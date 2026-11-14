@@ -11,10 +11,10 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "rm -rf dist && tsc",
-    "prepare": "yarn build"
+    "prepare": "pnpm build"
   },
   "dependencies": {
-    "@flowmap.gl/data": "^9.4.0"
+    "@flowmap.gl/data": "workspace:^"
   },
   "peerDependencies": {
     "@deck.gl/core": "^9.4.0",

@@ -1,0 +1,12 @@
+# Keep the documentation site independent of the library workspace.
+packages: []
+
+overrides:
+  'webpack': 5.104.1
+  'tinypool': ^2.2.0
+  'serialize-javascript': ^7.1.4
+  'sockjs>uuid': ^11.1.1
+  'express>qs': ^6.17.0
+
+onlyBuiltDependencies:
+  - core-js

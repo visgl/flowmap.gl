@@ -1,28 +1,28 @@
 {
   "name": "flowmap.gl",
   "private": true,
-  "packageManager": "yarn@4.5.0",
+  "packageManager": "pnpm@10.34.9",
   "description": "Flow map drawing layer for Deck.gl",
   "main": "index.js",
   "repository": "git@github.com:visgl/flowmap.gl.git",
   "author": "Ilya Boyandin <ilya@boyandin.me>",
   "license": "Apache-2.0",
   "scripts": {
-    "start": "yarn build && yarn dev",
-    "dev": "yarn dev:example",
+    "start": "pnpm build && pnpm dev",
+    "dev": "pnpm dev:example",
     "clean": "shx rm -rf .turbo packages/*/.turbo packages/*/dist examples/*/.turbo examples/*/dist",
     "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
     "build:example": "turbo build --filter='./examples/react-app' --filter './packages/*'",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
-    "test:node": "yarn build && node --test test/node-imports.test.mjs",
-    "build:docs": "cd docs && yarn && yarn build",
+    "test:node": "pnpm build && node --test test/*.test.mjs",
+    "build:docs": "pnpm --dir docs install --frozen-lockfile && pnpm --dir docs build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",
-    "prepare": "./node_modules/.bin/husky install",
-    "deploy": "yarn build:example && gh-pages -d examples/react-app/dist/",
+    "prepare": "husky",
+    "deploy": "pnpm build:example && gh-pages -d examples/react-app/dist/",
     "bump": "lerna version --no-push --force-publish",
-    "publish-release": "yarn build && lerna publish from-package",
-    "publish-prerelease": "yarn build && lerna publish --dist-tag next from-package",
+    "publish-release": "pnpm build && lerna publish from-package",
+    "publish-prerelease": "pnpm build && lerna publish --dist-tag next from-package",
     "typecheck": "lerna run --stream typecheck"
   },
   "prettier": {
@@ -32,16 +32,14 @@
     "bracketSpacing": false,
     "trailingComma": "all"
   },
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
   "dependencies": {
     "prettier": "^3.8.2",
     "typescript": "^6.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/layers": "workspace:*",
     "eslint": "^10.0.1",
     "gh-pages": "^6.3.0",
     "husky": "^9.1.7",
@@ -52,16 +50,6 @@
     "typescript-eslint": "^8.58.1"
   },
   "volta": {
-    "node": "22.23.4",
-    "yarn": "4.5.0"
-  },
-  "resolutions": {
-    "lerna/js-yaml": "^4.3.2",
-    "lerna/pacote": "^21.5.2",
-    "lerna/tar": "^7.5.22",
-    "nx/axios": "^1.21.0",
-    "nx/brace-expansion": "^5.0.12",
-    "nx/follow-redirects": "^1.16.2",
-    "nx/smol-toml": "^1.9.1"
+    "node": "22.23.4"
   }
 }

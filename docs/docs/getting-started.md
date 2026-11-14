@@ -14,8 +14,8 @@ Install flowmap.gl packages along with the required peer dependencies:
 # Using npm
 npm install @flowmap.gl/layers @flowmap.gl/data deck.gl
 
-# Using yarn
-yarn add @flowmap.gl/layers @flowmap.gl/data deck.gl
+# Using pnpm
+pnpm add @flowmap.gl/layers @flowmap.gl/data deck.gl
 ```
 
 ### Peer Dependencies

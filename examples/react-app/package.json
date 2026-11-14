@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "yarn dev",
+    "start": "pnpm dev",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -17,6 +17,7 @@
     "@deck.gl/react": "^9.4.0",
     "@deck.gl/widgets": "^9.4.0",
     "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/examples-common": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
     "@loaders.gl/core": "^4.5.4",
     "@luma.gl/core": "^9.4.2",

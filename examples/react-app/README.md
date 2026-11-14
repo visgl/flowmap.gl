@@ -5,20 +5,20 @@ This example shows how Flowmap.gl can be used in a React web app.
 ## Usage
 
 ```bash
-npm i
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 To build a production version:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ## Globe prototype
 
-From the repository root, run `yarn build` and then
-`yarn workspace @flowmap.gl/react-app dev`.
+From the repository root, run `pnpm build` and then
+`pnpm --filter @flowmap.gl/react-app dev`.
 
 - `/` loads 7,698 airports and 37,042 routes from the
   [Global Flights dataset](https://gist.github.com/ilyabo/15998ce470d8b4fe6ea5d94187adc89b),
