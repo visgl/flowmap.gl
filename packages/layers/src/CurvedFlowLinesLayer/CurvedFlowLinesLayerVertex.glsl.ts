@@ -100,9 +100,6 @@ void main(void) {
   float headScale = baseHeadBacktrackT > 1e-6
     ? clamp(headBacktrackT / baseHeadBacktrackT, 0.0, 1.0)
     : 1.0;
-  // A soft nonlinear fade of the head deformation avoids tiny heads folding
-  // into themselves while still allowing them to collapse back toward the strip.
-  float headDeformation = smoothstep(0.0, 1.0, headScale);
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
   curveT = positions.x < 1.0
@@ -139,20 +136,18 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  float widthScale = mix(1.0, headScale, headWeight);
-  float lengthScale = mix(1.0, headScale, headWeight);
-  float shapeY = mix(min(positions.y, 1.0), positions.y, headDeformation);
-  float shapeZ = positions.z * headDeformation;
+  // Fit short routes by scaling the whole ribbon uniformly. Deforming only
+  // the head changes its angle and lets the full-width shaft swallow it.
   float normalDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * shapeY * widthScale * flowLines.thicknessUnit
+      instanceThickness * positions.y * headScale * flowLines.thicknessUnit
     ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
   );
   float tangentDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * shapeZ * lengthScale * flowLines.thicknessUnit
+      instanceThickness * positions.z * headScale * flowLines.thicknessUnit
     ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
