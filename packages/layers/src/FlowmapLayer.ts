@@ -13,8 +13,10 @@ import {
 import GlobeOcclusionExtension from './GlobeOcclusionExtension.js';
 
 import {ScatterplotLayer} from '@deck.gl/layers';
-import {CollisionFilterExtension} from '@deck.gl/extensions';
-import LocationLabelsLayer from './LocationLabelsLayer.js';
+import LocationLabelsLayer, {
+  getLocationLabelProps,
+  type LocationLabelProps,
+} from './LocationLabelsLayer.js';
 import {
   FilterState,
   FlowEndpointsInViewportMode,
@@ -52,7 +54,6 @@ import {
 } from './types.js';
 
 const globeOcclusion = new GlobeOcclusionExtension();
-const labelCollisionFilter = new CollisionFilterExtension();
 
 export type FlowmapLayerProps<
   L extends Record<string, any>,
@@ -66,6 +67,8 @@ export type FlowmapLayerProps<
   locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
+  /** TextLayer styling and accessors for generated location/cluster labels. */
+  locationLabelProps?: LocationLabelProps;
   adaptiveScalesEnabled?: boolean;
   flowLineThicknessScale?: number;
   flowLineCurviness?: number;
@@ -857,50 +860,23 @@ export default class FlowmapLayer<
         }
       }
       if (locationsEnabled && locationLabels) {
-        const maxRadius = locationLabels.reduce(
-          (max, _, index) =>
-            Math.max(max, getOuterCircleRadiusByIndex(circleAttributes, index)),
-          0,
+        const labelProps = getLocationLabelProps(
+          locationLabels,
+          circleAttributes,
+          props.locationLabelProps,
         );
         layers.push(
           new LocationLabelsLayer(
             this.getSubLayerProps({
+              ...labelProps,
               id: 'location-labels',
               data: locationLabels,
-              extensions: [...this.props.extensions, labelCollisionFilter],
-              collisionEnabled: true,
-              collisionGroup: `${this.id}-location-labels`,
-              getCollisionPriority: (_: string, {index}: {index: number}) =>
-                (1000 * getOuterCircleRadiusByIndex(circleAttributes, index)) /
-                (maxRadius || 1),
-              // Collision filtering samples the location anchor. Extend the
-              // bounds above the offset label so that anchor stays inside.
-              background: true,
-              backgroundPadding: [3, maxRadius + 8, 3, 3],
-              // Anchor-based testing needs wider bounds to catch text overlaps.
-              collisionTestProps: {sizeScale: 2},
-              updateTriggers: {
-                getPosition: circleAttributes,
-                getPixelOffset: circleAttributes,
-                getCollisionPriority: circleAttributes,
-              },
-              maxWidth: 1000,
-              pickable: false,
-              fontFamily: 'Helvetica',
-              getPixelOffset: (d: string, {index}: {index: number}) => {
-                const r = getOuterCircleRadiusByIndex(circleAttributes, index);
-                return [0, r + 5];
-              },
-              getPosition: (d: string, {index}: {index: number}) => {
-                const pos = getLocationCoordsByIndex(circleAttributes, index);
-                return pos;
-              },
-              getText: (d: string) => d,
-              getSize: 10,
-              getColor: [255, 255, 255, 255],
-              getAngle: 0,
-              getTextAnchor: 'middle',
-              getAlignmentBaseline: 'top',
+              extensions: [
+                ...this.props.extensions,
+                ...(labelProps.extensions ?? []),
+              ],
+              collisionGroup:
+                labelProps.collisionGroup ?? `${this.id}-location-labels`,
             }),
           ),
         );

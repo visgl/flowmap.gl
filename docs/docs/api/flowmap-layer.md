@@ -227,7 +227,70 @@ Whether to show incoming/outgoing totals as concentric circles at each location.
 - Type: `boolean`
 - Default: `false`
 
-Whether to show text labels at locations.
+Whether to show text labels at locations. Overlapping labels are filtered on the
+GPU, with larger location circles receiving higher priority. Collision filtering
+uses approximate anchor tests, so some overlaps can remain.
+
+#### `locationLabelProps`
+
+- Type: `LocationLabelProps`
+- Default: `undefined`
+
+Overrides for the location label's [deck.gl TextLayer props](https://deck.gl/docs/api-reference/layers/text-layer),
+including text, colors, fonts, sizes, outlines, backgrounds, alignment, offsets,
+and update triggers. Flowmap manages the layer's `id` and `data`; these two props
+cannot be overridden here. The `LocationLabelProps` type is exported from
+`@flowmap.gl/layers`.
+
+Accessors receive the **generated label string**, including cluster names,
+and deck.gl's accessor context (`{index, data, target}`). Use `getText` to shorten
+labels without changing the location names used by tooltips:
+
+```typescript
+new FlowmapLayer({
+  // ...data and location/flow accessors
+  locationLabelsEnabled: true,
+  locationLabelProps: {
+    getText: (name) => (name.length > 36 ? `${name.slice(0, 35)}…` : name),
+    characterSet: 'auto',
+    getColor: [35, 55, 65, 255],
+    getSize: 12,
+    fontFamily: 'Helvetica, sans-serif',
+    outlineColor: [255, 255, 255, 255],
+    outlineWidth: 2,
+  },
+});
+```
+
+Outlines use deck.gl's SDF font rendering. A nonzero `outlineWidth` automatically
+enables `fontSettings.sdf`, unless you explicitly set it to `false`. Other
+`fontSettings` are forwarded. Set `characterSet: 'auto'` when labels include
+characters outside the default ASCII set, such as an ellipsis.
+
+Use `background: true` with `getBackgroundColor`, `backgroundPadding`, and
+`backgroundBorderRadius` for visible label boxes. Collision bounds remain
+separate from these visual backgrounds. Additional `extensions` are appended to
+the inherited extensions and the collision filter.
+
+The [CollisionFilterExtension props](https://deck.gl/docs/api-reference/extensions/collision-filter-extension)
+are also supported: set `collisionEnabled: false` to show every label, or supply
+`getCollisionPriority` to override the default circle-size priority. Advanced
+`collisionTestProps` apply to the underlying collision background layer (for
+example, `padding` or `sizeScale`).
+
+Replacing `getText` updates the displayed text. If an accessor closes over changing
+values while keeping the same function, use deck.gl's `updateTriggers`:
+
+```typescript
+locationLabelProps: {
+  getText: formatLabel,
+  updateTriggers: {getText: maxLabelLength},
+}
+```
+
+To derive names directly from location records instead, use the existing
+`getLocationName` accessor. Use `getLocationClusterName` to name clusters before
+their strings are passed to the label layer.
 
 #### `flowLinesRenderingMode`
 
