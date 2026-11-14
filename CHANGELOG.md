@@ -14,6 +14,11 @@
   Without it, flat-only multi-view drawing is unchanged; setups containing a globe
   draw an unbound flowmap only in the first view. Missing bound views hide the layer
   without throwing. Use separate bound layers for mixed globe/flat displays.
+- Experimental: deck.gl `GlobeView` support with great-circle flows and spherical
+  clustering. It relies on deck.gl's experimental `_GlobeViewport` export and
+  internal globe radius, so it may need updates with deck.gl releases.
+- Experimental: `blendingMode: 'non-accumulating'`. Explicit depth `parameters`
+  override its depth defaults.
 
 ## [9.1.0] - 2026-04-13
 

@@ -8,6 +8,8 @@ export type BlendingMode = 'normal' | 'non-accumulating';
 export interface FlowBlendingProps {
   blendingMode?: BlendingMode;
   darkMode?: boolean;
+  /** Explicit layer parameters. Their depth settings override the defaults. */
+  parameters?: Parameters;
 }
 
 /** Apply only to flow fills. Highlights keep ordinary source-over blending. */
@@ -32,7 +34,10 @@ export function getFlowBlendParameters({
 
 /** Deck resets model parameters before every draw, including picking. Derive
  * these here rather than in props so layer.clone({blendingMode: 'normal'})
- * cannot inherit stale min/max parameters. Picking owns its encoding factors. */
+ * cannot inherit stale min/max parameters. Picking owns its encoding factors.
+ *
+ * Depth testing and writes are only defaults, as in globe mode: explicit
+ * layer parameters win. The blend equations define the mode and always apply. */
 export function applyFlowBlending(
   model: Model,
   props: FlowBlendingProps,
@@ -40,10 +45,12 @@ export function applyFlowBlending(
 ) {
   model.shaderInputs.setProps({flowBlending: getFlowBlendingUniforms(props)});
   if (props.blendingMode === 'non-accumulating' && !pickingActive) {
+    const {depthCompare = 'always', depthWriteEnabled = false} =
+      props.parameters ?? {};
     model.setParameters({
       ...model.parameters,
-      depthCompare: 'always',
-      depthWriteEnabled: false,
+      depthCompare,
+      depthWriteEnabled,
       ...getFlowBlendParameters(props),
     });
   }

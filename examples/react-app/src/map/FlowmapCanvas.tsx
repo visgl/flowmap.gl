@@ -1,7 +1,6 @@
 import {
   _GlobeView as GlobeView,
   MapView,
-  type GlobeViewState,
   type MapViewState,
   type Layer,
 } from '@deck.gl/core';
@@ -23,7 +22,7 @@ type FlowmapCanvasProps = Pick<MapLibreOverlayProps, 'widgets'> & {
   blendingMode: BlendingMode;
   darkMode: boolean;
   labelsEnabled: boolean;
-  initialViewState: GlobeViewState | MapViewState;
+  initialViewState: MapViewState;
   onMove: (event: {viewState: MapViewState}) => void;
 };
 
@@ -99,6 +98,8 @@ export default function FlowmapCanvas({
         longitude={initialViewState.longitude}
         latitude={initialViewState.latitude}
         zoom={initialViewState.zoom}
+        pitch={globe ? 0 : (initialViewState.pitch ?? 0)}
+        bearing={globe ? 0 : (initialViewState.bearing ?? 0)}
         onMove={onMove}
         mapStyle={mapStyle}
         style={{isolation: interleaved ? 'isolate' : undefined}}

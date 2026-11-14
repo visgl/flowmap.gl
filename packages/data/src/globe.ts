@@ -1,6 +1,8 @@
 import type {ViewportProps} from './types';
 
 export type GlobePoint = [number, number, number];
+// Mirrors deck.gl's GLOBE_RADIUS (viewports/globe-viewport.js), which is not
+// exported. Still 256 in deck.gl 9.4.1 and 10.0.0-alpha.1; re-check on upgrades.
 const RADIUS = 256;
 
 /** Unit sphere in deck.gl's globe coordinate system. */

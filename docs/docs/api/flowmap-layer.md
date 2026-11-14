@@ -289,6 +289,16 @@ by the caller and is never mutated. Applications should clear or remap generated
 cluster selections on projection changes if their selection UI must stay in sync.
 An ignored selection becomes effective again when switching back to its projection.
 
+:::caution Experimental
+Globe support is experimental and may change in minor releases. It relies on
+deck.gl internals that are themselves experimental: the `_GlobeView` and
+`_GlobeViewport` exports (underscore-prefixed in deck.gl 9.4 and 10.0 alpha), and
+deck.gl's internal globe radius of 256 common-space units, which is not part of
+its public API. A deck.gl release that changes either may require a matching
+flowmap.gl update. The `viewId`, `blendingMode`, `getFlowmapCanvasStyle`, and
+`getFlowmapCanvasClearColor` APIs introduced alongside it are also experimental.
+:::
+
 #### `viewId`
 
 - Type: `string` (optional)
@@ -599,6 +609,10 @@ dark mode uses **max** (lighten). Identical overlapping flows do not become
 stronger, including at antialiased edges. This applies to straight, animated,
 and curved flows, including globe routes. Picking and globe horizon clipping
 remain active; highlights retain ordinary blending so they stay visible.
+
+Flows default to `depthCompare: 'always'` and `depthWriteEnabled: false` in this
+mode. As with the globe defaults, explicit `parameters` take precedence for these
+depth settings. The min/max blend equations define the mode and always apply.
 
 `fadeEnabled` and `fadeAmount` fade weaker flows toward white in light mode and
 black in dark mode. `fadeOpacityEnabled` adds further fading. Flow color alpha,
