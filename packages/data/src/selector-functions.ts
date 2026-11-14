@@ -21,6 +21,7 @@ export const getViewportBoundingBox = (
   viewport: ViewportProps,
   maxLocationCircleSize = 0,
 ): [number, number, number, number] => {
+  if (viewport.globe) return [-180, -90, 180, 90];
   const pad = maxLocationCircleSize;
   const bounds = new WebMercatorViewport({
     ...viewport,

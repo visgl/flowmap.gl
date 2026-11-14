@@ -10,8 +10,13 @@ import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
+import {
+  flowBlending,
+  applyFlowBlending,
+  type FlowBlendingProps,
+} from '../flowBlending';
 import {animatedFlowLinesUniforms} from './AnimatedFlowLinesLayerUniforms';
-export interface Props<F> extends LayerProps {
+export interface Props<F> extends LayerProps, FlowBlendingProps {
   id: string;
   opacity?: number;
   pickable?: boolean;
@@ -75,7 +80,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking, animatedFlowLinesUniforms],
+      modules: [project32, picking, flowBlending, animatedFlowLinesUniforms],
     });
   }
 
@@ -135,7 +140,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     }
   }
 
-  draw(): void {
+  draw(options: Parameters<Layer['draw']>[0]): void {
     const {thicknessUnit = 12, animationTailLength = 0.7} = this
       .props as unknown as Props<F>;
     const timestamp = Date.now() / 1000;
@@ -152,6 +157,11 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
         currentTime: animationTime,
       },
     });
+    applyFlowBlending(
+      model,
+      this.props as unknown as Props<F>,
+      Boolean(options.shaderModuleProps?.picking?.isActive),
+    );
     model.draw(this.context.renderPass as any);
   }
 

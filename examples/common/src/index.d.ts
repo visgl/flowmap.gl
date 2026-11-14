@@ -27,7 +27,10 @@ export function getClusterLevelsH3(
   minZoom?: number,
   maxZoom?: number,
 ): ClusterLevels;
-export function fetchData(clusteringMethod?: string): Promise<LoadedData>;
+export function fetchData(
+  clusteringMethod?: string,
+  dataUrl?: string,
+): Promise<LoadedData>;
 
 export const UI_INITIAL: Record<string, any>;
 export const initLilGui: (

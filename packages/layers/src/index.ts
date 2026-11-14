@@ -18,3 +18,9 @@ export type {
 } from './FlowmapLegendWidget';
 
 export * from './types';
+
+export {
+  getFlowmapCanvasStyle,
+  getFlowmapCanvasClearColor,
+} from './flowBlending';
+export type {BlendingMode} from './flowBlending';

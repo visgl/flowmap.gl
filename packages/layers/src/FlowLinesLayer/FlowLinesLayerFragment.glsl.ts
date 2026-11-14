@@ -50,5 +50,10 @@ void main(void) {
   }
 
   DECKGL_FILTER_COLOR(fragColor, geometry);
+  // Only polygon boundaries receive coverage; internal triangle seams stay solid.
+  vec3 distances = vBarycentrics / max(fwidth(vBarycentrics), vec3(1e-4));
+  distances = mix(vec3(1e6), distances, step(vec3(0.5), vEdgeMask));
+  float coverage = smoothstep(0.0, 1.0, min(distances.x, min(distances.y, distances.z)));
+  fragColor = flow_blend_color(fragColor, coverage);
 }
 `;

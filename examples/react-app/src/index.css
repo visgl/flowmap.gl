@@ -22,14 +22,23 @@ code {
   width: 100vw;
   height: 100vh;
 }
-.light .maplibregl-map {
-  opacity: 0.5;
-}
 .dark {
   background: #000;
 }
-.dark .maplibregl-map {
-  opacity: 0.3;
+.globe.dark {
+  background: linear-gradient(0deg, #000, #223);
+}
+.globe.light {
+  background: linear-gradient(0deg, #f8fafc, #dfe8f0);
+}
+.basemap-status {
+  position: absolute;
+  bottom: 16px;
+  left: 50px;
+  z-index: 1;
+  padding: 8px 12px;
+  background: #eef3f8;
+  color: #172634;
 }
 
 .tooltip {
@@ -40,4 +49,20 @@ code {
   padding: 1em;
   color: white;
   pointer-events: none;
+}
+
+.lil-gui .example-data-source {
+  display: block;
+  padding: 8px;
+  color: #7cdbdc;
+  font-size: 12px;
+}
+
+/* Allow the overlay canvas to blend against the basemap across MapLibre's
+   control container. Individual widgets already have their own z-index. */
+.separate-canvas {
+  isolation: isolate;
+}
+.separate-canvas .maplibregl-ctrl-top-left {
+  z-index: auto;
 }

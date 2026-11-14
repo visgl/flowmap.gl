@@ -3,9 +3,12 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-const HEAD_START_T = (1 - 1 / 24).toFixed(8);
+import globeFlow from './globe-flow.glsl';
 
-export default `\
+export default function getVertexShader(segments: number) {
+  const HEAD_START_T = (1 - 1 / segments).toFixed(8);
+
+  return `\
 #version 300 es
 #define SHADER_NAME curved-flow-line-layer-vertex-shader
 
@@ -39,10 +42,18 @@ vec3 quadraticBezierTangent(vec3 p0, vec3 p1, vec3 p2, float t) {
   return 2.0 * (1.0 - t) * (p1 - p0) + 2.0 * t * (p2 - p1);
 }
 
+${globeFlow}
+
 void main(void) {
   geometry.worldPosition = instanceSourcePositions;
   geometry.worldPositionAlt = instanceTargetPositions;
 
+  vec3 curvePoint;
+  vec3 offsetCommon;
+  float curveT;
+  if (project.projectionMode == PROJECTION_MODE_GLOBE) {
+    getGlobeFlowPosition(${HEAD_START_T}, curvePoint, offsetCommon, curveT);
+  } else {
   vec4 source_commonspace;
   vec4 target_commonspace;
   project_position_to_clipspace(
@@ -84,7 +95,7 @@ void main(void) {
   float headDeformation = smoothstep(0.0, 1.0, headScale);
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
-  float curveT = positions.x < 1.0
+  curveT = positions.x < 1.0
     ? mix(startTrim, shaftEndTrim, positions.x / ${HEAD_START_T})
     : endTrim;
   float headWeight = smoothstep(${HEAD_START_T}, 1.0, positions.x);
@@ -100,7 +111,7 @@ void main(void) {
   );
   control_commonspace.xy += curveNormal * project_pixel_size(abs(instanceCurveOffset)) * flowLines.curviness;
 
-  vec3 curvePoint = quadraticBezier(
+  curvePoint = quadraticBezier(
     source_commonspace.xyz,
     control_commonspace,
     target_commonspace.xyz,
@@ -137,11 +148,13 @@ void main(void) {
     chordLengthCommon * 0.8
   );
   float gapCommon = project_pixel_size(flowLines.gap);
-  vec3 offsetCommon = vec3(
+  offsetCommon = vec3(
     flowlineDir * tangentDistanceCommon -
       perpendicularDir * (normalDistanceCommon + gapCommon),
     0.0
   );
+
+  }
 
   geometry.position = vec4(curvePoint, 1.0);
   uv = vec2(curveT, positions.y);
@@ -154,6 +167,11 @@ void main(void) {
 
   DECKGL_FILTER_SIZE(offsetCommon, geometry);
   vec4 position_commonspace = vec4(curvePoint + offsetCommon, 1.0);
+  if (project.projectionMode == PROJECTION_MODE_GLOBE) {
+    // Keep the ribbon on the sphere, including its arrowhead and lateral gap.
+    position_commonspace.xyz = normalize(position_commonspace.xyz) * length(curvePoint);
+    geometry.position = position_commonspace;
+  }
   gl_Position = project_common_position_to_clipspace(position_commonspace);
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
@@ -162,3 +180,4 @@ void main(void) {
   DECKGL_FILTER_COLOR(vColor, geometry);
 }
 `;
+}

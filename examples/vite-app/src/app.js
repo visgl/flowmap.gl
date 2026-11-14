@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Deck} from '@deck.gl/core';
+import {Deck, MapView} from '@deck.gl/core';
 import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
-import {FlowmapLayer} from '@flowmap.gl/layers';
+import {
+  FlowmapLayer,
+  getFlowmapCanvasStyle,
+  getFlowmapCanvasClearColor,
+} from '@flowmap.gl/layers';
 import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
 import {getViewStateForLocations} from '@flowmap.gl/data';
@@ -15,6 +19,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
+const MAP_STYLE_LIGHT =
+  'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 const MAP_STYLE_DARK =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -65,17 +71,25 @@ fetchData().then((data) => {
   updateDeck();
   gui.onChange(({property, value}) => {
     config[property] = value;
+    if (property === 'darkMode') {
+      map.setStyle(value ? MAP_STYLE_DARK : MAP_STYLE_LIGHT);
+    }
     updateDeck();
   });
 
   function updateDeck() {
+    const clearColor = getFlowmapCanvasClearColor(config);
+    Object.assign(deck.getCanvas().style, getFlowmapCanvasStyle(config));
     deck.setProps({
+      views: new MapView({clear: Boolean(clearColor), clearColor}),
+      style: getFlowmapCanvasStyle(config),
       layers: [
         new FlowmapLayer({
           id: 'my-flowmap-layer',
           data,
           pickable: true,
           opacity: config.opacity,
+          blendingMode: config.blendingMode,
           darkMode: config.darkMode,
           colorScheme: config.colorScheme,
           fadeAmount: config.fadeAmount,

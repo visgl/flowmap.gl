@@ -1,3 +1,8 @@
+import {MapView} from '@deck.gl/core';
+import {
+  getFlowmapCanvasStyle,
+  getFlowmapCanvasClearColor,
+} from '@flowmap.gl/layers';
 /*
  * Copyright (c) Flowmap.gl contributors
  * Copyright (c) 2018-2020 Teralytics
@@ -92,6 +97,7 @@ function App() {
         id: 'my-flowmap-layer',
         dataProvider: data.dataProvider,
         opacity: config.opacity,
+        blendingMode: config.blendingMode,
         pickable: true,
         darkMode: config.darkMode,
         colorScheme: config.colorScheme,
@@ -123,6 +129,12 @@ function App() {
       style={{position: 'relative'}}
     >
       <DeckGL
+        views={
+          new MapView({
+            clear: Boolean(getFlowmapCanvasClearColor(config)),
+            clearColor: getFlowmapCanvasClearColor(config),
+          })
+        }
         width="100%"
         height="100%"
         // viewState={viewState}
@@ -130,7 +142,7 @@ function App() {
         onViewStateChange={handleViewStateChange}
         controller={true}
         layers={layers}
-        style={{mixBlendMode: config.darkMode ? 'screen' : 'darken'}}
+        style={getFlowmapCanvasStyle(config)}
       >
         <ReactMapGl
           mapStyle={config.darkMode ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
