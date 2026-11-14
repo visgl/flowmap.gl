@@ -97,9 +97,6 @@ void main(void) {
   ) / chordLengthCommon;
   float availableSpanT = max(endTrim - startTrim, 0.0);
   float headBacktrackT = min(baseHeadBacktrackT, availableSpanT * 0.45);
-  float headScale = baseHeadBacktrackT > 1e-6
-    ? clamp(headBacktrackT / baseHeadBacktrackT, 0.0, 1.0)
-    : 1.0;
   float shaftEndTrim = max(startTrim + 0.02, endTrim - headBacktrackT);
 
   curveT = positions.x < 1.0
@@ -136,21 +133,22 @@ void main(void) {
 
   vec2 flowlineDir = normalize(tangent.xy);
   vec2 perpendicularDir = vec2(-flowlineDir.y, flowlineDir.x);
-  // Fit short routes by scaling the whole ribbon uniformly. Deforming only
-  // the head changes its angle and lets the full-width shaft swallow it.
+  // Match straight flows: magnitude sets the width independently of length.
+  // Only cap the offsets; never flatten the head toward the shaft.
   float normalDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * positions.y * headScale * flowLines.thicknessUnit
+      instanceThickness * positions.y * flowLines.thicknessUnit
     ),
     -chordLengthCommon * 0.8,
     chordLengthCommon * 0.8
   );
+  float maxHeadLengthCommon = chordLengthCommon * availableSpanT * 0.8;
   float tangentDistanceCommon = clamp(
     project_pixel_size(
-      instanceThickness * positions.z * headScale * flowLines.thicknessUnit
+      instanceThickness * positions.z * flowLines.thicknessUnit
     ),
-    -chordLengthCommon * 0.8,
-    chordLengthCommon * 0.8
+    -maxHeadLengthCommon,
+    maxHeadLengthCommon
   );
   float gapCommon = project_pixel_size(flowLines.gap);
   offsetCommon = vec3(

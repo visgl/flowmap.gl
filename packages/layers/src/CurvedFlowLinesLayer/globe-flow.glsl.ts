@@ -35,7 +35,6 @@ void getGlobeFlowPosition(
   float endTrim = 1.0 - clamp(project_pixel_size(instanceEndpointOffsets.y) / arcLength, 0.0, 0.35);
   float baseHead = project_pixel_size(instanceThickness * 3.0 * flowLines.thicknessUnit) / arcLength;
   float head = min(baseHead, (endTrim - startTrim) * 0.45);
-  float headScale = baseHead > 1e-6 ? head / baseHead : 1.0;
   float headWeight = smoothstep(headStart, 1.0, positions.x);
   t = positions.x < 1.0
     ? mix(startTrim, endTrim - head, positions.x / headStart)
@@ -48,11 +47,12 @@ void getGlobeFlowPosition(
   globeArc_frame(arc, mix(t, endTrim, headWeight), bow, normal, direction);
   vec3 perpendicular = cross(normal, direction);
 
-  // Match the flat path: preserve the head's proportions and its width relative
-  // to the shaft, even when the route is too short for the requested thickness.
+  // Match straight flows: preserve magnitude-based widths and cap the head's
+  // backtrack to the available route, without flattening it toward the shaft.
+  vec2 maxDistances = vec2(arcLength, arcLength * (endTrim - startTrim)) * 0.8;
   vec2 distances = clamp(project_pixel_size(
-    instanceThickness * positions.yz * headScale * flowLines.thicknessUnit
-  ), vec2(-arcLength * 0.8), vec2(arcLength * 0.8));
+    instanceThickness * positions.yz * flowLines.thicknessUnit
+  ), -maxDistances, maxDistances);
   // Opposite directions occupy opposite sides of the great circle.
   offset = direction * distances.y - perpendicular * (distances.x + project_pixel_size(flowLines.gap));
   if (arc.angle < 1e-6) offset = vec3(0.0);
