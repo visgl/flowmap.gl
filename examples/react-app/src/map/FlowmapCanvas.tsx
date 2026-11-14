@@ -108,7 +108,7 @@ export default function FlowmapCanvas({
         maxPitch={globe ? 0 : 60}
         maxZoom={globe ? 12 : 20}
       >
-        <NavigationControl position="bottom-left" showCompass={!globe} />
+        <NavigationControl position="top-left" showCompass={!globe} />
         <FlowmapOverlay
           key={String(interleaved)}
           layers={layers}
