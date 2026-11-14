@@ -299,6 +299,35 @@ async function run() {
     report(
       'PASS defaults, live mode switching, fadeOpacityEnabled, and exact neutral fading',
     );
+    // Depth settings are defaults only: explicit parameters win, as in globe mode.
+    const flowModelParameters = () =>
+      deck.layerManager
+        .getLayers()
+        .filter((layer) => layer.id.endsWith('flow-lines'))
+        .map((layer) => layer.state.model.parameters);
+    for (const [parameters, expected] of [
+      [undefined, ['always', false]],
+      [
+        {depthCompare: 'less-equal', depthWriteEnabled: true},
+        ['less-equal', true],
+      ],
+    ]) {
+      await capture([
+        makeLayer('depth', {blendingMode: 'non-accumulating', parameters}),
+      ]);
+      const models = flowModelParameters();
+      assert(models.length > 0, 'Flow line sublayer not found');
+      for (const p of models) {
+        assert(
+          p.depthCompare === expected[0] &&
+            p.depthWriteEnabled === expected[1] &&
+            p.blendColorOperation === 'max',
+          `Depth parameters ${JSON.stringify(parameters)} resolved to ` +
+            `${p.depthCompare}/${p.depthWriteEnabled}/${p.blendColorOperation}`,
+        );
+      }
+    }
+    report('PASS explicit depth parameters override non-accumulating defaults');
     assert(errors.length === 0, errors.join('\n'));
     report('ALL CHECKS PASSED');
   } finally {
