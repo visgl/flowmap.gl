@@ -39,6 +39,7 @@ import {
 import {type BlendingMode} from './flowBlending';
 import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
 import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
+import {getGlobeFlowMaxDisplacementPixels} from './CurvedFlowLinesLayer/globe-flow.glsl';
 import FlowCirclesLayer from './FlowCirclesLayer';
 import FlowLinesLayer from './FlowLinesLayer';
 import {
@@ -318,7 +319,12 @@ export default class FlowmapLayer<
         (PROPS_TO_CAUSE_LAYER_DATA_UPDATE.some(
           (prop) => oldProps[prop] !== props[prop],
         ) ||
-          !areScaleLocksEqual(oldProps.scaleLock, props.scaleLock)))
+          !areScaleLocksEqual(oldProps.scaleLock, props.scaleLock) ||
+          // Curviness only changes the shader bow on flat maps, but on the
+          // globe it widens the route bound used for viewport culling.
+          (oldProps.flowLineCurviness !== props.flowLineCurviness &&
+            this._isGlobe() &&
+            this._getResolvedFlowLinesRenderingMode() === 'curved')))
     ) {
       const {dataProvider} = this.state || {};
       if (dataProvider) {
@@ -457,7 +463,6 @@ export default class FlowmapLayer<
   }
 
   private _getResolvedFlowLinesRenderingMode(): FlowLinesRenderingMode {
-    if (this._isGlobe()) return 'curved';
     const {animationEnabled, flowLinesRenderingMode} = this.typedProps;
     if (flowLinesRenderingMode !== undefined) {
       if (
@@ -485,8 +490,21 @@ export default class FlowmapLayer<
 
   private _getFlowmapState(lockedScaleDomains?: ScaleLockDomains) {
     const props = this.typedProps;
+    const viewport = this._getViewport();
+    const viewportProps = pickViewportProps(viewport);
+    if (viewportProps.globe) {
+      viewportProps.globe.maxFlowDisplacement =
+        getGlobeFlowMaxDisplacementPixels(
+          props.flowLineThicknessScale ??
+            FlowmapLayer.defaultProps.flowLineThicknessScale,
+          this._getResolvedFlowLinesRenderingMode() === 'curved'
+            ? (props.flowLineCurviness ??
+                FlowmapLayer.defaultProps.flowLineCurviness)
+            : 0,
+        ) / viewport.scale;
+    }
     return {
-      viewport: pickViewportProps(this._getViewport()),
+      viewport: viewportProps,
       filter: props.filter,
       settings: this._getSettingsState(lockedScaleDomains),
     };
@@ -644,7 +662,9 @@ export default class FlowmapLayer<
   renderLayers(): Array<any> {
     const props = this.typedProps;
     const flowLinesRenderingMode = this._getResolvedFlowLinesRenderingMode();
-    const numSegments = this._isGlobe() ? 96 : 24;
+    const globe = this._isGlobe();
+    // Globe routes need enough segments to follow the sphere.
+    const numSegments = globe ? 96 : 24;
     const locationsEnabled =
       props.locationsEnabled ?? FlowmapLayer.defaultProps.locationsEnabled;
     const highlightColor =
@@ -685,6 +705,7 @@ export default class FlowmapLayer<
                   id: 'animated-flow-lines',
                   drawOutline: false,
                   thicknessUnit: 12 * flowLineThicknessScale,
+                  numSegments: globe ? numSegments : 1,
                 }),
               }),
             );
@@ -706,6 +727,24 @@ export default class FlowmapLayer<
             break;
           case 'straight':
           default:
+            if (globe) {
+              // A great circle is the straight route on a globe. Draw it with
+              // the segmented curved arrows, without a bow.
+              layers.push(
+                new CurvedFlowLinesLayer({
+                  ...this.getSubLayerProps({
+                    ...commonLineLayerProps,
+                    id: 'globe-flow-lines',
+                    drawOutline: true,
+                    outlineColor: outlineColor,
+                    thicknessUnit: 12 * flowLineThicknessScale,
+                    curviness: 0,
+                    numSegments,
+                  }),
+                }),
+              );
+              break;
+            }
             layers.push(
               new FlowLinesLayer({
                 ...this.getSubLayerProps({
@@ -758,18 +797,25 @@ export default class FlowmapLayer<
               }
               break;
             case HighlightType.FLOW:
-              if (flowLinesRenderingMode === 'curved') {
+              if (flowLinesRenderingMode === 'curved' || globe) {
                 layers.push(
                   new CurvedFlowLinesLayer({
                     ...this.getSubLayerProps({
-                      id: 'flow-highlight',
+                      // Distinct from the FlowLinesLayer highlight id: deck.gl
+                      // matches sublayers by id, even across layer classes.
+                      id: 'curved-flow-highlight',
                       data: highlightedObject.lineAttributes,
                       drawOutline: true,
                       pickable: false,
                       outlineColor: colorAsRgba(highlightColor),
                       outlineThickness: 1.5,
                       thicknessUnit: 12 * flowLineThicknessScale,
-                      curviness: flowLineCurviness,
+                      // Without a globe path in FlowLinesLayer, other globe
+                      // modes highlight the great circle without a bow.
+                      curviness:
+                        flowLinesRenderingMode === 'curved'
+                          ? flowLineCurviness
+                          : 0,
                       numSegments,
                       parameters: {
                         depthTest: false,

@@ -117,6 +117,8 @@ export interface ViewportProps {
   globe?: {
     /** Effective zoom for the generated spherical cluster hierarchy. */
     clusterZoom?: number;
+    /** Conservative rendered-flow displacement from its great circle, in common units. */
+    maxFlowDisplacement?: number;
     cameraPosition: number[];
     viewProjectionMatrix: number[];
   };

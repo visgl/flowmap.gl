@@ -43,11 +43,22 @@ export function getGlobeVisibility(viewport: ViewportProps, padding: number) {
     for (const sign of [-1, 1])
       planes.push(w.map((value, j) => limit * value + sign * r[j]));
   }
+  // A unit-sphere displacement d can change any plane value by at most
+  // d * |normal|. Expand only route tests, including the horizon; endpoint
+  // visibility (and the strict 'both' policy) must remain unchanged.
+  const displacement = Math.min(
+    2,
+    Math.max(0, viewport.globe!.maxFlowDisplacement ?? 0) / RADIUS,
+  );
+  const routeMargins = planes.map(
+    (plane) => displacement * Math.hypot(...plane.slice(0, 3)),
+  );
   return {
     point: (p: GlobePoint) =>
       planes.every((plane) => dot(plane, p) + plane[3] >= 0),
     /** Conservative arc/frustum test: reject only if the entire great-circle
-     * arc is outside one plane. The shader clips any remaining excess. */
+     * arc and its displacement bound are outside one plane. The shader clips
+     * any remaining excess. */
     arc: (start: GlobePoint, end: GlobePoint) => {
       const cosine = Math.max(-1, Math.min(1, dot(start, end)));
       const tangent = end.map((value, i) => value - start[i] * cosine);
@@ -65,13 +76,13 @@ export function getGlobeVisibility(viewport: ViewportProps, padding: number) {
       }
       const norm = Math.hypot(...tangent);
       const direction = tangent.map((value) => value / norm);
-      return planes.every((plane) => {
+      return planes.every((plane, index) => {
         const a = dot(plane, start);
         const b = dot(plane, direction);
         let maximum = Math.max(a, a * Math.cos(angle) + b * Math.sin(angle));
         const peak = (Math.atan2(b, a) + 2 * Math.PI) % (2 * Math.PI);
         if (peak <= angle) maximum = Math.max(maximum, Math.hypot(a, b));
-        return maximum + plane[3] >= -1e-8;
+        return maximum + plane[3] + routeMargins[index] >= -1e-8;
       });
     },
   };
