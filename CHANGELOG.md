@@ -1,24 +1,53 @@
 # Change log
 
-## Unreleased
+## [9.5.0] - 2026-11-15
 
+- Add experimental globe support with great-circle flows and spherical clustering
+  on deck.gl's `GlobeView`. It relies on deck.gl's experimental `_GlobeViewport`
+  export and internal globe radius, so it may need updates with deck.gl releases.
+- Add experimental `blendingMode: 'non-accumulating'` to prevent overlapping flows
+  from becoming progressively darker or brighter. Explicit depth `parameters`
+  override its depth defaults.
+- Add interleaved rendering to the React example, sharing the MapLibre canvas so
+  flows blend directly against the basemap. Allow switching between interleaved
+  rendering and a separate flow canvas.
+- Filter overlapping location labels on the GPU, prioritizing larger location
+  circles. Add `locationLabelProps` and the exported `LocationLabelProps` type for
+  custom text, typography, outlines, backgrounds, and collision settings.
+- Require deck.gl and luma.gl `^9.4.0` for `@flowmap.gl/layers`.
+  Add `@deck.gl/extensions` `^9.4.1` as a peer dependency for label collision filtering.
+- Fix native Node.js ESM imports in both published packages.
+- Add opt-in `wrapLongitude` support to draw flat-map flows along the shortest
+  route across the antimeridian, including curved and animated flows.
+- Preserve flow magnitude order when wrapping longitude, so larger flows remain
+  above smaller flows when rendering and picking overlapping arrows.
+- Keep flow widths proportional to magnitude when clamping straight-flow endpoint
+  offsets, and preserve curved arrowhead proportions when zooming out.
+- Fix picking for opposite animated flows.
+- Prevent cluster flicker caused by rounding noise near integer zoom levels.
+- Fix disappearing flow layers when panning across repeated flat-map worlds.
 - Retain globe routes whose bow or arrowhead enters the viewport, using a
   conservative displacement bound shared with worker data providers. Document
   surface-distance globe pulse spacing and its foreshortening near the horizon.
-
 - Support all flow line rendering modes on deck.gl `GlobeView`: `'straight'` and
-  `'animated-straight'` follow great circles, and `'curved'` bows overlapping
-  corridors along the surface with `flowLineCurviness`. Adds a `numSegments` prop to
-  `AnimatedFlowLinesLayer`. Flat rendering is unchanged.
+  `'animated-straight'` follow great circles, and `'curved'` bows routes along the
+  surface with `flowLineCurviness`. Add a `numSegments` prop to
+  `AnimatedFlowLinesLayer`.
+- Make curved flow bends stable and route-length based on flat maps and globes,
+  independent of location IDs, flow ordering, and neighboring routes. Longer
+  routes bow farther, with smooth zoom transitions and a bounded maximum.
 - Add optional `FlowmapLayer.viewId` for independent per-view data and rendering.
   Without it, flat-only multi-view drawing is unchanged; setups containing a globe
   draw an unbound flowmap only in the first view. Missing bound views hide the layer
   without throwing. Use separate bound layers for mixed globe/flat displays.
-- Experimental: deck.gl `GlobeView` support with great-circle flows and spherical
-  clustering. It relies on deck.gl's experimental `_GlobeViewport` export and
-  internal globe radius, so it may need updates with deck.gl releases.
-- Experimental: `blendingMode: 'non-accumulating'`. Explicit depth `parameters`
-  override its depth defaults.
+- Add a flights example with globe and flat-map views, move example zoom controls
+  and the legend to the left corners, and include the React demo at `/demo/` in
+  documentation deployments.
+- Fix vanilla and Svelte example startup and React worker example controls and
+  data-provider updates. Add browser smoke tests for these examples.
+- Migrate development dependency management to pnpm and rendering regression tests
+  to Vitest Browser Mode. Update dependencies across examples and documentation.
+- Exclude build logs and development configuration from published package tarballs.
 
 ## [9.1.0] - 2026-04-13
 
