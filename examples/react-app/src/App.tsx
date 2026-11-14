@@ -164,9 +164,9 @@ function App() {
       new FlowmapLegendWidget({
         scaleState,
         darkMode: config.darkMode,
-        placement: 'bottom-right',
+        placement: 'bottom-left',
         style: {
-          marginRight: '15px',
+          marginLeft: '15px',
           marginBottom: '44px',
         },
         sections: ['flowThickness', 'locationCircles'],
