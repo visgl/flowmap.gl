@@ -5,7 +5,10 @@ import {
   AnimatedFlowLinesLayer,
   CurvedFlowLinesLayer,
 } from '@flowmap.gl/layers';
-import {LocalFlowmapDataProvider} from '@flowmap.gl/data';
+import {
+  LocalFlowmapDataProvider,
+  MAX_FLOW_CURVE_OFFSET_PX,
+} from '@flowmap.gl/data';
 import {
   isLocationVisibleOnGlobe,
   getGlobeVisibility,
@@ -61,6 +64,13 @@ describe.each(['normal', 'non-accumulating'])(
       return {x: x + dx, y: y + dy};
     };
     const pick = (position) => deck.pickObject({...xy(position), radius: 12});
+    // Curve size follows route length; its midpoint need not be within the
+    // old 12px picking radius of the unbowed great circle.
+    const pickCurve = (position) =>
+      deck.pickObject({
+        ...xy(position),
+        radius: MAX_FLOW_CURVE_OFFSET_PX + 12,
+      });
     // Keep the entire unbowed ribbon behind the horizon, including its arrowhead.
     // Hidden endpoints alone do not guarantee the ribbon is fully hidden.
     const horizonCorridors = {locations: [], flows: []};
@@ -105,7 +115,7 @@ describe.each(['normal', 'non-accumulating'])(
           });
           await frames();
           assert(
-            pick([0, 0])?.index === 0,
+            pickCurve([0, 0])?.index === 0,
             `Globe failed to recover after locations loaded (clustering: ${clusteringEnabled})`,
           );
         }
@@ -138,7 +148,7 @@ describe.each(['normal', 'non-accumulating'])(
             `${mode}: expected curviness ${curviness}, got ${line.props.curviness}`,
           );
         }
-        const info = pick([0, 0]);
+        const info = mode === 'curved' ? pickCurve([0, 0]) : pick([0, 0]);
         assert(info?.index === 0, `${mode}: route not pickable`);
 
         // Highlights need a globe path too: all modes use the curved arrows.
@@ -204,7 +214,8 @@ describe.each(['normal', 'non-accumulating'])(
       let previousBound = 0;
       for (const curviness of [0, 1, 2]) {
         const layer = makeLayer('curved', horizonCorridors, {
-          flowLineThicknessScale: 0.6,
+          // A thin ribbon keeps even the unbowed arrowhead behind the horizon.
+          flowLineThicknessScale: 0.1,
           flowLineCurviness: curviness,
         });
         deck.setProps({layers: [layer]});
@@ -228,10 +239,10 @@ describe.each(['normal', 'non-accumulating'])(
           (await provider.getLayersData()).lineAttributes.length === 3,
           'Serialized viewport lost horizon corridor candidates',
         );
-        let picked = false;
-        for (let y = 155; y < 185; y++) {
-          picked ||= Boolean(deck.pickObject({x: 400, y, radius: 0}));
-        }
+        // The visible sliver moves with the length-based bow. Search the
+        // canvas, while still requiring the zero-bow route to be fully hidden.
+        const picked =
+          deck.pickObjects({x: 0, y: 0, width: 800, height: 600}).length > 0;
         assert(
           curviness > 0 ? picked : !picked,
           `Bowed horizon corridor picking mismatch (curviness=${curviness}, picked=${picked})`,
@@ -246,7 +257,7 @@ describe.each(['normal', 'non-accumulating'])(
       });
       await frames();
       assert(
-        !deck.pickObject({x: 400, y: 162, radius: 3}),
+        deck.pickObjects({x: 0, y: 0, width: 800, height: 600}).length === 0,
         'Both-endpoint policy accepted a hidden endpoint',
       );
     });
@@ -421,7 +432,7 @@ describe.each(['normal', 'non-accumulating'])(
           'Crossing test endpoints should be outside screen',
         );
         assert(
-          Boolean(pick([0, 0])) === (mode === 'any'),
+          Boolean(pickCurve([0, 0])) === (mode === 'any'),
           `Crossing route visibility failed for ${mode}`,
         );
       }
@@ -465,7 +476,8 @@ describe.each(['normal', 'non-accumulating'])(
           });
           await frames();
           assert(
-            pick(midpoint)?.index === 0,
+            (mode === 'curved' ? pickCurve(midpoint) : pick(midpoint))
+              ?.index === 0,
             `${name} route not pickable: ${mode}`,
           );
         }
