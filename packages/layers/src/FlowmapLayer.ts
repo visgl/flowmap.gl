@@ -12,7 +12,9 @@ import {
 } from '@deck.gl/core';
 import GlobeOcclusionExtension from './GlobeOcclusionExtension.js';
 
-import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
+import {ScatterplotLayer} from '@deck.gl/layers';
+import {CollisionFilterExtension} from '@deck.gl/extensions';
+import LocationLabelsLayer from './LocationLabelsLayer.js';
 import {
   FilterState,
   FlowEndpointsInViewportMode,
@@ -50,6 +52,7 @@ import {
 } from './types.js';
 
 const globeOcclusion = new GlobeOcclusionExtension();
+const labelCollisionFilter = new CollisionFilterExtension();
 
 export type FlowmapLayerProps<
   L extends Record<string, any>,
@@ -854,11 +857,33 @@ export default class FlowmapLayer<
         }
       }
       if (locationsEnabled && locationLabels) {
+        const maxRadius = locationLabels.reduce(
+          (max, _, index) =>
+            Math.max(max, getOuterCircleRadiusByIndex(circleAttributes, index)),
+          0,
+        );
         layers.push(
-          new TextLayer(
+          new LocationLabelsLayer(
             this.getSubLayerProps({
               id: 'location-labels',
               data: locationLabels,
+              extensions: [...this.props.extensions, labelCollisionFilter],
+              collisionEnabled: true,
+              collisionGroup: `${this.id}-location-labels`,
+              getCollisionPriority: (_: string, {index}: {index: number}) =>
+                (1000 * getOuterCircleRadiusByIndex(circleAttributes, index)) /
+                (maxRadius || 1),
+              // Collision filtering samples the location anchor. Extend the
+              // bounds above the offset label so that anchor stays inside.
+              background: true,
+              backgroundPadding: [3, maxRadius + 8, 3, 3],
+              // Anchor-based testing needs wider bounds to catch text overlaps.
+              collisionTestProps: {sizeScale: 2},
+              updateTriggers: {
+                getPosition: circleAttributes,
+                getPixelOffset: circleAttributes,
+                getCollisionPriority: circleAttributes,
+              },
               maxWidth: 1000,
               pickable: false,
               fontFamily: 'Helvetica',

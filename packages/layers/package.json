@@ -18,6 +18,7 @@
   },
   "peerDependencies": {
     "@deck.gl/core": "^9.4.0",
+    "@deck.gl/extensions": "^9.4.1",
     "@deck.gl/layers": "^9.4.0",
     "@luma.gl/core": "^9.4.0",
     "@luma.gl/engine": "^9.4.0",
@@ -26,5 +27,8 @@
   "gitHead": "c80d98fbc729b912b17f58142d4dc73da8c61cbe",
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@deck.gl/extensions": "^9.4.1"
   }
 }
