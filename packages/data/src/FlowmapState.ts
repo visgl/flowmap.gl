@@ -38,6 +38,8 @@ export interface SettingsState {
   maxTopFlowsDisplayNum: number;
   flowEndpointsInViewportMode: FlowEndpointsInViewportMode;
   flowLineThicknessScale: number;
+  /** Flat maps draw routes the shorter way across the antimeridian. */
+  wrapLongitude?: boolean;
   scaleLock?: ScaleLock;
 }
 

@@ -207,6 +207,11 @@ export default class FlowmapSelectors<
     props: FlowmapData<L, F>,
   ) => state.settings.flowLineThicknessScale;
 
+  getWrapLongitude: Selector<L, F, boolean> = (
+    state: FlowmapState,
+    props: FlowmapData<L, F>,
+  ) => state.settings.wrapLongitude ?? false;
+
   getAnimate: Selector<L, F, boolean> = createSelector(
     this.getFlowLinesRenderingMode,
     (flowLinesRenderingMode) => flowLinesRenderingMode === 'animated-straight',
@@ -851,11 +856,13 @@ export default class FlowmapSelectors<
     createSelector(
       this.getLocationsTree,
       this.getViewportBoundingBox,
+      (state: FlowmapState) => Boolean(state.viewport.repeat),
       this.getGlobeViewportVisibility,
       this.getGlobeLocationPoints,
       (
         tree: KDBushTree,
         bbox: [number, number, number, number],
+        repeat: boolean,
         globeVisibility,
         globePoints,
       ) => {
@@ -866,7 +873,7 @@ export default class FlowmapSelectors<
           }
           return ids;
         }
-        const ids = this._getLocationsInBboxIndices(tree, bbox);
+        const ids = this._getLocationsInBboxIndices(tree, bbox, repeat);
         if (ids) {
           return new Set(
             ids.map((idx: number) =>
@@ -1262,6 +1269,7 @@ export default class FlowmapSelectors<
     this.getFlowLinesRenderingMode,
     this.getLocationsEnabled,
     this.getLocationLabelsEnabled,
+    this.getWrapLongitude,
     (
       locations,
       flows,
@@ -1283,6 +1291,7 @@ export default class FlowmapSelectors<
       flowLinesRenderingMode,
       locationsEnabled,
       locationLabelsEnabled,
+      wrapLongitude,
     ) => {
       return this._prepareLayersData(
         locations,
@@ -1305,6 +1314,7 @@ export default class FlowmapSelectors<
         flowLinesRenderingMode,
         locationsEnabled,
         locationLabelsEnabled,
+        wrapLongitude,
       );
     },
   );
@@ -1352,6 +1362,7 @@ export default class FlowmapSelectors<
       state.settings.flowLinesRenderingMode,
       locationsEnabled,
       locationLabelsEnabled,
+      this.getWrapLongitude(state, props),
     );
   }
 
@@ -1376,6 +1387,7 @@ export default class FlowmapSelectors<
     flowLinesRenderingMode: FlowLinesRenderingMode,
     locationsEnabled: boolean,
     locationLabelsEnabled: boolean,
+    wrapLongitude = false,
   ): LayersData {
     if (!locations) locations = [];
     if (!flows) flows = [];
@@ -1552,6 +1564,7 @@ export default class FlowmapSelectors<
             getFlowDestId,
             getLocationLon,
             getLocationLat,
+            wrapLongitude,
           )
         : undefined;
 
@@ -1608,26 +1621,37 @@ export default class FlowmapSelectors<
   getLocationsInBbox(
     tree: KDBushTree,
     bbox: [number, number, number, number],
+    repeat = false,
   ): Array<L> | undefined {
     if (!tree) return undefined;
-    return this._getLocationsInBboxIndices(tree, bbox).map(
+    return this._getLocationsInBboxIndices(tree, bbox, repeat).map(
       (idx: number) => tree.points[idx],
     ) as Array<L>;
   }
 
+  /** With `repeat`, longitudes beyond ±180° match the world's other copies. */
   _getLocationsInBboxIndices(
     tree: KDBushTree,
     bbox: [number, number, number, number],
+    repeat = false,
   ) {
     if (!tree) return undefined;
     const [lon1, lat1, lon2, lat2] = bbox;
-    const [x1, y1, x2, y2] = [lngX(lon1), latY(lat1), lngX(lon2), latY(lat2)];
-    return tree.range(
-      Math.min(x1, x2),
-      Math.min(y1, y2),
-      Math.max(x1, x2),
-      Math.max(y1, y2),
-    );
+    const y1 = Math.min(latY(lat1), latY(lat2));
+    const y2 = Math.max(latY(lat1), latY(lat2));
+    const west = Math.min(lon1, lon2);
+    const east = Math.max(lon1, lon2);
+    if (!repeat) {
+      return tree.range(lngX(west), y1, lngX(east), y2);
+    }
+    if (east - west >= 360) {
+      return tree.range(0, y1, 1, y2);
+    }
+    const x1 = lngX(west) - Math.floor(lngX(west));
+    const x2 = x1 + (east - west) / 360;
+    return x2 <= 1
+      ? tree.range(x1, y1, x2, y2)
+      : [...tree.range(x1, y1, 1, y2), ...tree.range(0, y1, x2 - 1, y2)];
   }
 
   isFlowInSelection(
@@ -1829,6 +1853,10 @@ function calcLocationTotalsExtent(
   return rv;
 }
 
+function normalizeLongitude(lng: number) {
+  return Math.abs(lng) > 180 ? ((((lng + 180) % 360) + 360) % 360) - 180 : lng;
+}
+
 // longitude/latitude to spherical mercator in [0..1] range
 function lngX(lng: number) {
   return lng / 360 + 0.5;
@@ -1986,6 +2014,7 @@ function calculateMercatorCurveOffsets<L, F>(
   getFlowDestId: (flow: F | AggregateFlow) => string | number,
   getLocationLon: (location: L | ClusterNode) => number,
   getLocationLat: (location: L | ClusterNode) => number,
+  wrapLongitude = false,
 ): Float32Array {
   const curveOffsets = new Float32Array(flows.length);
   const corridorBuckets = new Map<string, FlowLineScreenGeometry[]>();
@@ -2000,10 +2029,17 @@ function calculateMercatorCurveOffsets<L, F>(
       return;
     }
 
-    const sourceLon = getLocationLon(origin);
+    let sourceLon = getLocationLon(origin);
     const sourceLat = getLocationLat(origin);
-    const targetLon = getLocationLon(dest);
+    let targetLon = getLocationLon(dest);
     const targetLat = getLocationLat(dest);
+    if (wrapLongitude) {
+      // Match the drawn route, which takes the shorter way across the antimeridian.
+      sourceLon = normalizeLongitude(sourceLon);
+      targetLon = normalizeLongitude(targetLon);
+      if (targetLon - sourceLon > 180) targetLon -= 360;
+      else if (targetLon - sourceLon < -180) targetLon += 360;
+    }
     const sx = lngX(sourceLon) * worldScale;
     const sy = latY(sourceLat) * worldScale;
     const tx = lngX(targetLon) * worldScale;
@@ -2019,6 +2055,12 @@ function calculateMercatorCurveOffsets<L, F>(
     ) {
       [corridorSourceX, corridorTargetX] = [corridorTargetX, corridorSourceX];
       [corridorSourceY, corridorTargetY] = [corridorTargetY, corridorSourceY];
+    }
+    if (corridorSourceX < 0) {
+      // A wrapped route can start west of -180°. Both directions of a route
+      // must share one corridor, so measure it from the same world copy.
+      corridorSourceX += worldScale;
+      corridorTargetX += worldScale;
     }
 
     const dx = corridorTargetX - corridorSourceX;

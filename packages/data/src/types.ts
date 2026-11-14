@@ -122,6 +122,12 @@ export interface ViewportProps {
     cameraPosition: number[];
     viewProjectionMatrix: number[];
   };
+  /**
+   * Whether a flat map repeats copies of the world horizontally (deck.gl
+   * `MapView` `repeat`, or MapLibre's `renderWorldCopies`). Viewport queries
+   * then wrap across the antimeridian.
+   */
+  repeat?: boolean;
   width: number;
   height: number;
   latitude: number;

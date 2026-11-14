@@ -17,6 +17,7 @@ in vec2 uv;
 out vec4 fragColor;
                                    
 void main(void) {
+  antimeridian_clip();
   geometry.uv = uv;
 
   fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(sourceToTarget)));

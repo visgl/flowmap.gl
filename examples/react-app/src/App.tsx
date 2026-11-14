@@ -143,6 +143,7 @@ function App() {
       flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
       flowLineThicknessScale: config.flowLineThicknessScale,
       flowLineCurviness: config.flowLineCurviness,
+      wrapLongitude: config.wrapLongitude,
       scaleLock: {enabled: config.scaleLockEnabled},
       onScaleChange: setScaleState,
       getLocationId: (loc) => loc.id,

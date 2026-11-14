@@ -10,6 +10,7 @@ export const initialConfig = Object.assign(UI_INITIAL, {
   dataset: 'flights',
   canvasRendering: 'auto',
   basemapLabels: true,
+  wrapLongitude: true,
 });
 
 export function initExampleGui(gui: Parameters<typeof initLilGui>[0]) {
@@ -21,6 +22,7 @@ export function initExampleGui(gui: Parameters<typeof initLilGui>[0]) {
     'separate',
   ]);
   gui.add(initialConfig, 'basemapLabels');
+  gui.add(initialConfig, 'wrapLongitude');
   initLilGui(gui);
 
   const source = document.createElement('a');

@@ -10,6 +10,7 @@ import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types';
+import {antimeridian, getAntimeridianPasses} from '../antimeridian';
 import {
   flowBlending,
   applyFlowBlending,
@@ -88,8 +89,19 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     return super.getShaders({
       vs: VertexShader,
       fs: FragmentShader,
-      modules: [project32, picking, flowBlending, animatedFlowLinesUniforms],
+      modules: [
+        project32,
+        picking,
+        flowBlending,
+        animatedFlowLinesUniforms,
+        antimeridian,
+      ],
     });
+  }
+
+  // Drawn in two passes instead; see antimeridian.ts.
+  get wrapLongitude(): boolean {
+    return false;
   }
 
   initializeState(): void {
@@ -174,7 +186,10 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       this.props as unknown as Props<F>,
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
-    model.draw(this.context.renderPass as any);
+    for (const side of getAntimeridianPasses(this)) {
+      model.shaderInputs.setProps({antimeridian: {side}});
+      model.draw(this.context.renderPass as any);
+    }
   }
 
   _getModel(): Model {

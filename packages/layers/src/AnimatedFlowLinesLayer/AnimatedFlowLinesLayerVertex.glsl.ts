@@ -50,6 +50,11 @@ void main(void) {
     geometry.pickingColor = picking_getPickingColorFromInstanceID();
   }
 
+  // No-op on the globe, where routes follow great circles.
+  vec3 sourcePosition = instanceSourcePositions;
+  vec3 targetPosition = instanceTargetPositions;
+  bool drawn = antimeridian_wrap(sourcePosition, targetPosition);
+
   // Globe pulses advance uniformly along surface distance. The conversion
   // matches flat spacing locally at the view center; perspective and
   // foreshortening compress the pulses toward the horizon.
@@ -85,8 +90,8 @@ void main(void) {
   } else {
     vec4 source_commonspace;
     vec4 target_commonspace;
-    vec4 source = project_position_to_clipspace(instanceSourcePositions, instanceSourcePositions64Low, vec3(0.), source_commonspace);
-    vec4 target = project_position_to_clipspace(instanceTargetPositions, instanceTargetPositions64Low, vec3(0.), target_commonspace);
+    vec4 source = project_position_to_clipspace(sourcePosition, instanceSourcePositions64Low, vec3(0.), source_commonspace);
+    vec4 target = project_position_to_clipspace(targetPosition, instanceTargetPositions64Low, vec3(0.), target_commonspace);
 
     // linear interpolation of source & target to pick right coord
     vec4 p = mix(source, target, segmentIndex);
@@ -99,8 +104,10 @@ void main(void) {
     DECKGL_FILTER_SIZE(offset, geometry);
     gl_Position = p + vec4(project_pixel_size_to_clipspace(offset.xy), 0.0, 0.0);
     routeLength = length(source - target);
+    if (!drawn) gl_Position = vec4(0.0);
   }
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
+  antimeridian_setPosition(gl_Position);
 
   // Color
   vColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);

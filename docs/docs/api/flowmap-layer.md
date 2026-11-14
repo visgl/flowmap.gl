@@ -327,6 +327,34 @@ const layers = [
 Globe depth and culling parameters are defaults; explicit layer or sublayer
 `parameters` take precedence.
 
+#### `wrapLongitude`
+
+- Type: `boolean`
+- Default: `false`
+
+On flat maps, draws a route whose endpoints are more than 180° of longitude
+apart the shorter way, across the antimeridian. For example, a flight from Tokyo
+to Los Angeles crosses the Pacific instead of Eurasia and the Atlantic. This is
+deck.gl's standard `wrapLongitude` prop, with the same behavior as
+[`LineLayer`](https://deck.gl/docs/api-reference/layers/line-layer#wraplongitude).
+Globe routes always follow great circles and ignore it.
+
+Like `LineLayer`, a wrapped route is cut at the ±180° meridian. One part is drawn
+in each copy of the world, and the parts meet without a seam or overlap when the
+map repeats copies of the world (MapLibre's `renderWorldCopies`, or deck.gl
+`MapView` with `repeat: true`). On a map without world copies, only the part on
+the visible side of the meridian is drawn. Arrowheads, outlines and curved bows
+are not split: each part draws the whole arrow and discards the pixels beyond
+the meridian, so it looks the same as an unwrapped route.
+
+In `'curved'` mode, corridor offsets are computed from the wrapped routes, so
+both directions of a route across the antimeridian bow apart. Mercator
+clustering does not group locations across the antimeridian.
+
+Independently of `wrapLongitude`, when the map repeats copies of the world,
+locations beyond ±180° in the visible copies count as in the viewport for
+`flowEndpointsInViewportMode` and adaptive scales.
+
 #### `clusteringEnabled`
 
 - Type: `boolean`
@@ -443,6 +471,9 @@ flow:
 - Globe `'curved'` additionally computes corridor offsets on every viewport
   change, like flat `'curved'`; globe `'straight'` and `'animated-straight'`
   skip this step.
+- `wrapLongitude` issues a second draw call for each flat flow layer. Routes
+  that do not cross the antimeridian are skipped in that pass (their vertices
+  are collapsed), so it adds vertex work, not pixel work.
 - `maxTopFlowsDisplayNum` bounds all of the above. Lower it first if rendering
   is slow, especially on the globe or on low-end GPUs.
 

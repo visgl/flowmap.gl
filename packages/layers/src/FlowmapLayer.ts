@@ -67,6 +67,12 @@ export type FlowmapLayerProps<
   flowLineThicknessScale?: number;
   flowLineCurviness?: number;
   flowLinesRenderingMode?: FlowLinesRenderingMode;
+  /**
+   * On flat maps, draw routes spanning more than 180° of longitude the shorter
+   * way, across the antimeridian, like deck.gl's `wrapLongitude`. Globe routes
+   * always follow great circles. Default false.
+   */
+  wrapLongitude?: boolean;
   animationEnabled?: boolean;
   clusteringEnabled?: boolean;
   clusteringLevel?: number;
@@ -112,6 +118,7 @@ const PROPS_TO_CAUSE_LAYER_DATA_UPDATE: string[] = [
   'maxTopFlowsDisplayNum',
   'flowEndpointsInViewportMode',
   'flowLineThicknessScale',
+  'wrapLongitude',
 ];
 
 const DEFAULT_FLOW_LINES_RENDERING_MODE: FlowLinesRenderingMode = 'straight';
@@ -399,6 +406,7 @@ export default class FlowmapLayer<
         defaults.flowEndpointsInViewportMode) as FlowEndpointsInViewportMode,
       flowLineThicknessScale:
         flowLineThicknessScale ?? defaults.flowLineThicknessScale,
+      wrapLongitude: Boolean(props.wrapLongitude),
       scaleLock: scaleLock?.enabled
         ? {
             enabled: true,
@@ -893,7 +901,8 @@ function pickViewportProps(viewport: Record<string, any>): ViewportProps {
             ) as number[],
           },
         }
-      : {}),
+      : // Repeated worlds show locations beyond ±180° (null if not repeating).
+        {repeat: Boolean(viewport.subViewports)}),
     width,
     height,
     longitude,
