@@ -47,23 +47,10 @@ The example keeps its relative asset paths so it also works as a standalone buil
 
 ### Netlify deployment
 
+Netlify is the deployment target for this repository. The `flowmapgl` project
+serves `https://flowmap.gl/`.
+
 Both Netlify configuration files run `pnpm build:site` from the repository root
 and publish `docs/build`. Deploy Previews therefore include documentation and a
 demo built from the same commit. Demo links use normal anchors to `/demo/` so they
 stay on the current preview and load the separate app.
-
-### Docs-only GitHub Pages deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true pnpm run deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> pnpm run deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
