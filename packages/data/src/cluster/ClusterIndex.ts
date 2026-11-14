@@ -252,9 +252,12 @@ export function findAppropriateZoomLevel(
   if (!availableZoomLevels.length) {
     throw new Error('No available zoom levels');
   }
+  // Map integrations can report an integer zoom just below its actual value
+  // (e.g. 3.999999999999998). Ignore this noise when choosing a cluster level.
+  const zoom = Math.floor(targetZoom + 1e-9);
   return availableZoomLevels[
     Math.min(
-      bisectLeft(availableZoomLevels, Math.floor(targetZoom)),
+      bisectLeft(availableZoomLevels, zoom),
       availableZoomLevels.length - 1,
     )
   ];
