@@ -5,12 +5,16 @@
  */
 
 import {Layer, picking, project32} from '@deck.gl/core';
-import {Geometry, Model} from '@luma.gl/engine';
+import {Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {LayerProps} from '../types.js';
-import {antimeridian, getAntimeridianPasses} from '../antimeridian.js';
+import {
+  antimeridian,
+  createAntimeridianGeometry,
+  drawAntimeridian,
+} from '../antimeridian.js';
 import {
   flowBlending,
   applyFlowBlending,
@@ -57,6 +61,7 @@ const loopTime = loopLength / animationSpeed;
 export default class AnimatedFlowLinesLayer<F> extends Layer {
   state!: {
     model?: Model;
+    vertexCount: number;
   };
 
   static defaultProps = {
@@ -102,7 +107,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     });
   }
 
-  // Drawn in two passes instead; see antimeridian.ts.
+  // Wrapped per instance instead; see antimeridian.ts.
   get wrapLongitude(): boolean {
     return false;
   }
@@ -150,7 +155,8 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
         transition: false,
       },
     });
-    this.setState({model: this._getModel()});
+    const model = this._getModel();
+    this.setState({model, vertexCount: model.vertexCount});
   }
 
   getNeedsRedraw(): string | false {
@@ -167,7 +173,8 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       props.numSegments !== oldProps.numSegments
     ) {
       this.state.model?.destroy();
-      this.setState({model: this._getModel()});
+      const model = this._getModel();
+      this.setState({model, vertexCount: model.vertexCount});
       this.getAttributeManager()!.invalidateAll();
     }
   }
@@ -194,10 +201,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       this.props as unknown as Props<F>,
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
-    for (const side of getAntimeridianPasses(this)) {
-      model.shaderInputs.setProps({antimeridian: {side}});
-      model.draw(this.context.renderPass as any);
-    }
+    drawAntimeridian(this, model, this.state.vertexCount);
   }
 
   _getModel(): Model {
@@ -221,7 +225,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       ...this.getShaders(),
       id,
       bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
-      geometry: new Geometry({
+      geometry: createAntimeridianGeometry({
         topology: 'triangle-strip',
         attributes: {
           positions: {size: 3, value: new Float32Array(positions)},

@@ -83,6 +83,68 @@ const meridianOffset = (10 * 512 * 2 ** 3) / 360;
 const lastWest = Math.floor(WIDTH / 2 + meridianOffset - 0.5); // at 170°
 const firstEast = Math.floor(WIDTH / 2 - meridianOffset - 0.5) + 1; // at -170°
 
+test.each(MODES)('%s preserves magnitude order when wrapping', async (mode) => {
+  setView(MapView);
+  const data = {
+    locations: [
+      {id: 'a', lon: 165, lat: 0},
+      {id: 'b', lon: -155, lat: 0},
+      {id: 'c', lon: -175, lat: -12},
+      {id: 'd', lon: -165, lat: 12},
+    ],
+    flows: [
+      {origin: 'c', dest: 'd', count: 100},
+      {origin: 'a', dest: 'b', count: 30},
+    ],
+  };
+  const props = {
+    flowLinesRenderingMode: mode,
+    colorScheme: ['#174044', '#c8ffff'],
+    flowLineThicknessScale: 4,
+    flowLineCurviness: 0,
+  };
+  // Moving the same crossing arrows away from the meridian gives a reference
+  // with identical geometry and magnitude scales, but no wrapping passes.
+  const shifted = {
+    ...data,
+    locations: data.locations.map((location) => ({
+      ...location,
+      lon: location.lon > 0 ? location.lon - 180 : location.lon + 180,
+    })),
+  };
+  view(10);
+  const expected = await capture([makeLayer('order', shifted, props)]);
+  const expectedPick = deck.pickObject({
+    x: WIDTH / 2,
+    y: HEIGHT / 2,
+    radius: 5,
+  });
+  assert(expectedPick?.index === 1, 'Reference must pick the larger flow');
+  view(-170);
+  const actual = await capture([
+    makeLayer('order', data, {...props, wrapLongitude: true}),
+  ]);
+  const actualPick = deck.pickObject({x: WIDTH / 2, y: HEIGHT / 2, radius: 5});
+  // A single-world view clips the wrapped route west of -180°. Compare only
+  // the visible half; the translated reference has no meridian to clip at.
+  const visibleHalf = (pixels) =>
+    pixels.filter((_, i) => Math.floor(i / 4) % WIDTH >= firstEast + 2);
+  assert(
+    difference(visibleHalf(expected), visibleHalf(actual)) <= 2,
+    `${mode}: wrapped smaller flow painted over the larger flow`,
+  );
+  assert(actualPick?.index === 1, 'Wrapping changed the top picked flow');
+  // Reuse the same layer to exercise the draw count when wrapping is disabled.
+  view(10);
+  const toggledOff = await capture([
+    makeLayer('order', shifted, {...props, wrapLongitude: false}),
+  ]);
+  assert(
+    difference(expected, toggledOff) <= 2,
+    'Disabling wrapping changed the original rendering',
+  );
+});
+
 test.each(MODES)(
   '%s wraps and clips at the antimeridian without changing regular or globe routes',
   async (mode) => {

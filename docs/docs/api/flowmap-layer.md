@@ -415,6 +415,8 @@ map repeats copies of the world (MapLibre's `renderWorldCopies`, or deck.gl
 the visible side of the meridian is drawn. Arrowheads, outlines and curved bows
 are not split: each part draws the whole arrow and discards the pixels beyond
 the meridian, so it looks the same as an unwrapped route.
+Both parts keep the flow's magnitude order, so smaller flows stay beneath
+larger flows, including when picking overlapping arrows.
 
 In `'curved'` mode, bends use the length of the wrapped routes, so both
 directions of a route across the antimeridian bow equally to opposite sides. Mercator
@@ -540,9 +542,9 @@ flow:
 - Globe `'curved'` additionally computes corridor offsets on every viewport
   change, like flat `'curved'`; globe `'straight'` and `'animated-straight'`
   skip this step.
-- `wrapLongitude` issues a second draw call for each flat flow layer. Routes
-  that do not cross the antimeridian are skipped in that pass (their vertices
-  are collapsed), so it adds vertex work, not pixel work.
+- `wrapLongitude` draws two mesh copies per flat flow instance in one draw
+  call, preserving magnitude order. The extra copy is collapsed for routes
+  that do not cross the antimeridian, so it adds vertex work, not pixel work.
 - `maxTopFlowsDisplayNum` bounds all of the above. Lower it first if rendering
   is slow, especially on the globe or on low-end GPUs.
 
