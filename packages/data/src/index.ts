@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export * from './types';
-export * from './colors';
-export * from './FlowmapState';
-export * from './FlowmapSelectors';
-export * from './selector-functions';
-export * from './time';
-export * from './getViewStateForLocations';
-export * from './provider/FlowmapDataProvider';
-export * from './cluster/cluster';
-export * from './cluster/ClusterIndex';
-export {default as FlowmapAggregateAccessors} from './FlowmapAggregateAccessors';
-export type {default as FlowmapDataProvider} from './provider/FlowmapDataProvider';
-export {default as LocalFlowmapDataProvider} from './provider/LocalFlowmapDataProvider';
+export * from './types.js';
+export * from './colors.js';
+export * from './FlowmapState.js';
+export * from './FlowmapSelectors.js';
+export * from './selector-functions.js';
+export * from './time.js';
+export * from './getViewStateForLocations.js';
+export * from './provider/FlowmapDataProvider.js';
+export * from './cluster/cluster.js';
+export * from './cluster/ClusterIndex.js';
+export {default as FlowmapAggregateAccessors} from './FlowmapAggregateAccessors.js';
+export type {default as FlowmapDataProvider} from './provider/FlowmapDataProvider.js';
+export {default as LocalFlowmapDataProvider} from './provider/LocalFlowmapDataProvider.js';

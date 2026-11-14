@@ -4,6 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import FlowLinesLayer from './FlowLinesLayer';
+import FlowLinesLayer from './FlowLinesLayer.js';
 
 export default FlowLinesLayer;

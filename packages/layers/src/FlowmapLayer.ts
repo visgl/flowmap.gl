@@ -10,7 +10,7 @@ import {
   log,
   type Viewport,
 } from '@deck.gl/core';
-import GlobeOcclusionExtension from './GlobeOcclusionExtension';
+import GlobeOcclusionExtension from './GlobeOcclusionExtension.js';
 
 import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {
@@ -36,18 +36,18 @@ import {
   isFlowmapData,
   isFlowmapDataProvider,
 } from '@flowmap.gl/data';
-import {type BlendingMode} from './flowBlending';
-import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
-import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
-import {getGlobeFlowMaxDisplacementPixels} from './CurvedFlowLinesLayer/globe-flow.glsl';
-import FlowCirclesLayer from './FlowCirclesLayer';
-import FlowLinesLayer from './FlowLinesLayer';
+import {type BlendingMode} from './flowBlending.js';
+import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer/index.js';
+import CurvedFlowLinesLayer from './CurvedFlowLinesLayer/index.js';
+import {getGlobeFlowMaxDisplacementPixels} from './CurvedFlowLinesLayer/globe-flow.glsl.js';
+import FlowCirclesLayer from './FlowCirclesLayer/index.js';
+import FlowLinesLayer from './FlowLinesLayer/index.js';
 import {
   FlowmapLayerPickingInfo,
   LayerProps,
   PickingInfo,
   PickingType,
-} from './types';
+} from './types.js';
 
 const globeOcclusion = new GlobeOcclusionExtension();
 

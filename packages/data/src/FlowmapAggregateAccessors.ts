@@ -11,7 +11,7 @@ import {
   isAggregateFlow,
   isCluster,
   isLocationClusterNode,
-} from './types';
+} from './types.js';
 
 export default class FlowmapAggregateAccessors<
   L extends Record<string, any>,

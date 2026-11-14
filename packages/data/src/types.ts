@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type {RGBA} from './colors';
+import type {RGBA} from './colors.js';
 
 export type FlowmapData<L, F> = {
   locations: Iterable<L> | undefined;

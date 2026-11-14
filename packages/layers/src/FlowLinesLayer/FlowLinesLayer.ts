@@ -7,16 +7,16 @@
 import {Layer, picking, project32} from '@deck.gl/core';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
 import {Geometry, Model} from '@luma.gl/engine';
-import {LayerProps} from '../types';
-import {antimeridian, getAntimeridianPasses} from '../antimeridian';
+import {LayerProps} from '../types.js';
+import {antimeridian, getAntimeridianPasses} from '../antimeridian.js';
 import {
   flowBlending,
   applyFlowBlending,
   type FlowBlendingProps,
-} from '../flowBlending';
-import FragmentShader from './FlowLinesLayerFragment.glsl';
-import {flowLinesUniforms} from './FlowLinesLayerUniforms';
-import VertexShader from './FlowLinesLayerVertex.glsl';
+} from '../flowBlending.js';
+import FragmentShader from './FlowLinesLayerFragment.glsl.js';
+import {flowLinesUniforms} from './FlowLinesLayerUniforms.js';
+import VertexShader from './FlowLinesLayerVertex.glsl.js';
 
 export interface Props<F> extends LayerProps, FlowBlendingProps {
   id: string;

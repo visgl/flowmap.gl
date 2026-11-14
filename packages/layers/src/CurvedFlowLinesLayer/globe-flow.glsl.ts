@@ -1,4 +1,4 @@
-import globeArc from '../globe-arc.glsl';
+import globeArc from '../globe-arc.glsl.js';
 import {MAX_FLOW_CURVE_OFFSET_PX} from '@flowmap.gl/data';
 
 /** Bound the rendered ribbon before corridor assignment and viewport filtering. */

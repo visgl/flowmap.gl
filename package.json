@@ -14,6 +14,7 @@
     "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
     "build:example": "turbo build --filter='./examples/react-app' --filter './packages/*'",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
+    "test:node": "yarn build && node --test test/node-imports.test.mjs",
     "build:docs": "cd docs && yarn && yarn build",
     "prettier": "prettier . --write",
     "lint": "eslint . --fix",

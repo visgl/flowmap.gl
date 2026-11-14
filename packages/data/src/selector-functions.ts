@@ -10,9 +10,9 @@ import {
   isCluster,
   LocationAccessors,
   ViewportProps,
-} from './types';
+} from './types.js';
 import {scaleLinear} from 'd3-scale';
-import {ClusterIndex, LocationWeightGetter} from './cluster/ClusterIndex';
+import {ClusterIndex, LocationWeightGetter} from './cluster/ClusterIndex.js';
 import {descending} from 'd3-array';
 
 // TODO: use re-reselect

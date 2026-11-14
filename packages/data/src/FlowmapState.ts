@@ -9,7 +9,7 @@ import {
   LocationFilterMode,
   ScaleLock,
   ViewportProps,
-} from './types';
+} from './types.js';
 
 export type FlowEndpointsInViewportMode = 'any' | 'both';
 

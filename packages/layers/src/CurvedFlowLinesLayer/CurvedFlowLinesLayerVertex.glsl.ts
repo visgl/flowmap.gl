@@ -3,7 +3,7 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-import globeFlow from './globe-flow.glsl';
+import globeFlow from './globe-flow.glsl.js';
 
 export default function getVertexShader(segments: number) {
   const HEAD_START_T = (1 - 1 / segments).toFixed(8);

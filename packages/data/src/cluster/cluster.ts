@@ -10,10 +10,15 @@ import {
   globeCentroid,
   unprojectGlobe,
   indexGlobePoints,
-} from './globe-projection';
+} from './globe-projection.js';
 import KDBush from 'kdbush';
-import {LocationWeightGetter} from './ClusterIndex';
-import {Cluster, ClusterLevel, ClusterNode, LocationAccessors} from '../types';
+import {LocationWeightGetter} from './ClusterIndex.js';
+import {
+  Cluster,
+  ClusterLevel,
+  ClusterNode,
+  LocationAccessors,
+} from '../types.js';
 
 /**
  * The code in this file is a based on https://github.com/mapbox/supercluster

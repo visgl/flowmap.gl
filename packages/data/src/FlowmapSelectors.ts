@@ -8,22 +8,22 @@ import {ascending, descending, extent, min, rollup} from 'd3-array';
 import {ScaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
 import {createSelector, createSelectorCreator, lruMemoize} from 'reselect';
-import {alea} from 'seedrandom';
-import FlowmapAggregateAccessors from './FlowmapAggregateAccessors';
-import {FlowmapState} from './FlowmapState';
+import seedrandom from 'seedrandom';
+import FlowmapAggregateAccessors from './FlowmapAggregateAccessors.js';
+import {FlowmapState} from './FlowmapState.js';
 import {
   getGlobeVisibility,
   projectGlobeLocation,
   type GlobePoint,
-} from './globe';
+} from './globe.js';
 import {
   ClusterIndex,
   LocationWeightGetter,
   buildIndex,
   findAppropriateZoomLevel,
   makeLocationWeightGetter,
-} from './cluster/ClusterIndex';
-import {clusterLocations} from './cluster/cluster';
+} from './cluster/ClusterIndex.js';
+import {clusterLocations} from './cluster/cluster.js';
 import getColors, {
   ColorsRGBA,
   DiffColorsRGBA,
@@ -32,7 +32,7 @@ import getColors, {
   getFlowColorScale,
   isDiffColors,
   isDiffColorsRGBA,
-} from './colors';
+} from './colors.js';
 import {
   clampMagnitudeToScaleDomain,
   addClusterNames,
@@ -40,13 +40,13 @@ import {
   getMaxAbsScaleDomainValue,
   getViewportBoundingBox,
   isMagnitudeOutsideScaleDomain,
-} from './selector-functions';
+} from './selector-functions.js';
 import {
   TimeGranularityKey,
   getTimeGranularityByKey,
   getTimeGranularityByOrder,
   getTimeGranularityForDate,
-} from './time';
+} from './time.js';
 import {
   AggregateFlow,
   Cluster,
@@ -66,7 +66,7 @@ import {
   ScaleState,
   ViewportProps,
   isLocationClusterNode,
-} from './types';
+} from './types.js';
 
 const MAX_CLUSTER_ZOOM_LEVEL = 20;
 const FLOW_THICKNESS_DISPLAY_UNIT = 24;
@@ -1546,7 +1546,9 @@ export default class FlowmapSelectors<
             (function* () {
               for (const f of flows) {
                 // @ts-ignore
-                yield new alea(`${getFlowOriginId(f)}-${getFlowDestId(f)}`)();
+                yield new seedrandom.alea(
+                  `${getFlowOriginId(f)}-${getFlowDestId(f)}`,
+                )();
               }
             })(),
           )
