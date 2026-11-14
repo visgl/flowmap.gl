@@ -1,17 +1,17 @@
 # Flowmap.gl example
 
-This example shows how Flowmap.gl can be used in a JS app built with Webpack.
+This example shows how Flowmap.gl can be used in a JS app built with Vite.
 
 
 ## Usage
 
 ```bash
-npm i
-npm run start
+pnpm install
+pnpm dev
 ```
 
 To build a production version:
 
 ```bash
-npm run build
+pnpm build
 ```

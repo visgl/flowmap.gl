@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "rm -rf dist && tsc",
-    "prepare": "yarn build"
+    "prepare": "pnpm build"
   },
   "dependencies": {
     "d3-array": "^3.2.4",
