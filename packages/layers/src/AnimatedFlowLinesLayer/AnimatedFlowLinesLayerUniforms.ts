@@ -5,7 +5,6 @@ layout(std140) uniform animatedFlowLinesUniforms {
   float thicknessUnit;
   float animationTailLength;
   float currentTime;
-  vec2 panOffset;
   vec3 screenOrigin;
   vec3 globeCenter;
 } animatedFlowLines;
@@ -16,7 +15,6 @@ export type AnimatedFlowLinesProps = {
   thicknessUnit: number;
   animationTailLength: number;
   currentTime: number;
-  panOffset: [number, number];
   screenOrigin: [number, number, number];
   globeCenter: [number, number, number];
 };
@@ -29,7 +27,6 @@ export const animatedFlowLinesUniforms = {
     thicknessUnit: 'f32',
     animationTailLength: 'f32',
     currentTime: 'f32',
-    panOffset: 'vec2<f32>',
     screenOrigin: 'vec3<f32>',
     globeCenter: 'vec3<f32>',
   },

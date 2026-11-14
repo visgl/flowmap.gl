@@ -33,7 +33,7 @@ void main(void) {
     // Evaluate at the fragment: interpolated endpoint phases lose precision
     // when zoom puts a route's endpoints millions of pixels offscreen.
     vec2 pixel = (gl_FragCoord.xy - animatedFlowLines.screenOrigin.xy) / animatedFlowLines.screenOrigin.z;
-    phase = dot(pixel - animatedFlowLines.panOffset, vScreenAnimation.xy) / 60.0
+    phase = dot(pixel, vScreenAnimation.xy) / 60.0
       - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + vScreenAnimation.z;
   }
   fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(phase)));

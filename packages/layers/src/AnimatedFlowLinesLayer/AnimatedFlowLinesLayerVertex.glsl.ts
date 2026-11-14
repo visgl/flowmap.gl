@@ -124,7 +124,7 @@ void main(void) {
     vec2 deltaPixels = targetPixels - sourcePixels;
     vec2 direction = deltaPixels / max(length(deltaPixels), 1e-6);
     // Anchor phase in the visible viewport, not at a distant route origin.
-    // Pan translation follows the map; zoom does not stretch or rephase pulses.
+    // Routes move through this screen-space pattern during zoom and pan.
     vScreenAnimation = vec4(direction, instanceStaggering, 1.0);
     if (!drawn) gl_Position = vec4(0.0);
   }

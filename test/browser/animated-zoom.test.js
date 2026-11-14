@@ -73,23 +73,24 @@ test('zoom retains pixel spacing, speed and phase, including with offscreen orig
   }
 });
 
-test('panning follows the map between zoom gestures', async () => {
+test('panning keeps screen phase, spacing and speed stable between zoom gestures', async () => {
   const {deck} = harness;
-  vi.spyOn(Date, 'now').mockReturnValue(100000);
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(100000);
   const layer = makeAnimatedLayer();
   deck.setProps({viewState: {longitude: 0, latitude: 0, zoom: 3}});
   let before = row(await captureLayers(deck, [layer]));
   assert(Math.max(...before) > 100, 'Panned route must be visible');
   let longitude = 0;
-  let previousZoom = 3;
   for (const zoom of [3, 4, 4, 3, 3 + 1e-15]) {
     longitude += (360 * 30) / (512 * 2 ** zoom);
     deck.setProps({viewState: {longitude, latitude: 0, zoom}});
+    clock.mockReturnValue(100000);
     const after = row(await captureLayers(deck, [layer.clone()]));
-    assertShift(before, after, Math.abs(zoom - previousZoom) < 1e-9 ? -30 : 0);
+    assertShift(before, after);
     assertShift(after, after, 60);
+    clock.mockReturnValue(101000);
+    assertShift(after, row(await captureLayers(deck, [layer.clone()])), 18);
     before = after;
-    previousZoom = zoom;
   }
 });
 
@@ -144,7 +145,7 @@ test('bound views and repeated drawing passes do not alter animation phase', asy
   deck.pickObject({x: 240, y: 180});
   assert(
     difference(bound, await captureLayers(deck, [layer.clone()])) <= 1,
-    'Picking advanced pan compensation',
+    'Picking changed the screen-space phase',
   );
 });
 
@@ -171,7 +172,7 @@ test('wrapped halves meet without a phase seam and dateline pans stay continuous
   const longitude = -180 + (360 * 30) / (512 * 2 ** 3);
   deck.setProps({viewState: {longitude, latitude: 0, zoom: 3}});
   const after = row(await captureLayers(deck, [layer.clone()]));
-  assertShift(before, after, -30);
+  assertShift(before, after);
 });
 
 test('pixel spacing uses CSS pixels and each viewport origin', async () => {
@@ -202,7 +203,7 @@ test('pixel spacing uses CSS pixels and each viewport origin', async () => {
   assertShift(cssRow, cssRow, 60);
 });
 
-test('cursor-centred zoom does not treat the changing map center as a pan', async () => {
+test('cursor-centred zoom preserves screen-space phase', async () => {
   const {deck} = harness;
   vi.spyOn(Date, 'now').mockReturnValue(100000);
   const layer = makeAnimatedLayer();
