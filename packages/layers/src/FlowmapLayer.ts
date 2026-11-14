@@ -5,6 +5,7 @@
  */
 import {
   CompositeLayer,
+  // Experimental (underscore) deck.gl export; re-check on deck.gl upgrades.
   _GlobeViewport as GlobeViewport,
   log,
   type Viewport,
