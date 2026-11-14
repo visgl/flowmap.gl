@@ -19,11 +19,13 @@ in vec3 instanceTargetPositions64Low;
 in vec4 instanceColors;
 in float instanceWidths;
 in float instancePickable;
+in float instanceHasReverseFlow;
 in float instanceStaggering;
 
 out vec4 vColor;
 out float sourceToTarget;
 out vec2 uv;
+flat out float vHasReverseFlow;
 
 // offset vector by strokeWidth pixels
 // offset_direction is -1 (left) or 1 (right)
@@ -45,6 +47,7 @@ void main(void) {
   float widthPixels = instanceWidths * animatedFlowLines.thicknessUnit;
   float segmentIndex = positions.x;
   uv = positions.xy;
+  vHasReverseFlow = instanceHasReverseFlow;
   geometry.uv = uv;
   if (instancePickable > 0.5) {
     geometry.pickingColor = picking_getPickingColorFromInstanceID();

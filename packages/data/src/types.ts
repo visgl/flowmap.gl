@@ -227,6 +227,7 @@ export interface FlowLinesLayerAttributes {
     getColor: LayersDataAttrValues<Uint8Array>;
     getEndpointOffsets: LayersDataAttrValues<Float32Array>;
     getStaggering?: LayersDataAttrValues<Float32Array>;
+    getHasReverseFlow?: LayersDataAttrValues<Float32Array>;
     getCurveOffset?: LayersDataAttrValues<Float32Array>;
   };
 }
