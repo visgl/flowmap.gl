@@ -4,7 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Layer, picking, project32} from '@deck.gl/core';
+import {
+  _GlobeViewport as GlobeViewport,
+  Layer,
+  picking,
+  project32,
+  type Viewport,
+} from '@deck.gl/core';
 import {Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
@@ -62,6 +68,10 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   state!: {
     model?: Model;
     vertexCount: number;
+    animationViewports: Map<
+      string,
+      {viewport: Viewport; offset: [number, number]}
+    >;
   };
 
   static defaultProps = {
@@ -156,7 +166,11 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       },
     });
     const model = this._getModel();
-    this.setState({model, vertexCount: model.vertexCount});
+    this.setState({
+      model,
+      vertexCount: model.vertexCount,
+      animationViewports: new Map(),
+    });
   }
 
   getNeedsRedraw(): string | false {
@@ -166,7 +180,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   updateState(params: any): void {
     super.updateState(params);
     const {changeFlags, props, oldProps} = params;
-
     if (
       !this.state.model ||
       changeFlags.extensionsChanged ||
@@ -189,11 +202,30 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     if (!model) {
       return;
     }
+    const {viewport, device} = this.context;
+    const pixelRatio =
+      options.shaderModuleProps?.project?.devicePixelRatio ??
+      device.canvasContext!.cssToDeviceRatio();
+    const framebufferHeight =
+      options.renderPass.props.framebuffer?.height ??
+      device.canvasContext!.getDrawingBufferSize()[1];
     model.shaderInputs.setProps({
       animatedFlowLines: {
         thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,
         currentTime: animationTime,
+        panOffset: this._getAnimationPanOffset(),
+        globeCenter:
+          viewport instanceof GlobeViewport
+            ? viewport.projectPosition(
+                viewport.unproject([viewport.width / 2, viewport.height / 2]),
+              )
+            : [0, 0, 1],
+        screenOrigin: [
+          (viewport.x + viewport.width / 2) * pixelRatio,
+          framebufferHeight - (viewport.y + viewport.height / 2) * pixelRatio,
+          pixelRatio,
+        ],
       },
     });
     applyFlowBlending(
@@ -202,6 +234,41 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
     drawAntimeridian(this, model, this.state.vertexCount);
+  }
+
+  private _getAnimationPanOffset(): [number, number] {
+    // Repeated-world and picking passes must share the logical view's history.
+    const viewport =
+      this.context.deck
+        ?.getViewports()
+        .find((view) => view.id === this.context.viewport.id) ??
+      this.context.viewport;
+    if (viewport instanceof GlobeViewport) return [0, 0];
+    const previous = this.state.animationViewports.get(viewport.id);
+    if (previous?.viewport === viewport) return previous.offset;
+    const offset: [number, number] = previous ? [...previous.offset] : [0, 0];
+    // Scroll/pinch zoom also moves the center to keep the cursor's anchor fixed.
+    // Compensating that movement as a pan would reintroduce zoom-induced phase
+    // shifts. Follow map translation only at a fixed zoom (allow rounding noise).
+    if (previous && Math.abs(viewport.zoom - previous.viewport.zoom) < 1e-9) {
+      const center = viewport.unprojectPosition(viewport.center);
+      const oldCenter = previous.viewport.unprojectPosition(
+        previous.viewport.center,
+      );
+      if (viewport.isGeospatial) {
+        // A camera crossing the dateline pans a few pixels, not a whole world.
+        oldCenter[0] =
+          center[0] +
+          ((((oldCenter[0] - center[0] + 180) % 360) + 360) % 360) -
+          180;
+      }
+      const from = viewport.project(oldCenter, {topLeft: false});
+      const to = viewport.project(center, {topLeft: false});
+      offset[0] += from[0] - to[0];
+      offset[1] += from[1] - to[1];
+    }
+    this.state.animationViewports.set(viewport.id, {viewport, offset});
+    return offset;
   }
 
   _getModel(): Model {

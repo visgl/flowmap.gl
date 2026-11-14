@@ -8,7 +8,7 @@ import {ascending, descending, extent, min, rollup} from 'd3-array';
 import {ScaleLinear, scaleSqrt} from 'd3-scale';
 import KDBush from 'kdbush';
 import {createSelector, createSelectorCreator, lruMemoize} from 'reselect';
-import seedrandom from 'seedrandom';
+import {createFlowStaggeringGetter} from './flow-staggering.js';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors.js';
 import {FlowmapState} from './FlowmapState.js';
 import {getFlowHasReverseValues} from './flow-picking.js';
@@ -440,6 +440,11 @@ export default class FlowmapSelectors<
       );
       return clusterIndex;
     },
+  );
+
+  getFlowStaggeringGetter = createSelector(
+    this.getClusterIndex,
+    (clusterIndex) => createFlowStaggeringGetter(clusterIndex),
   );
 
   getAvailableClusterZoomLevels = createSelector(
@@ -1271,6 +1276,7 @@ export default class FlowmapSelectors<
     this.getLocationsEnabled,
     this.getLocationLabelsEnabled,
     this.getWrapLongitude,
+    this.getFlowStaggeringGetter,
     (
       locations,
       flows,
@@ -1293,6 +1299,7 @@ export default class FlowmapSelectors<
       locationsEnabled,
       locationLabelsEnabled,
       wrapLongitude,
+      getFlowStaggering,
     ) => {
       return this._prepareLayersData(
         locations,
@@ -1316,6 +1323,7 @@ export default class FlowmapSelectors<
         locationsEnabled,
         locationLabelsEnabled,
         wrapLongitude,
+        getFlowStaggering,
       );
     },
   );
@@ -1364,6 +1372,7 @@ export default class FlowmapSelectors<
       locationsEnabled,
       locationLabelsEnabled,
       this.getWrapLongitude(state, props),
+      this.getFlowStaggeringGetter(state, props),
     );
   }
 
@@ -1389,6 +1398,7 @@ export default class FlowmapSelectors<
     locationsEnabled: boolean,
     locationLabelsEnabled: boolean,
     wrapLongitude = false,
+    getFlowStaggering = createFlowStaggeringGetter(),
   ): LayersData {
     if (!locations) locations = [];
     if (!flows) flows = [];
@@ -1551,10 +1561,7 @@ export default class FlowmapSelectors<
         ? Float32Array.from(
             (function* () {
               for (const f of flows) {
-                // @ts-ignore
-                yield new seedrandom.alea(
-                  `${getFlowOriginId(f)}-${getFlowDestId(f)}`,
-                )();
+                yield getFlowStaggering(getFlowOriginId(f), getFlowDestId(f));
               }
             })(),
           )

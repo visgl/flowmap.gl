@@ -8,7 +8,6 @@ import globeArc from '../globe-arc.glsl.js';
 export default `\
 #version 300 es
 #define SHADER_NAME animated-flow-lines-layer-vertex-shader
-#define SPEED 0.015
 #define NUM_PARTS 5.0
 
 in vec3 positions;
@@ -24,6 +23,7 @@ in float instanceStaggering;
 
 out vec4 vColor;
 out float sourceToTarget;
+flat out vec4 vScreenAnimation;
 out vec2 uv;
 flat out float vHasReverseFlow;
 
@@ -61,13 +61,25 @@ void main(void) {
   // Globe pulses advance uniformly along surface distance. The conversion
   // matches flat spacing locally at the view center; perspective and
   // foreshortening compress the pulses toward the horizon.
-  float routeLength;
+  float routeLength = 0.0;
+  float globeAnchor = 0.0;
+  vScreenAnimation = vec4(0.0);
   if (project.projectionMode == PROJECTION_MODE_GLOBE) {
     // Follow the great circle on the sphere's surface.
     GlobeArc arc = globeArc_create(
       project_position(instanceSourcePositions, instanceSourcePositions64Low),
       project_position(instanceTargetPositions, instanceTargetPositions64Low)
     );
+    // Anchor at the closest point on this arc to the viewport center. This
+    // retains surface-based speed/spacing without route history or CPU copies
+    // of the geometry. Panning deliberately moves this anchor with the view.
+    vec3 center = normalize(animatedFlowLines.globeCenter);
+    vec2 centerInPlane = vec2(dot(center, arc.start), dot(center, arc.tangent));
+    float theta = length(centerInPlane) > 1e-6
+      ? atan(centerInPlane.y, centerInPlane.x) : 0.0;
+    globeAnchor = theta >= 0.0 && theta <= arc.angle
+      ? theta / max(arc.angle, 1e-6)
+      : (dot(center, arc.start) >= dot(center, normalize(globeArc_point(arc, 1.0, 0.0))) ? 0.0 : 1.0);
     vec3 point = globeArc_point(arc, segmentIndex, 0.0);
     vec3 normal;
     vec3 direction;
@@ -106,7 +118,14 @@ void main(void) {
       0.0);
     DECKGL_FILTER_SIZE(offset, geometry);
     gl_Position = p + vec4(project_pixel_size_to_clipspace(offset.xy), 0.0, 0.0);
-    routeLength = length(source - target);
+    vec2 pixelsPerClipUnit = project.viewportSize / (2.0 * project.devicePixelRatio);
+    vec2 sourcePixels = source.xy / source.w * pixelsPerClipUnit;
+    vec2 targetPixels = target.xy / target.w * pixelsPerClipUnit;
+    vec2 deltaPixels = targetPixels - sourcePixels;
+    vec2 direction = deltaPixels / max(length(deltaPixels), 1e-6);
+    // Anchor phase in the visible viewport, not at a distant route origin.
+    // Pan translation follows the map; zoom does not stretch or rephase pulses.
+    vScreenAnimation = vec4(direction, instanceStaggering, 1.0);
     if (!drawn) gl_Position = vec4(0.0);
   }
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
@@ -116,6 +135,8 @@ void main(void) {
   vColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
   DECKGL_FILTER_COLOR(vColor, geometry);
 
-  sourceToTarget = positions.x * routeLength * NUM_PARTS - animatedFlowLines.currentTime * SPEED + instanceStaggering;
+  sourceToTarget = project.projectionMode == PROJECTION_MODE_GLOBE
+    ? (positions.x - globeAnchor) * routeLength * NUM_PARTS - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
+    : 0.0;
 }
 `;

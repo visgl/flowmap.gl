@@ -300,8 +300,15 @@ their strings are passed to the label layer.
 Controls how flow lines are rendered.
 
 - `'straight'`: static straight half-barbed arrows
-- `'animated-straight'`: animated straight flow lines
+- `'animated-straight'`: animated straight flow lines. On flat maps, pulses retain
+  a spacing of 60 CSS pixels and travel at 18 CSS pixels per second as you zoom.
+  Their phase is anchored in the viewport during zoom, including zoom around the
+  cursor, and follows map translation when panning at a fixed zoom.
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
+
+Animated staggering stays stable when zoom changes cluster IDs without changing
+their member locations. Splitting or merging cluster membership creates new routes
+with their own staggering.
 
 Curved routes use their endpoint distance to set the bend: longer routes bow
 farther than shorter routes, helping separate nearly collinear destinations.
@@ -319,7 +326,11 @@ their flat meaning, measured along the surface:
 - `'animated-straight'`: the same great circle, with the animated pulses. Pulse
   spacing is measured along the sphere's surface, calibrated to the flat map
   locally at the view center. Perspective and foreshortening compress the pulses
-  toward the horizon; spacing is not constant in screen pixels.
+  toward the horizon; spacing is not constant in screen pixels. Zoom preserves
+  pulse phase near the visible part of each route instead of shifting it from a
+  distant source. The shader anchors phase at the point on each route nearest
+  the view center. Panning moves that anchor too, so pulses can slide relative
+  to the geography rather than moving with it exactly.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
   and zero at the endpoints. Bends use great-circle distance with the same
   length-based rule as the flat map, scaled by `flowLineCurviness`.
