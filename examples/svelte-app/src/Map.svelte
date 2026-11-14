@@ -1,18 +1,15 @@
 <script>
-  import { onDestroy, setContext } from 'svelte';
-  import { maplibregl, key } from './map-provider.js';
-  import {Deck} from "@deck.gl/core";
-  import {fetchData} from "@flowmap.gl/examples-common";
-  import {getViewStateForLocations} from "@flowmap.gl/data";
-  import {FlowmapLayer} from "@flowmap.gl/layers";
+  import {onMount, setContext} from 'svelte';
+  import {maplibregl, key} from './map-provider.js';
+  import {Deck} from '@deck.gl/core';
+  import {fetchData} from '@flowmap.gl/examples-common';
+  import {getViewStateForLocations} from '@flowmap.gl/data';
+  import {FlowmapLayer} from '@flowmap.gl/layers';
+  import 'maplibre-gl/dist/maplibre-gl.css';
 
   setContext(key, {
-     getMap: () => map,
+    getMap: () => map,
   });
-
-  export let lat;
-  export let lon;
-  export let zoom;
 
   let mapContainer;
   let deckCanvas;
@@ -23,29 +20,32 @@
   const MAP_STYLE_DARK =
     'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
-  fetchData()
-    .then((data) => {
+  onMount(() => {
+    let cancelled = false;
+    fetchData().then((data) => {
+      if (cancelled) return;
       flowmapData = data;
+      const initialViewState = getViewStateForLocations(
+        data.locations,
+        (loc) => [loc.lon, loc.lat],
+        [globalThis.innerWidth, globalThis.innerHeight],
+        {pad: 0.3},
+      );
 
       map = new maplibregl.Map({
         container: mapContainer,
         style: MAP_STYLE_DARK,
-        center: [lon, lat],
-        zoom,
+        center: [initialViewState.longitude, initialViewState.latitude],
+        zoom: initialViewState.zoom,
+        interactive: false,
       });
 
       deck = new Deck({
         canvas: deckCanvas,
         width: '100%',
         height: '100%',
-        initialViewState: getViewStateForLocations(
-          data.locations,
-          (loc) => [loc.lon, loc.lat],
-          [globalThis.innerWidth, globalThis.innerHeight],
-          {pad: 0.3},
-        ),
+        initialViewState,
         controller: true,
-        map: true,
         onViewStateChange: ({viewState}) => {
           map.jumpTo({
             center: [viewState.longitude, viewState.latitude],
@@ -59,8 +59,11 @@
       updateDeck();
     });
 
-  onDestroy(() => {
-    if (map) map.remove();
+    return () => {
+      cancelled = true;
+      deck?.finalize();
+      map?.remove();
+    };
   });
 
   function updateDeck() {
@@ -98,13 +101,6 @@
     });
   }
 </script>
-
-<svelte:head>
-  <link
-      rel="stylesheet"
-      href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"
-  />
-</svelte:head>
 
 <div class="container">
   <div bind:this={mapContainer} id="map-container">

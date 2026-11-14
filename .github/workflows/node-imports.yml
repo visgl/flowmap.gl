@@ -37,6 +37,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:browser
+      - run: pnpm test:examples
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -5,7 +5,7 @@
  */
 
 import type {GUI} from 'lil-gui';
-import {ClusterLevels} from '@flowmap.gl/data';
+export {getClusterLevelsH3} from './h3-clustering';
 export type LocationDatum = {
   id: string;
   name: string;
@@ -22,11 +22,6 @@ export type LoadedData = {
   flows: FlowDatum[];
 };
 
-export function getClusterLevelsH3(
-  locations: LocationDatum[],
-  minZoom?: number,
-  maxZoom?: number,
-): ClusterLevels;
 export function fetchData(
   clusteringMethod?: string,
   dataUrl?: string,
