@@ -17,6 +17,7 @@
     "@deck.gl/react": "^9.4.0",
     "@deck.gl/widgets": "^9.4.0",
     "@flowmap.gl/data": "workspace:*",
+    "@flowmap.gl/examples-common": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
     "@loaders.gl/core": "^4.5.4",
     "@luma.gl/core": "^9.4.2",

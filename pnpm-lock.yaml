@@ -117,6 +117,9 @@ importers:
       '@flowmap.gl/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@flowmap.gl/examples-common':
+        specifier: workspace:*
+        version: link:../common
       '@flowmap.gl/layers':
         specifier: workspace:*
         version: link:../../packages/layers
@@ -193,6 +196,9 @@ importers:
       '@flowmap.gl/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@flowmap.gl/examples-common':
+        specifier: workspace:*
+        version: link:../common
       '@flowmap.gl/layers':
         specifier: workspace:*
         version: link:../../packages/layers
@@ -227,6 +233,9 @@ importers:
         specifier: ^8.1.3
         version: 8.1.3(maplibre-gl@6.16.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
     devDependencies:
+      '@loaders.gl/schema':
+        specifier: ^4.5.4
+        version: 4.5.4
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -273,6 +282,9 @@ importers:
       '@flowmap.gl/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@flowmap.gl/examples-common':
+        specifier: workspace:*
+        version: link:../common
       '@flowmap.gl/layers':
         specifier: workspace:*
         version: link:../../packages/layers
@@ -327,6 +339,9 @@ importers:
       '@flowmap.gl/data':
         specifier: workspace:*
         version: link:../../packages/data
+      '@flowmap.gl/examples-common':
+        specifier: workspace:*
+        version: link:../common
       '@flowmap.gl/layers':
         specifier: workspace:*
         version: link:../../packages/layers
@@ -361,6 +376,9 @@ importers:
 
   packages/data:
     dependencies:
+      '@math.gl/web-mercator':
+        specifier: ^4.1.0
+        version: 4.1.0
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
