@@ -1,4 +1,4 @@
-import {MapView} from '@deck.gl/core';
+import {MapView, WebMercatorViewport} from '@deck.gl/core';
 import {FlowmapLayer, AnimatedFlowLinesLayer} from '@flowmap.gl/layers';
 import {assert, test, vi} from 'vitest';
 import {setupDeck, captureLayers, difference} from './helpers.js';
@@ -73,7 +73,7 @@ test('zoom retains pixel spacing, speed and phase, including with offscreen orig
   }
 });
 
-test('panning follows the map and combined zoom/pan retains pixel spacing', async () => {
+test('panning follows the map between zoom gestures', async () => {
   const {deck} = harness;
   vi.spyOn(Date, 'now').mockReturnValue(100000);
   const layer = makeAnimatedLayer();
@@ -81,13 +81,15 @@ test('panning follows the map and combined zoom/pan retains pixel spacing', asyn
   let before = row(await captureLayers(deck, [layer]));
   assert(Math.max(...before) > 100, 'Panned route must be visible');
   let longitude = 0;
-  for (const zoom of [3, 4, 3]) {
+  let previousZoom = 3;
+  for (const zoom of [3, 4, 4, 3, 3 + 1e-15]) {
     longitude += (360 * 30) / (512 * 2 ** zoom);
     deck.setProps({viewState: {longitude, latitude: 0, zoom}});
     const after = row(await captureLayers(deck, [layer.clone()]));
-    assertShift(before, after, -30);
+    assertShift(before, after, Math.abs(zoom - previousZoom) < 1e-9 ? -30 : 0);
     assertShift(after, after, 60);
     before = after;
+    previousZoom = zoom;
   }
 });
 
@@ -198,4 +200,32 @@ test('pixel spacing uses CSS pixels and each viewport origin', async () => {
   );
   assertShift(original, cssRow);
   assertShift(cssRow, cssRow, 60);
+});
+
+test('cursor-centred zoom does not treat the changing map center as a pan', async () => {
+  const {deck} = harness;
+  vi.spyOn(Date, 'now').mockReturnValue(100000);
+  const layer = makeAnimatedLayer();
+  const cursor = [150, 180];
+  const initial = new WebMercatorViewport({
+    width: 480,
+    height: 360,
+    longitude: 0,
+    latitude: 0,
+    zoom: 1,
+  });
+  const anchor = initial.unproject(cursor);
+  const original = row(await captureLayers(deck, [layer]));
+  for (const zoom of [1.01, 1.1, 1.5, 2, 1.5, 1]) {
+    const viewport = new WebMercatorViewport({
+      width: 480,
+      height: 360,
+      longitude: 0,
+      latitude: 0,
+      zoom,
+    });
+    const center = viewport.panByPosition(anchor, cursor);
+    deck.setProps({viewState: {...center, zoom}});
+    assertShift(original, row(await captureLayers(deck, [layer.clone()])));
+  }
 });

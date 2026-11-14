@@ -234,7 +234,10 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     const previous = this.state.animationViewports.get(viewport.id);
     if (previous?.viewport === viewport) return previous.offset;
     const offset: [number, number] = previous ? [...previous.offset] : [0, 0];
-    if (previous) {
+    // Scroll/pinch zoom also moves the center to keep the cursor's anchor fixed.
+    // Compensating that movement as a pan would reintroduce zoom-induced phase
+    // shifts. Follow map translation only at a fixed zoom (allow rounding noise).
+    if (previous && Math.abs(viewport.zoom - previous.viewport.zoom) < 1e-9) {
       const center = viewport.unprojectPosition(viewport.center);
       const oldCenter = previous.viewport.unprojectPosition(
         previous.viewport.center,

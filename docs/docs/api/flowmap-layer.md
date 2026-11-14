@@ -302,8 +302,13 @@ Controls how flow lines are rendered.
 - `'straight'`: static straight half-barbed arrows
 - `'animated-straight'`: animated straight flow lines. On flat maps, pulses retain
   a spacing of 60 CSS pixels and travel at 18 CSS pixels per second as you zoom.
-  Their phase is anchored in the viewport and follows map translation when panning.
+  Their phase is anchored in the viewport during zoom, including zoom around the
+  cursor, and follows map translation when panning at a fixed zoom.
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
+
+Animated staggering stays stable when zoom changes cluster IDs without changing
+their member locations. Splitting or merging cluster membership creates new routes
+with their own staggering.
 
 Curved routes use their endpoint distance to set the bend: longer routes bow
 farther than shorter routes, helping separate nearly collinear destinations.
