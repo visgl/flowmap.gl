@@ -19,12 +19,9 @@ function HomepageHeader() {
         </h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="https://flowmap-layer-demo.netlify.app"
-          >
+          <a className="button button--secondary button--lg" href="/demo/">
             Live Demo
-          </Link>
+          </a>
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro"
@@ -95,9 +92,9 @@ export default function Home() {
               </p>
             </div>
             <div className="col col--6">
-              <Link to={'https://flowmap-layer-demo.netlify.app'}>
+              <a href="/demo/">
                 <img src={screenshotUrl} alt="Flowmap.gl example" />
-              </Link>
+              </a>
             </div>
           </div>
         </section>

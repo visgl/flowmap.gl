@@ -1,3 +1,4 @@
 [build]
-  command = "pnpm build:example"
-  publish = "examples/react-app/dist"
+  base = "."
+  command = "pnpm build:site"
+  publish = "docs/build"
