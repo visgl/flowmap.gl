@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Deck, MapView} from '@deck.gl/core';
+import {Deck} from '@deck.gl/core';
 import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import {
   FlowmapLayer,
   getFlowmapCanvasStyle,
-  getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
 } from '@flowmap.gl/layers';
 import {GUI} from 'lil-gui';
 import {fetchData, initLilGui, UI_INITIAL} from '@flowmap.gl/examples-common';
@@ -27,6 +27,7 @@ const MAP_STYLE_DARK =
 const config = {...UI_INITIAL};
 
 fetchData().then((data) => {
+  let flowmapData = data;
   const gui = new GUI();
   initLilGui(gui);
 
@@ -51,12 +52,11 @@ fetchData().then((data) => {
   });
 
   const deck = new Deck({
-    canvas: 'deck-canvas',
+    canvas: globalThis.document.getElementById('deck-canvas'),
     width: '100%',
     height: '100%',
     initialViewState: INITIAL_VIEW_STATE,
     controller: true,
-    map: true,
     onViewStateChange: ({viewState}) => {
       map.jumpTo({
         center: [viewState.longitude, viewState.latitude],
@@ -74,19 +74,29 @@ fetchData().then((data) => {
     if (property === 'darkMode') {
       map.setStyle(value ? MAP_STYLE_DARK : MAP_STYLE_LIGHT);
     }
+    if (property === 'clusteringMethod') {
+      fetchData(value).then((nextData) => {
+        if (config.clusteringMethod === value) {
+          flowmapData = nextData;
+          updateDeck();
+        }
+      });
+    }
     updateDeck();
   });
 
   function updateDeck() {
-    const clearColor = getFlowmapCanvasClearColor(config);
-    Object.assign(deck.getCanvas().style, getFlowmapCanvasStyle(config));
+    Object.assign(
+      globalThis.document.getElementById('deck-canvas').style,
+      getFlowmapCanvasStyle(config),
+    );
     deck.setProps({
-      views: new MapView({clear: Boolean(clearColor), clearColor}),
+      effects: getFlowmapCanvasEffects(config),
       style: getFlowmapCanvasStyle(config),
       layers: [
         new FlowmapLayer({
           id: 'my-flowmap-layer',
-          data,
+          data: flowmapData,
           pickable: true,
           opacity: config.opacity,
           blendingMode: config.blendingMode,
@@ -97,6 +107,7 @@ fetchData().then((data) => {
           fadeOpacityEnabled: config.fadeOpacityEnabled,
           locationsEnabled: config.locationsEnabled,
           locationTotalsEnabled: config.locationTotalsEnabled,
+          locationLabelsEnabled: config.locationLabelsEnabled,
           flowLinesRenderingMode: config.flowLinesRenderingMode,
           clusteringEnabled: config.clusteringEnabled,
           clusteringAuto: config.clusteringAuto,
@@ -104,6 +115,10 @@ fetchData().then((data) => {
           adaptiveScalesEnabled: config.adaptiveScalesEnabled,
           scaleLock: {enabled: config.scaleLockEnabled},
           highlightColor: config.highlightColor,
+          maxTopFlowsDisplayNum: config.maxTopFlowsDisplayNum,
+          flowEndpointsInViewportMode: config.flowEndpointsInViewportMode,
+          flowLineThicknessScale: config.flowLineThicknessScale,
+          flowLineCurviness: config.flowLineCurviness,
           getLocationId: (loc) => loc.id,
           getLocationLat: (loc) => loc.lat,
           getLocationLon: (loc) => loc.lon,

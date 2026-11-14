@@ -20,6 +20,7 @@ import {
 import {load} from '@loaders.gl/core';
 import {CSVLoader} from '@loaders.gl/csv';
 import type {ArrayRowTable, ObjectRowTable} from '@loaders.gl/schema';
+import {getClusterLevelsH3} from '@flowmap.gl/examples-common/src/h3-clustering.js';
 
 const LOADERS = [CSVLoader];
 
@@ -28,6 +29,7 @@ function getRows(table: ObjectRowTable | ArrayRowTable) {
 }
 
 export type WorkerDataProviderProps = {
+  clusteringMethod?: string;
   flows: {
     url: string;
     columns: {
@@ -50,9 +52,10 @@ export type WorkerDataProviderProps = {
 export type LocationDatum = Record<string, unknown>;
 export type FlowDatum = Record<string, unknown>;
 
-export default class WorkerFlowmapDataProvider
-  implements FlowmapDataProvider<LocationDatum, FlowDatum>
-{
+export default class WorkerFlowmapDataProvider implements FlowmapDataProvider<
+  LocationDatum,
+  FlowDatum
+> {
   private props: WorkerDataProviderProps;
   private localProvider: LocalFlowmapDataProvider<LocationDatum, FlowDatum>;
 
@@ -82,6 +85,17 @@ export default class WorkerFlowmapDataProvider
     this.localProvider.setFlowmapData({
       locations: getRows(locations) as LocationDatum[],
       flows: getRows(flows) as FlowDatum[],
+      clusterLevels:
+        this.props.clusteringMethod === 'H3'
+          ? getClusterLevelsH3(
+              getRows(locations).map((location) => ({
+                id: location[this.props.locations.columns.id] as string,
+                name: location[this.props.locations.columns.name] as string,
+                lat: Number(location[this.props.locations.columns.lat]),
+                lon: Number(location[this.props.locations.columns.lon]),
+              })),
+            )
+          : undefined,
     });
   }
 

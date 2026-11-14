@@ -997,6 +997,8 @@ export default class FlowmapSelectors<
         const picked: (F | AggregateFlow)[] = [];
         let pickedCount = 0;
         for (const flow of flows) {
+          // Stop before adding a flow, including when the limit is zero.
+          if (pickedCount >= maxTopFlowsDisplayNum) break;
           const origin = this.accessors.getFlowOriginId(flow);
           const dest = this.accessors.getFlowDestId(flow);
           const originInView = locationIdsInViewport.has(origin);
@@ -1031,8 +1033,6 @@ export default class FlowmapSelectors<
               }
             }
           }
-          // Only keep top
-          if (pickedCount > maxTopFlowsDisplayNum) break;
         }
         // assuming they are sorted in descending order,
         // we need ascending for rendering
