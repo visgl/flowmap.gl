@@ -33,6 +33,8 @@ export interface Props<F> extends LayerProps, FlowBlendingProps {
   getTargetPosition?: (d: F) => [number, number];
   getStaggering?: (d: F, info: AccessorObjectInfo) => number;
   getPickable?: (d: F, {index}: {index: number}) => number; // >= 1.0 -> true
+  /** Split picking along the centerline when the reverse flow is also displayed. */
+  getHasReverseFlow?: (d: F) => number;
   getColor?: (d: F) => RGBA;
   getThickness?: (d: F) => number;
   getEndpointOffsets?: (d: F) => [number, number];
@@ -63,6 +65,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     getSourcePosition: {type: 'accessor', value: (d: any) => [0, 0]},
     getTargetPosition: {type: 'accessor', value: (d: any) => [0, 0]},
     getPickable: {type: 'accessor', value: (d: any) => 1.0},
+    getHasReverseFlow: {type: 'accessor', value: 0},
     getStaggering: {
       type: 'accessor',
       value: (d: any, {index}: {index: number}) => Math.random(),
@@ -138,6 +141,11 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       },
       instancePickable: {
         accessor: 'getPickable',
+        size: 1,
+        transition: false,
+      },
+      instanceHasReverseFlow: {
+        accessor: 'getHasReverseFlow',
         size: 1,
         transition: false,
       },

@@ -11,6 +11,7 @@ import {createSelector, createSelectorCreator, lruMemoize} from 'reselect';
 import seedrandom from 'seedrandom';
 import FlowmapAggregateAccessors from './FlowmapAggregateAccessors.js';
 import {FlowmapState} from './FlowmapState.js';
+import {getFlowHasReverseValues} from './flow-picking.js';
 import {
   getGlobeVisibility,
   projectGlobeLocation,
@@ -1540,6 +1541,11 @@ export default class FlowmapSelectors<
       })(),
     );
 
+    const hasReverseValues =
+      flowLinesRenderingMode === 'animated-straight'
+        ? getFlowHasReverseValues(flows, getFlowOriginId, getFlowDestId)
+        : undefined;
+
     const staggeringValues =
       flowLinesRenderingMode === 'animated-straight'
         ? Float32Array.from(
@@ -1589,6 +1595,9 @@ export default class FlowmapSelectors<
           getThickness: {value: thicknesses, size: 1},
           getColor: {value: flowLineColors, size: 4},
           getEndpointOffsets: {value: endpointOffsets, size: 2},
+          ...(hasReverseValues
+            ? {getHasReverseFlow: {value: hasReverseValues, size: 1}}
+            : {}),
           ...(staggeringValues
             ? {getStaggering: {value: staggeringValues, size: 1}}
             : {}),
