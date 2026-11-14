@@ -5,6 +5,7 @@ layout(std140) uniform animatedFlowLinesUniforms {
   float thicknessUnit;
   float animationTailLength;
   float currentTime;
+  float animationDistanceScale;
 } animatedFlowLines;
 `;
 
@@ -12,6 +13,7 @@ export type AnimatedFlowLinesProps = {
   thicknessUnit: number;
   animationTailLength: number;
   currentTime: number;
+  animationDistanceScale: number;
 };
 
 export const animatedFlowLinesUniforms = {
@@ -22,5 +24,6 @@ export const animatedFlowLinesUniforms = {
     thicknessUnit: 'f32',
     animationTailLength: 'f32',
     currentTime: 'f32',
+    animationDistanceScale: 'f32',
   },
 } as const satisfies ShaderModule<AnimatedFlowLinesProps>;

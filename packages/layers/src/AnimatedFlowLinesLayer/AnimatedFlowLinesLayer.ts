@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Layer, picking, project32} from '@deck.gl/core';
+import {COORDINATE_SYSTEM, Layer, picking, project32} from '@deck.gl/core';
 import {Geometry, Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
@@ -57,6 +57,7 @@ const loopTime = loopLength / animationSpeed;
 export default class AnimatedFlowLinesLayer<F> extends Layer {
   state!: {
     model?: Model;
+    animationDistanceScale?: number;
   };
 
   static defaultProps = {
@@ -182,11 +183,27 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     if (!model) {
       return;
     }
+    if (this.state.animationDistanceScale === undefined) {
+      // The first draw uses the actual target viewport, including viewId bindings.
+      // Retain this calibration so zoom does not shift pulses along the route.
+      const {viewport} = this.context;
+      const {coordinateSystem} = this.props;
+      const geographic =
+        coordinateSystem === COORDINATE_SYSTEM.LNGLAT ||
+        (coordinateSystem === COORDINATE_SYSTEM.DEFAULT &&
+          viewport.isGeospatial);
+      this.setState({
+        animationDistanceScale:
+          ((3 * viewport.scale) / viewport.height) *
+          (geographic ? viewport.distanceScales.unitsPerMeter[0] : 1),
+      });
+    }
     model.shaderInputs.setProps({
       animatedFlowLines: {
         thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,
         currentTime: animationTime,
+        animationDistanceScale: this.state.animationDistanceScale,
       },
     });
     applyFlowBlending(
