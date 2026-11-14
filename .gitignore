@@ -16,3 +16,4 @@ node_modules/
 *.tsbuildinfo
 
 .pnpm-store/
+test-results/
