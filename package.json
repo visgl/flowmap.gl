@@ -18,6 +18,7 @@
     "test:imports": "pnpm build && node --test test/*.test.mjs",
     "test:node": "pnpm test:imports && vitest run --project node",
     "test:browser": "vitest run --project browser",
+    "test:examples": "pnpm build && pnpm --dir examples/vite-app build && pnpm --dir examples/svelte-app build && pnpm --dir examples/react-worker-app build && node --test test/examples/*.test.mjs",
     "test:watch": "vitest",
     "build:docs": "pnpm --dir docs install --frozen-lockfile && pnpm --dir docs build",
     "build:site": "pnpm build:example && pnpm build:docs && shx cp -r examples/react-app/dist docs/build/demo",
