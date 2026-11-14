@@ -6,9 +6,13 @@
 
 import {Layer, picking, project32} from '@deck.gl/core';
 import {FlowLinesLayerAttributes, RGBA} from '@flowmap.gl/data';
-import {Geometry, Model} from '@luma.gl/engine';
+import {Model} from '@luma.gl/engine';
 import {LayerProps} from '../types.js';
-import {antimeridian, getAntimeridianPasses} from '../antimeridian.js';
+import {
+  antimeridian,
+  createAntimeridianGeometry,
+  drawAntimeridian,
+} from '../antimeridian.js';
 import {
   flowBlending,
   applyFlowBlending,
@@ -151,6 +155,7 @@ class FlowLinesLayer<F> extends Layer {
 
   state!: {
     model?: Model;
+    vertexCount: number;
   };
 
   static defaultProps = {
@@ -187,7 +192,7 @@ class FlowLinesLayer<F> extends Layer {
     });
   }
 
-  // Drawn in two passes instead; see antimeridian.ts.
+  // Wrapped per instance instead; see antimeridian.ts.
   get wrapLongitude(): boolean {
     return false;
   }
@@ -228,7 +233,8 @@ class FlowLinesLayer<F> extends Layer {
         transition: false,
       },
     });
-    this.setState({model: this._getModel()});
+    const model = this._getModel();
+    this.setState({model, vertexCount: model.vertexCount});
   }
 
   updateState(params: any): void {
@@ -237,7 +243,8 @@ class FlowLinesLayer<F> extends Layer {
 
     if (!this.state.model || changeFlags.extensionsChanged) {
       this.state.model?.destroy();
-      this.setState({model: this._getModel()});
+      const model = this._getModel();
+      this.setState({model, vertexCount: model.vertexCount});
       this.getAttributeManager()!.invalidateAll();
     }
   }
@@ -273,10 +280,7 @@ class FlowLinesLayer<F> extends Layer {
       this.props as unknown as Props<F>,
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
-    for (const side of getAntimeridianPasses(this)) {
-      model.shaderInputs.setProps({antimeridian: {side}});
-      model.draw(this.context.renderPass as any);
-    }
+    drawAntimeridian(this, model, this.state.vertexCount);
   }
 
   _getModel(): Model {
@@ -286,7 +290,7 @@ class FlowLinesLayer<F> extends Layer {
       id,
       ...this.getShaders(),
       bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
-      geometry: new Geometry({
+      geometry: createAntimeridianGeometry({
         topology: 'triangle-list',
         attributes: {
           positions: {size: 3, value: new Float32Array(POSITIONS)},
