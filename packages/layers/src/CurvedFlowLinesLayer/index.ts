@@ -4,6 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import CurvedFlowLinesLayer from './CurvedFlowLinesLayer';
+import CurvedFlowLinesLayer from './CurvedFlowLinesLayer.js';
 
 export default CurvedFlowLinesLayer;

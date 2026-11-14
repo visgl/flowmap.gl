@@ -4,6 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer';
+import AnimatedFlowLinesLayer from './AnimatedFlowLinesLayer.js';
 
 export default AnimatedFlowLinesLayer;

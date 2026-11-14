@@ -3,7 +3,7 @@
  * Copyright (c) 2018-2020 Teralytics
  * SPDX-License-Identifier: Apache-2.0
  */
-import globeArc from '../globe-arc.glsl';
+import globeArc from '../globe-arc.glsl.js';
 
 export default `\
 #version 300 es

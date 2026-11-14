@@ -4,23 +4,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export {default as AnimatedFlowLinesLayer} from './AnimatedFlowLinesLayer';
-export {default as CurvedFlowLinesLayer} from './CurvedFlowLinesLayer';
-export {default as FlowLinesLayer} from './FlowLinesLayer';
-export {default as FlowCirclesLayer} from './FlowCirclesLayer';
-export {default as FlowmapLayer} from './FlowmapLayer';
-export type {FlowmapLayerProps} from './FlowmapLayer';
-export {default as FlowmapLegendWidget} from './FlowmapLegendWidget';
+export {default as AnimatedFlowLinesLayer} from './AnimatedFlowLinesLayer/index.js';
+export {default as CurvedFlowLinesLayer} from './CurvedFlowLinesLayer/index.js';
+export {default as FlowLinesLayer} from './FlowLinesLayer/index.js';
+export {default as FlowCirclesLayer} from './FlowCirclesLayer/index.js';
+export {default as FlowmapLayer} from './FlowmapLayer.js';
+export type {FlowmapLayerProps} from './FlowmapLayer.js';
+export {default as FlowmapLegendWidget} from './FlowmapLegendWidget.js';
 export type {
   FlowmapLegendWidgetClassNames,
   FlowmapLegendWidgetProps,
   FlowmapLegendWidgetSection,
-} from './FlowmapLegendWidget';
+} from './FlowmapLegendWidget.js';
 
-export * from './types';
+export * from './types.js';
 
 export {
   getFlowmapCanvasStyle,
   getFlowmapCanvasClearColor,
-} from './flowBlending';
-export type {BlendingMode} from './flowBlending';
+} from './flowBlending.js';
+export type {BlendingMode} from './flowBlending.js';

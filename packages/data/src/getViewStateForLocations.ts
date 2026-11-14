@@ -11,7 +11,7 @@ import type {
   GeometryCollection,
   GeometryObject,
 } from 'geojson';
-import type {ViewState} from './types';
+import type {ViewState} from './types.js';
 
 export type LocationProperties = any;
 

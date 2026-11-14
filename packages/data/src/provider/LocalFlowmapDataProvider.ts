@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type FlowmapDataProvider from './FlowmapDataProvider';
+import type FlowmapDataProvider from './FlowmapDataProvider.js';
 import type {
   Cluster,
   ClusterNode,
@@ -14,20 +14,19 @@ import type {
   LocationTotals,
   ViewportProps,
   AggregateFlow,
-} from '../types';
-import {FlowmapState} from '../FlowmapState';
-import FlowmapSelectors from '../FlowmapSelectors';
+} from '../types.js';
+import {FlowmapState} from '../FlowmapState.js';
+import FlowmapSelectors from '../FlowmapSelectors.js';
 import {
   GetViewStateOptions,
   getViewStateForLocations,
-} from '../getViewStateForLocations';
-import {ClusterIndex} from '../cluster/ClusterIndex';
+} from '../getViewStateForLocations.js';
+import {ClusterIndex} from '../cluster/ClusterIndex.js';
 
 export default class LocalFlowmapDataProvider<
   L extends Record<string, any>,
   F extends Record<string, any>,
-> implements FlowmapDataProvider<L, F>
-{
+> implements FlowmapDataProvider<L, F> {
   private selectors: FlowmapSelectors<L, F>;
   private flowmapData: FlowmapData<L, F> | undefined;
   private flowmapState: FlowmapState | undefined;

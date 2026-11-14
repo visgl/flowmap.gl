@@ -1,4 +1,4 @@
-import type {ViewportProps} from './types';
+import type {ViewportProps} from './types.js';
 
 export type GlobePoint = [number, number, number];
 // Mirrors deck.gl's GLOBE_RADIUS (viewports/globe-viewport.js), which is not

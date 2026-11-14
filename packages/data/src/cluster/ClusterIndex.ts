@@ -12,7 +12,7 @@ import {
   FlowAccessors,
   FlowCountsMapReduce,
   isCluster,
-} from './../types';
+} from './../types.js';
 import {ascending, bisectLeft, extent} from 'd3-array';
 
 export type LocationWeightGetter = (id: string | number) => number;

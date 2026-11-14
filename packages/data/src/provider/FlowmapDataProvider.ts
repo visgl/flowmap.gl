@@ -4,15 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {AggregateFlow, Cluster, LocationAccessors, LocationTotals} from '..';
-import {FlowmapState} from '../FlowmapState';
+import {
+  AggregateFlow,
+  Cluster,
+  LocationAccessors,
+  LocationTotals,
+} from '../index.js';
+import {FlowmapState} from '../FlowmapState.js';
 import {
   ClusterNode,
   FlowmapData,
   FlowmapDataAccessors,
   LayersData,
   ViewportProps,
-} from '../types';
+} from '../types.js';
 
 export default interface FlowmapDataProvider<L, F> {
   setAccessors(accessors: FlowmapDataAccessors<L, F>): void;

@@ -38,8 +38,8 @@ import {
   interpolateRgb,
 } from 'd3-interpolate';
 import {color as d3color, hcl, rgb as colorRgb} from 'd3-color';
-import {SettingsState} from './FlowmapState';
-import {FlowLinesRenderingMode} from './types';
+import {SettingsState} from './FlowmapState.js';
+import {FlowLinesRenderingMode} from './types.js';
 
 const DEFAULT_OUTLINE_COLOR = '#fff';
 const DEFAULT_DIMMED_OPACITY = 0.4;
