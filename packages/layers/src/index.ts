@@ -10,6 +10,7 @@ export {default as FlowLinesLayer} from './FlowLinesLayer/index.js';
 export {default as FlowCirclesLayer} from './FlowCirclesLayer/index.js';
 export {default as FlowmapLayer} from './FlowmapLayer.js';
 export type {FlowmapLayerProps} from './FlowmapLayer.js';
+export type {LocationLabelProps} from './LocationLabelsLayer.js';
 export {default as FlowmapLegendWidget} from './FlowmapLegendWidget.js';
 export type {
   FlowmapLegendWidgetClassNames,

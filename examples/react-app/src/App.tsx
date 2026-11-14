@@ -133,6 +133,18 @@ function App() {
       locationsEnabled: config.locationsEnabled,
       locationTotalsEnabled: config.locationTotalsEnabled,
       locationLabelsEnabled: config.locationLabelsEnabled,
+      locationLabelProps: {
+        characterSet: 'auto',
+        getSize: 12,
+        maxWidth: 14,
+        wordBreak: 'break-word',
+        lineHeight: 1.2,
+        getColor: config.darkMode ? [255, 255, 255, 255] : [35, 55, 65, 255],
+        outlineColor: config.darkMode
+          ? [20, 25, 30, 255]
+          : [255, 255, 255, 255],
+        outlineWidth: 2,
+      },
       flowLinesRenderingMode: config.flowLinesRenderingMode,
       clusteringEnabled: config.clusteringEnabled,
       clusteringAuto: config.clusteringAuto,

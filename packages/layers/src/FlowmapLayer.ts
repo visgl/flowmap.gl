@@ -12,7 +12,11 @@ import {
 } from '@deck.gl/core';
 import GlobeOcclusionExtension from './GlobeOcclusionExtension.js';
 
-import {ScatterplotLayer, TextLayer} from '@deck.gl/layers';
+import {ScatterplotLayer} from '@deck.gl/layers';
+import LocationLabelsLayer, {
+  getLocationLabelProps,
+  type LocationLabelProps,
+} from './LocationLabelsLayer.js';
 import {
   FilterState,
   FlowEndpointsInViewportMode,
@@ -63,6 +67,8 @@ export type FlowmapLayerProps<
   locationsEnabled?: boolean;
   locationTotalsEnabled?: boolean;
   locationLabelsEnabled?: boolean;
+  /** TextLayer styling and accessors for generated location/cluster labels. */
+  locationLabelProps?: LocationLabelProps;
   adaptiveScalesEnabled?: boolean;
   flowLineThicknessScale?: number;
   flowLineCurviness?: number;
@@ -854,28 +860,23 @@ export default class FlowmapLayer<
         }
       }
       if (locationsEnabled && locationLabels) {
+        const labelProps = getLocationLabelProps(
+          locationLabels,
+          circleAttributes,
+          props.locationLabelProps,
+        );
         layers.push(
-          new TextLayer(
+          new LocationLabelsLayer(
             this.getSubLayerProps({
+              ...labelProps,
               id: 'location-labels',
               data: locationLabels,
-              maxWidth: 1000,
-              pickable: false,
-              fontFamily: 'Helvetica',
-              getPixelOffset: (d: string, {index}: {index: number}) => {
-                const r = getOuterCircleRadiusByIndex(circleAttributes, index);
-                return [0, r + 5];
-              },
-              getPosition: (d: string, {index}: {index: number}) => {
-                const pos = getLocationCoordsByIndex(circleAttributes, index);
-                return pos;
-              },
-              getText: (d: string) => d,
-              getSize: 10,
-              getColor: [255, 255, 255, 255],
-              getAngle: 0,
-              getTextAnchor: 'middle',
-              getAlignmentBaseline: 'top',
+              extensions: [
+                ...this.props.extensions,
+                ...(labelProps.extensions ?? []),
+              ],
+              collisionGroup:
+                labelProps.collisionGroup ?? `${this.id}-location-labels`,
             }),
           ),
         );
