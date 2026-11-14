@@ -6,17 +6,11 @@
 
 import {
   _GlobeViewport as GlobeViewport,
-  COORDINATE_SYSTEM,
   Layer,
   picking,
   project32,
   type Viewport,
 } from '@deck.gl/core';
-import {Buffer} from '@luma.gl/core';
-import {
-  GlobeAnimationPhase,
-  type AnimationRoute,
-} from './globe-animation-phase.js';
 import {Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
@@ -74,10 +68,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   state!: {
     model?: Model;
     vertexCount: number;
-    globeAnimation: GlobeAnimationPhase;
-    globePhaseBuffer?: Buffer;
-    globePhaseValues?: Float32Array;
-    animationRevision: number;
     animationViewports: Map<
       string,
       {viewport: Viewport; offset: [number, number]}
@@ -180,8 +170,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       model,
       vertexCount: model.vertexCount,
       animationViewports: new Map(),
-      globeAnimation: new GlobeAnimationPhase(),
-      animationRevision: 0,
     });
   }
 
@@ -192,17 +180,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   updateState(params: any): void {
     super.updateState(params);
     const {changeFlags, props, oldProps} = params;
-    if (
-      changeFlags.dataChanged ||
-      changeFlags.updateTriggersChanged ||
-      props.numInstances !== oldProps.numInstances ||
-      props.getSourcePosition !== oldProps.getSourcePosition ||
-      props.getTargetPosition !== oldProps.getTargetPosition ||
-      props.getStaggering !== oldProps.getStaggering
-    ) {
-      this.state.animationRevision++;
-    }
-
     if (
       !this.state.model ||
       changeFlags.extensionsChanged ||
@@ -226,7 +203,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       return;
     }
     const {viewport, device} = this.context;
-    this._updateGlobeAnimation();
     const pixelRatio =
       options.shaderModuleProps?.project?.devicePixelRatio ??
       device.canvasContext!.cssToDeviceRatio();
@@ -239,6 +215,12 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
         animationTailLength,
         currentTime: animationTime,
         panOffset: this._getAnimationPanOffset(),
+        globeCenter:
+          viewport instanceof GlobeViewport
+            ? viewport.projectPosition(
+                viewport.unproject([viewport.width / 2, viewport.height / 2]),
+              )
+            : [0, 0, 1],
         screenOrigin: [
           (viewport.x + viewport.width / 2) * pixelRatio,
           framebufferHeight - (viewport.y + viewport.height / 2) * pixelRatio,
@@ -252,104 +234,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       Boolean(options.shaderModuleProps?.picking?.isActive),
     );
     drawAntimeridian(this, model, this.state.vertexCount);
-  }
-
-  finalizeState(context: Parameters<Layer['finalizeState']>[0]): void {
-    this.state.globePhaseBuffer?.destroy();
-    super.finalizeState(context);
-  }
-
-  private _updateGlobeAnimation(): void {
-    const {model} = this.state;
-    const viewport =
-      this.context.deck
-        ?.getViewports()
-        .find((view) => view.id === this.context.viewport.id) ??
-      this.context.viewport;
-    if (!(viewport instanceof GlobeViewport)) {
-      model!.setConstantAttributes({
-        instanceGlobePhaseOffset: new Float32Array([0]),
-      });
-      return;
-    }
-    const attributes = this.getAttributeManager()!.getAttributes();
-    const {coordinateSystem, modelMatrix} = this.props;
-    const geographic =
-      coordinateSystem === COORDINATE_SYSTEM.DEFAULT ||
-      coordinateSystem === COORDINATE_SYSTEM.LNGLAT;
-    const untransformed =
-      !modelMatrix ||
-      Array.from(modelMatrix).every(
-        (value, i) => value === (i % 5 === 0 ? 1 : 0),
-      );
-    // GPU-only inputs (including active GPU attribute transitions) cannot be
-    // sampled here without a synchronous readback. Preserve their legacy phase.
-    if (
-      !geographic ||
-      !untransformed ||
-      !attributes.instanceSourcePositions.value ||
-      !attributes.instanceTargetPositions.value ||
-      !attributes.instanceStaggering.value
-    ) {
-      this.state.globeAnimation.reset(viewport.id);
-      model!.setConstantAttributes({
-        instanceGlobePhaseOffset: new Float32Array([0]),
-      });
-      return;
-    }
-    const values = this.state.globeAnimation.get(
-      viewport,
-      this.state.animationRevision,
-      () => {
-        const read = (name: string, index: number, size: number) => {
-          const attribute = attributes[name];
-          const value = attribute.value!;
-          const accessor = attribute.getAccessor();
-          const bytes =
-            'BYTES_PER_ELEMENT' in value ? Number(value.BYTES_PER_ELEMENT) : 4;
-          const offset = (accessor.offset ?? 0) / bytes;
-          const componentCount = accessor.size ?? size;
-          const stride = (accessor.stride || componentCount * bytes) / bytes;
-          const start = offset + (attribute.isConstant ? 0 : index * stride);
-          return Array.from({length: size}, (_, component) =>
-            component < componentCount ? value[start + component] : 0,
-          );
-        };
-        return Array.from(
-          {length: this.getNumInstances()},
-          (_, index): AnimationRoute => ({
-            source: read(
-              'instanceSourcePositions',
-              index,
-              3,
-            ) as AnimationRoute['source'],
-            target: read(
-              'instanceTargetPositions',
-              index,
-              3,
-            ) as AnimationRoute['target'],
-            staggering: read('instanceStaggering', index, 1)[0],
-          }),
-        );
-      },
-    );
-    if (this.state.globePhaseValues !== values) {
-      if (
-        !this.state.globePhaseBuffer ||
-        this.state.globePhaseBuffer.byteLength < values.byteLength
-      ) {
-        this.state.globePhaseBuffer?.destroy();
-        this.state.globePhaseBuffer = this.context.device.createBuffer({
-          byteLength: Math.max(8, values.byteLength),
-          usage: Buffer.VERTEX | Buffer.COPY_DST,
-        });
-      }
-      if (values.length) this.state.globePhaseBuffer.write(values);
-      this.state.globePhaseValues = values;
-    }
-    model!.setAttributes({
-      instanceGlobePhaseOffset: this.state.globePhaseBuffer!,
-    });
   }
 
   private _getAnimationPanOffset(): [number, number] {
@@ -407,14 +291,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     return new Model(this.context.device as any, {
       ...this.getShaders(),
       id,
-      bufferLayout: [
-        ...this.getAttributeManager()!.getBufferLayouts(),
-        {
-          name: 'instanceGlobePhaseOffset',
-          format: 'float32',
-          stepMode: 'instance',
-        },
-      ],
+      bufferLayout: this.getAttributeManager()!.getBufferLayouts(),
       geometry: createAntimeridianGeometry({
         topology: 'triangle-strip',
         attributes: {

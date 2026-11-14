@@ -328,7 +328,9 @@ their flat meaning, measured along the surface:
   locally at the view center. Perspective and foreshortening compress the pulses
   toward the horizon; spacing is not constant in screen pixels. Zoom preserves
   pulse phase near the visible part of each route instead of shifting it from a
-  distant source. Panning retains the existing surface-relative motion.
+  distant source. The shader anchors phase at the point on each route nearest
+  the view center. Panning moves that anchor too, so pulses can slide relative
+  to the geography rather than moving with it exactly.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
   and zero at the endpoints. Bends use great-circle distance with the same
   length-based rule as the flat map, scaled by `flowLineCurviness`.

@@ -8,8 +8,8 @@ import {assert, test, vi} from 'vitest';
 import {setupDeck, captureLayers, difference} from './helpers.js';
 
 const harness = setupDeck({views: new GlobeView()});
-const makeLayer = (props = {}) =>
-  new AnimatedFlowLinesLayer({
+const makeLayer = (props = {}, Layer = AnimatedFlowLinesLayer) =>
+  new Layer({
     id: 'globe-animation',
     data: [{source: [-70, 0], target: [70, 0]}],
     getSourcePosition: (d) => d.source,
@@ -95,41 +95,116 @@ test.each(
   },
 );
 
-test('globe phase correction preserves surface spacing, speed, and panning', async () => {
+test('pitched inset globe keeps an oblique route stable near the view center', async () => {
   const {deck} = harness;
-  const clock = vi.spyOn(Date, 'now').mockReturnValue(100000);
-  deck.setProps({viewState: {longitude: 10, latitude: 0, zoom: 3}});
-  const layer = makeLayer();
-  await captureLayers(deck, [layer]);
-  deck.setProps({viewState: {longitude: 10, latitude: 0, zoom: 4}});
-  await captureLayers(deck, [layer.clone()]);
-  const live = deck.props.layers[0];
-  const offset = live.state.globePhaseValues[0];
-  assert(offset > 0.01, 'This test needs a nonzero zoom correction');
-  for (const longitude of [10, 15, -5]) {
-    deck.setProps({viewState: {longitude, latitude: 0, zoom: 4}});
-    clock.mockReturnValue(101000);
-    const actual = await captureLayers(deck, [live.clone({visible: true})]);
-    // A fresh layer has the original source-relative surface formula. Adding
-    // the retained offset to staggering must reproduce every pulse, including
-    // perspective/foreshortening. One second advances exactly 0.3 cycles.
-    clock.mockReturnValue(100000);
-    const reference = makeLayer({
-      id: 'surface-reference',
-      getStaggering: () => 0.8 + offset - 0.3,
+  vi.spyOn(Date, 'now').mockReturnValue(100000);
+  deck.setProps({
+    views: new GlobeView({id: 'inset', x: 36, y: 28, width: 380, height: 280}),
+  });
+  const layer = makeLayer({
+    data: [{source: [-60, -40], target: [60, 40]}],
+    getStaggering: () => 0.6,
+  });
+  let before;
+  for (const zoom of [3, 3.1, 4, 5, 3]) {
+    deck.setProps({
+      viewState: {longitude: 0, latitude: 0, pitch: 40, bearing: 35, zoom},
     });
-    const expected = await captureLayers(deck, [
-      live.clone({visible: false}),
-      reference,
-    ]);
+    const after = await captureLayers(deck, [layer.clone()]);
+    // The route crosses the inset's center; sample inside the ribbon, away
+    // from antialiased edges. readPixels has a bottom-left origin.
     assert(
-      difference(actual, expected) <= 2,
-      'Surface spacing, speed or pan behavior changed',
+      sample(after, 226, 192) > 50,
+      'Oblique route must cross the view center',
     );
+    before ??= after;
+    for (let x = 224; x <= 228; x++) {
+      for (let y = 190; y <= 194; y++) {
+        assert(
+          Math.abs(sample(before, x, y) - sample(after, x, y)) < 12,
+          `Inset globe phase shifted at zoom ${zoom}, ${x}/${y}`,
+        );
+      }
+    }
   }
 });
 
-test('GPU-only positions retain legacy globe rendering without readback', async () => {
+// Retain the original source-relative shader as a reference for the surface
+// wavelength and time derivative; only the phase origin is allowed to change.
+class SourceAnchoredLayer extends AnimatedFlowLinesLayer {
+  static componentName = 'SourceAnchoredLayer';
+  getShaders() {
+    const shaders = super.getShaders();
+    return {
+      ...shaders,
+      vs: shaders.vs.replace('(positions.x - globeAnchor)', 'positions.x'),
+    };
+  }
+}
+
+test('globe anchor preserves surface spacing and speed across zoom and pan', async () => {
+  const {deck} = harness;
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(100000);
+  const layer = makeLayer();
+  for (const zoom of [3, 4]) {
+    for (const longitude of [10, 15, -5]) {
+      const state = {longitude, latitude: 0, zoom};
+      deck.setProps({viewState: state});
+      clock.mockReturnValue(101000);
+      const actual = await captureLayers(deck, [layer.clone()]);
+      // This equatorial route crosses the view center longitude. Its distance
+      // from the source is known analytically, in globe common units (R=256).
+      const viewport = new GlobeViewport({...state, width: 480, height: 360});
+      const distance = (256 * (longitude + 70) * Math.PI) / 180;
+      const anchorPhase = (distance * viewport.scale * 15) / 480;
+      clock.mockReturnValue(100000);
+      const reference = makeLayer(
+        {
+          id: 'surface-reference',
+          // One second still advances exactly 0.3 cycles.
+          getStaggering: () => 0.8 - anchorPhase - 0.3,
+        },
+        SourceAnchoredLayer,
+      );
+      const expected = await captureLayers(deck, [reference]);
+      // Tiny GPU/CPU angle differences can move a discontinuous head across
+      // one pixel. Compare the smooth tails across the entire center row.
+      const smooth = [];
+      for (let x = 1; x < 479; x++) {
+        if (
+          Math.abs(sample(actual, x - 1) - sample(actual, x + 1)) > 100 ||
+          Math.abs(sample(expected, x - 1) - sample(expected, x + 1)) > 100
+        )
+          continue;
+        smooth.push(Math.abs(sample(actual, x) - sample(expected, x)));
+      }
+      assert(
+        Math.max(...smooth) <= 5,
+        `Surface spacing or speed changed at ${longitude}/${zoom}: ${Math.max(...smooth)}`,
+      );
+    }
+  }
+});
+
+test('globe pan keeps the phase near the view center instead of following geography', async () => {
+  const {deck} = harness;
+  vi.spyOn(Date, 'now').mockReturnValue(100000);
+  const layer = makeLayer();
+  deck.setProps({viewState: {longitude: 10, latitude: 0, zoom: 4}});
+  const before = await captureLayers(deck, [layer]);
+  for (const longitude of [15, -5, 10]) {
+    deck.setProps({viewState: {longitude, latitude: 0, zoom: 4}});
+    const after = await captureLayers(deck, [layer.clone()]);
+    for (let x = 230; x < 250; x++) {
+      assert(
+        Math.abs(sample(before, x) - sample(after, x)) <= 2,
+        'Panning shifted the center phase',
+      );
+    }
+  }
+});
+
+test('GPU-only positions share the globe anchor across zoom without readback', async () => {
   const {deck} = harness;
   vi.spyOn(Date, 'now').mockReturnValue(100000);
   deck.setProps({viewState: {longitude: 10, latitude: 0, zoom: 3}});
@@ -153,17 +228,20 @@ test('GPU-only positions retain legacy globe rendering without readback', async 
         },
       },
     });
-    const actual = await captureLayers(deck, [gpu]);
-    assert(
-      Array.from({length: 480}, (_, x) => sample(actual, x)).some(
-        (value) => value > 100,
-      ),
-      'GPU-backed route must be visible',
-    );
-    const expected = await captureLayers(deck, [
-      makeLayer({id: 'cpu-reference'}),
-    ]);
-    assert(difference(actual, expected) <= 2, 'GPU-only rendering changed');
+    for (const zoom of [3, 4, 5, 3]) {
+      deck.setProps({viewState: {longitude: 10, latitude: 0, zoom}});
+      const actual = await captureLayers(deck, [gpu.clone()]);
+      assert(
+        Array.from({length: 480}, (_, x) => sample(actual, x)).some(
+          (value) => value > 100,
+        ),
+        'GPU-backed route must be visible',
+      );
+      const expected = await captureLayers(deck, [
+        makeLayer({id: 'cpu-reference'}),
+      ]);
+      assert(difference(actual, expected) <= 2, 'GPU-only rendering changed');
+    }
   } finally {
     await captureLayers(deck, []);
     buffers.forEach((buffer) => buffer.destroy());

@@ -20,7 +20,6 @@ in float instanceWidths;
 in float instancePickable;
 in float instanceHasReverseFlow;
 in float instanceStaggering;
-in float instanceGlobePhaseOffset;
 
 out vec4 vColor;
 out float sourceToTarget;
@@ -63,6 +62,7 @@ void main(void) {
   // matches flat spacing locally at the view center; perspective and
   // foreshortening compress the pulses toward the horizon.
   float routeLength = 0.0;
+  float globeAnchor = 0.0;
   vScreenAnimation = vec4(0.0);
   if (project.projectionMode == PROJECTION_MODE_GLOBE) {
     // Follow the great circle on the sphere's surface.
@@ -70,6 +70,16 @@ void main(void) {
       project_position(instanceSourcePositions, instanceSourcePositions64Low),
       project_position(instanceTargetPositions, instanceTargetPositions64Low)
     );
+    // Anchor at the closest point on this arc to the viewport center. This
+    // retains surface-based speed/spacing without route history or CPU copies
+    // of the geometry. Panning deliberately moves this anchor with the view.
+    vec3 center = normalize(animatedFlowLines.globeCenter);
+    vec2 centerInPlane = vec2(dot(center, arc.start), dot(center, arc.tangent));
+    float theta = length(centerInPlane) > 1e-6
+      ? atan(centerInPlane.y, centerInPlane.x) : 0.0;
+    globeAnchor = theta >= 0.0 && theta <= arc.angle
+      ? theta / max(arc.angle, 1e-6)
+      : (dot(center, arc.start) >= dot(center, normalize(globeArc_point(arc, 1.0, 0.0))) ? 0.0 : 1.0);
     vec3 point = globeArc_point(arc, segmentIndex, 0.0);
     vec3 normal;
     vec3 direction;
@@ -126,7 +136,7 @@ void main(void) {
   DECKGL_FILTER_COLOR(vColor, geometry);
 
   sourceToTarget = project.projectionMode == PROJECTION_MODE_GLOBE
-    ? positions.x * routeLength * NUM_PARTS + instanceGlobePhaseOffset - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
+    ? (positions.x - globeAnchor) * routeLength * NUM_PARTS - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
     : 0.0;
 }
 `;
