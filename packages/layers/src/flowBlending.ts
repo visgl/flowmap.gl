@@ -65,7 +65,8 @@ export function getFlowBlendingUniforms(props: FlowBlendingProps) {
 
 /**
  * Separate canvases must clear to opaque white/black and use CSS darken/lighten.
- * Use clearColor on a deck.gl View with clear: true (values are 0..255).
+ * Clear once per frame: per-view clears erase earlier repeated-world copies.
+ * getFlowmapCanvasClearColor returns values in 0..255.
  * Never clear an interleaved canvas: its destination is the basemap itself.
  */
 export function getFlowmapCanvasStyle(props: FlowBlendingProps) {
