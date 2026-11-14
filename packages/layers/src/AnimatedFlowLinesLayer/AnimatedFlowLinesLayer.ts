@@ -4,7 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {COORDINATE_SYSTEM, Layer, picking, project32} from '@deck.gl/core';
+import {
+  _GlobeViewport as GlobeViewport,
+  Layer,
+  picking,
+  project32,
+  type Viewport,
+} from '@deck.gl/core';
 import {Geometry, Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
@@ -57,7 +63,10 @@ const loopTime = loopLength / animationSpeed;
 export default class AnimatedFlowLinesLayer<F> extends Layer {
   state!: {
     model?: Model;
-    animationDistanceScale?: number;
+    animationViewports: Map<
+      string,
+      {viewport: Viewport; offset: [number, number]}
+    >;
   };
 
   static defaultProps = {
@@ -151,7 +160,7 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
         transition: false,
       },
     });
-    this.setState({model: this._getModel()});
+    this.setState({model: this._getModel(), animationViewports: new Map()});
   }
 
   getNeedsRedraw(): string | false {
@@ -183,27 +192,24 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     if (!model) {
       return;
     }
-    if (this.state.animationDistanceScale === undefined) {
-      // The first draw uses the actual target viewport, including viewId bindings.
-      // Retain this calibration so zoom does not shift pulses along the route.
-      const {viewport} = this.context;
-      const {coordinateSystem} = this.props;
-      const geographic =
-        coordinateSystem === COORDINATE_SYSTEM.LNGLAT ||
-        (coordinateSystem === COORDINATE_SYSTEM.DEFAULT &&
-          viewport.isGeospatial);
-      this.setState({
-        animationDistanceScale:
-          ((3 * viewport.scale) / viewport.height) *
-          (geographic ? viewport.distanceScales.unitsPerMeter[0] : 1),
-      });
-    }
+    const {viewport, device} = this.context;
+    const pixelRatio =
+      options.shaderModuleProps?.project?.devicePixelRatio ??
+      device.canvasContext!.cssToDeviceRatio();
+    const framebufferHeight =
+      options.renderPass.props.framebuffer?.height ??
+      device.canvasContext!.getDrawingBufferSize()[1];
     model.shaderInputs.setProps({
       animatedFlowLines: {
         thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,
         currentTime: animationTime,
-        animationDistanceScale: this.state.animationDistanceScale,
+        panOffset: this._getAnimationPanOffset(),
+        screenOrigin: [
+          (viewport.x + viewport.width / 2) * pixelRatio,
+          framebufferHeight - (viewport.y + viewport.height / 2) * pixelRatio,
+          pixelRatio,
+        ],
       },
     });
     applyFlowBlending(
@@ -215,6 +221,38 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       model.shaderInputs.setProps({antimeridian: {side}});
       model.draw(this.context.renderPass as any);
     }
+  }
+
+  private _getAnimationPanOffset(): [number, number] {
+    // Repeated-world and picking passes must share the logical view's history.
+    const viewport =
+      this.context.deck
+        ?.getViewports()
+        .find((view) => view.id === this.context.viewport.id) ??
+      this.context.viewport;
+    if (viewport instanceof GlobeViewport) return [0, 0];
+    const previous = this.state.animationViewports.get(viewport.id);
+    if (previous?.viewport === viewport) return previous.offset;
+    const offset: [number, number] = previous ? [...previous.offset] : [0, 0];
+    if (previous) {
+      const center = viewport.unprojectPosition(viewport.center);
+      const oldCenter = previous.viewport.unprojectPosition(
+        previous.viewport.center,
+      );
+      if (viewport.isGeospatial) {
+        // A camera crossing the dateline pans a few pixels, not a whole world.
+        oldCenter[0] =
+          center[0] +
+          ((((oldCenter[0] - center[0] + 180) % 360) + 360) % 360) -
+          180;
+      }
+      const from = viewport.project(oldCenter, {topLeft: false});
+      const to = viewport.project(center, {topLeft: false});
+      offset[0] += from[0] - to[0];
+      offset[1] += from[1] - to[1];
+    }
+    this.state.animationViewports.set(viewport.id, {viewport, offset});
+    return offset;
   }
 
   _getModel(): Model {

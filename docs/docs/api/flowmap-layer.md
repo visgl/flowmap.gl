@@ -300,11 +300,9 @@ their strings are passed to the label layer.
 Controls how flow lines are rendered.
 
 - `'straight'`: static straight half-barbed arrows
-- `'animated-straight'`: animated straight flow lines. Pulse spacing uses geographic
-  route distance, calibrated to the first rendered view for the lifetime of the
-  layer. Pulses scale with the map during zoom, preserving their progress along
-  each route. After zooming in from a global view, short routes can show less
-  than one full pulse.
+- `'animated-straight'`: animated straight flow lines. On flat maps, pulses retain
+  a spacing of 60 CSS pixels and travel at 18 CSS pixels per second as you zoom.
+  Their phase is anchored in the viewport and follows map translation when panning.
 - `'curved'`: static curved half-barbed arrows for separating overlapping corridors
 
 Curved routes use their endpoint distance to set the bend: longer routes bow
@@ -321,10 +319,9 @@ their flat meaning, measured along the surface:
 - `'straight'`: arrows along the great circle. Opposite directions sit side by
   side, separated by the same gap as on the flat map.
 - `'animated-straight'`: the same great circle, with the animated pulses. Pulse
-  spacing is measured along the sphere's surface and calibrated to the initial
-  view. Zooming and rotating do not reset pulse progress. Perspective and
-  foreshortening compress the pulses toward the horizon; spacing is not constant
-  in screen pixels.
+  spacing is measured along the sphere's surface, calibrated to the flat map
+  locally at the view center. Perspective and foreshortening compress the pulses
+  toward the horizon; spacing is not constant in screen pixels.
 - `'curved'`: the great circle bowed to the right of travel, largest mid-route
   and zero at the endpoints. Bends use great-circle distance with the same
   length-based rule as the flat map, scaled by `flowLineCurviness`.

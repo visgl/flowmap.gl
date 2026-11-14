@@ -8,7 +8,6 @@ import globeArc from '../globe-arc.glsl.js';
 export default `\
 #version 300 es
 #define SHADER_NAME animated-flow-lines-layer-vertex-shader
-#define SPEED 0.015
 #define NUM_PARTS 5.0
 
 in vec3 positions;
@@ -24,6 +23,7 @@ in float instanceStaggering;
 
 out vec4 vColor;
 out float sourceToTarget;
+flat out vec4 vScreenAnimation;
 out vec2 uv;
 flat out float vHasReverseFlow;
 
@@ -58,9 +58,11 @@ void main(void) {
   vec3 targetPosition = instanceTargetPositions;
   bool drawn = antimeridian_wrap(sourcePosition, targetPosition);
 
-  // Measure animation distance in map units so camera changes do not shift
-  // the pulse phase at a fixed point along the route.
-  float routeLength;
+  // Globe pulses advance uniformly along surface distance. The conversion
+  // matches flat spacing locally at the view center; perspective and
+  // foreshortening compress the pulses toward the horizon.
+  float routeLength = 0.0;
+  vScreenAnimation = vec4(0.0);
   if (project.projectionMode == PROJECTION_MODE_GLOBE) {
     // Follow the great circle on the sphere's surface.
     GlobeArc arc = globeArc_create(
@@ -76,7 +78,19 @@ void main(void) {
     DECKGL_FILTER_SIZE(offset, geometry);
     geometry.position = vec4(normalize(point + offset) * length(point), 1.0);
     gl_Position = project_common_position_to_clipspace(geometry.position);
-    routeLength = globeArc_length(arc);
+    // At zero pitch, a flat route covering one CSS pixel has a clip-space
+    // length of 3 / height vertically and 3 / width horizontally (clip space
+    // includes the camera's w of 1.5). Weight these by the route's on-screen
+    // direction to calibrate surface distance against the flat reference.
+    // This is not the projected screen length of the globe route.
+    vec4 startClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 0.0, 0.0), 1.0));
+    vec4 endClip = project_common_position_to_clipspace(vec4(globeArc_point(arc, 1.0, 0.0), 1.0));
+    vec2 screenDirection = (endClip.xy / endClip.w - startClip.xy / startClip.w) * project.viewportSize;
+    vec2 clipPerPixel = 3.0 * project.devicePixelRatio / project.viewportSize;
+    float clipPerRoutePixel = length(screenDirection) > 1e-6
+      ? length(normalize(screenDirection) * clipPerPixel)
+      : clipPerPixel.y;
+    routeLength = globeArc_length(arc) / project_pixel_size(1.0) * clipPerRoutePixel;
   } else {
     vec4 source_commonspace;
     vec4 target_commonspace;
@@ -93,19 +107,15 @@ void main(void) {
       0.0);
     DECKGL_FILTER_SIZE(offset, geometry);
     gl_Position = p + vec4(project_pixel_size_to_clipspace(offset.xy), 0.0, 0.0);
-    routeLength = length(target_commonspace.xyz - source_commonspace.xyz);
+    vec2 pixelsPerClipUnit = project.viewportSize / (2.0 * project.devicePixelRatio);
+    vec2 sourcePixels = source.xy / source.w * pixelsPerClipUnit;
+    vec2 targetPixels = target.xy / target.w * pixelsPerClipUnit;
+    vec2 deltaPixels = targetPixels - sourcePixels;
+    vec2 direction = deltaPixels / max(length(deltaPixels), 1e-6);
+    // Anchor phase in the visible viewport, not at a distant route origin.
+    // Pan translation follows the map; zoom does not stretch or rephase pulses.
+    vScreenAnimation = vec4(direction, instanceStaggering, 1.0);
     if (!drawn) gl_Position = vec4(0.0);
-  }
-  if (project.coordinateSystem == COORDINATE_SYSTEM_LNGLAT) {
-    // Use the same geographic distance on flat maps and globes, including
-    // GlobeView's automatic switch to Mercator at high zoom. Subtract high/low
-    // parts before converting to radians to retain short-route precision.
-    vec2 delta = radians((instanceTargetPositions.xy - instanceSourcePositions.xy) +
-      (instanceTargetPositions64Low.xy - instanceSourcePositions64Low.xy));
-    vec2 latitudes = radians(vec2(instanceSourcePositions.y, instanceTargetPositions.y));
-    vec2 halfChord = sin(delta / 2.0);
-    float a = clamp(halfChord.y * halfChord.y + cos(latitudes.x) * cos(latitudes.y) * halfChord.x * halfChord.x, 0.0, 1.0);
-    routeLength = 2.0 * EARTH_RADIUS * atan(sqrt(a), sqrt(1.0 - a));
   }
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
   antimeridian_setPosition(gl_Position);
@@ -114,6 +124,8 @@ void main(void) {
   vColor = vec4(instanceColors.rgb, instanceColors.a * layer.opacity);
   DECKGL_FILTER_COLOR(vColor, geometry);
 
-  sourceToTarget = positions.x * routeLength * animatedFlowLines.animationDistanceScale * NUM_PARTS - animatedFlowLines.currentTime * SPEED + instanceStaggering;
+  sourceToTarget = project.projectionMode == PROJECTION_MODE_GLOBE
+    ? positions.x * routeLength * NUM_PARTS - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + instanceStaggering
+    : 0.0;
 }
 `;

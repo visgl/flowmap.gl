@@ -12,6 +12,7 @@ precision highp float;
 
 in vec4 vColor;
 in float sourceToTarget;
+flat in vec4 vScreenAnimation;
 in vec2 uv;
 flat in float vHasReverseFlow;
 
@@ -27,7 +28,15 @@ void main(void) {
     discard;
   }
 
-  fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(sourceToTarget)));
+  float phase = sourceToTarget;
+  if (vScreenAnimation.w > 0.5) {
+    // Evaluate at the fragment: interpolated endpoint phases lose precision
+    // when zoom puts a route's endpoints millions of pixels offscreen.
+    vec2 pixel = (gl_FragCoord.xy - animatedFlowLines.screenOrigin.xy) / animatedFlowLines.screenOrigin.z;
+    phase = dot(pixel - animatedFlowLines.panOffset, vScreenAnimation.xy) / 60.0
+      - animatedFlowLines.currentTime * ANIMATED_FLOW_SPEED + vScreenAnimation.z;
+  }
+  fragColor = vec4(vColor.xyz, vColor.w * smoothstep(1.0 - animatedFlowLines.animationTailLength, 1.0, fract(phase)));
 
   DECKGL_FILTER_COLOR(fragColor, geometry);
   float coverage = smoothstep(0.0, max(fwidth(uv.y), 1e-4), 1.0 - abs(uv.y));
