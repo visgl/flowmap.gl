@@ -5,6 +5,7 @@ import {
   CurvedFlowLinesLayer,
   AnimatedFlowLinesLayer,
   getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
 } from '@flowmap.gl/layers';
 import {getColors} from '@flowmap.gl/data';
 
@@ -328,6 +329,57 @@ async function run() {
       }
     }
     report('PASS explicit depth parameters override non-accumulating defaults');
+    // A 256px-wide world fits twice in this 480px canvas. Clearing a repeating
+    // View erases earlier copies; the canvas effect must preserve both copies.
+    for (const darkMode of [false, true]) {
+      const props = {darkMode, blendingMode: 'non-accumulating'};
+      const clearColor = getFlowmapCanvasClearColor(props);
+      deck.setProps({
+        views: new MapView({repeat: true}),
+        viewState: {longitude: 180, latitude: 0, zoom: -1},
+        effects: getFlowmapCanvasEffects(props),
+      });
+      const empty = await capture([]);
+      assert(
+        empty.every((value, i) => value === clearColor[i % 4]),
+        'Canvas was not cleared to the neutral color',
+      );
+      for (const mode of ['straight', 'curved', 'animated-straight']) {
+        const layer = makeLayer('repeated', {
+          ...props,
+          flowLinesRenderingMode: mode,
+        });
+        const pixels = await capture([layer]);
+        for (const x of [0, 240]) {
+          let painted = false;
+          for (let y = 0; y < 360 && !painted; y++) {
+            for (let column = x; column < x + 240; column++) {
+              const i = (y * 480 + column) * 4;
+              if (Math.abs(pixels[i] - empty[i]) > 10) {
+                painted = true;
+                break;
+              }
+            }
+          }
+          assert(painted, `${mode}: repeated world at x=${x} was erased`);
+          assert(
+            deck.pickObjects({x, y: 0, width: 240, height: 360}).length > 0,
+            `${mode}: repeated world at x=${x} is not pickable`,
+          );
+        }
+        assert(
+          difference(pixels, await capture([layer])) === 0,
+          `${mode}: picking or redrawing changed the canvas`,
+        );
+      }
+      assert(
+        difference(empty, await capture([])) === 0,
+        'Removing layers left trails from a previous frame',
+      );
+      report(
+        `PASS repeated worlds ${darkMode ? 'dark' : 'light'}: all flat modes, neutral clear, picking, redraw, no trails`,
+      );
+    }
     assert(errors.length === 0, errors.join('\n'));
     report('ALL CHECKS PASSED');
   } finally {

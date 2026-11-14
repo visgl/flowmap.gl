@@ -6,7 +6,7 @@ import {
 } from '@deck.gl/core';
 import {
   getFlowmapCanvasStyle,
-  getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
   type BlendingMode,
 } from '@flowmap.gl/layers';
 import {MapLibreOverlay, type MapLibreOverlayProps} from '@deck.gl/maplibre';
@@ -67,12 +67,14 @@ export default function FlowmapCanvas({
     [sourceStyle, labelsEnabled],
   );
   const views = useMemo(() => {
-    const clearColor = interleaved
-      ? undefined
-      : getFlowmapCanvasClearColor({blendingMode, darkMode});
     const View = globe ? GlobeView : MapView;
-    return new View({id: 'maplibre', clear: Boolean(clearColor), clearColor});
-  }, [globe, interleaved, blendingMode, darkMode]);
+    return new View({id: 'maplibre'});
+  }, [globe]);
+  const effects = useMemo(
+    () =>
+      interleaved ? [] : getFlowmapCanvasEffects({blendingMode, darkMode}),
+    [interleaved, blendingMode, darkMode],
+  );
   const canvasStyle = useMemo(
     () =>
       interleaved ? undefined : getFlowmapCanvasStyle({blendingMode, darkMode}),
@@ -120,6 +122,7 @@ export default function FlowmapCanvas({
           parameters={{depthWriteEnabled: false, depthCompare: 'always'}}
           // MapLibreOverlay's DeckProps default incorrectly narrows views to null.
           views={views as unknown as MapLibreOverlayProps['views']}
+          effects={effects}
           style={canvasStyle}
         />
       </Map>

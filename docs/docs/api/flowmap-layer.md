@@ -295,8 +295,8 @@ deck.gl internals that are themselves experimental: the `_GlobeView` and
 `_GlobeViewport` exports (underscore-prefixed in deck.gl 9.4 and 10.0 alpha), and
 deck.gl's internal globe radius of 256 common-space units, which is not part of
 its public API. A deck.gl release that changes either may require a matching
-flowmap.gl update. The `viewId`, `blendingMode`, `getFlowmapCanvasStyle`, and
-`getFlowmapCanvasClearColor` APIs introduced alongside it are also experimental.
+flowmap.gl update. The `viewId`, `blendingMode`, `getFlowmapCanvasStyle`,
+`getFlowmapCanvasClearColor` and `getFlowmapCanvasEffects` APIs are also experimental.
 :::
 
 #### `viewId`
@@ -661,14 +661,14 @@ clear to opaque white/black and use matching CSS `darken`/`lighten`:
 import {MapView} from '@deck.gl/core';
 import {
   FlowmapLayer,
-  getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
   getFlowmapCanvasStyle,
 } from '@flowmap.gl/layers';
 
 const blending = {blendingMode: 'non-accumulating', darkMode: false} as const;
-const clearColor = getFlowmapCanvasClearColor(blending);
-const view = new MapView({id: 'map', clear: Boolean(clearColor), clearColor});
-// Pass views: view and style: getFlowmapCanvasStyle(blending) to Deck/DeckGL.
+const view = new MapView({id: 'map', repeat: true});
+const effects = getFlowmapCanvasEffects(blending);
+// Pass views: view, effects, and style: getFlowmapCanvasStyle(blending) to Deck/DeckGL.
 // GlobeView works the same way. MapLibreOverlay uses view id 'maplibre'.
 const layer = new FlowmapLayer({...flowmapProps, ...blending});
 ```
@@ -683,9 +683,14 @@ Object.assign(overlay.getCanvas().style, getFlowmapCanvasStyle(blending));
 
 React `DeckGL` updates its canvas style automatically.
 
-The clear-color helper returns 0–255 values for a deck.gl **View**, not normalized
-WebGL clear values. In normal mode it returns `undefined`; disable the view clear
-when returning to normal. The style helper restores the examples' existing
+The effects helper clears once per frame, before drawing all repeated worlds,
+and leaves picking buffers unchanged. Keep `View.clear` disabled: it clears before
+each world copy and erases earlier copies. Recompute the effects when the theme
+or blending mode changes; normal mode returns an empty array and uses deck.gl's
+default transparent clear. Append these effects to any other effects you use.
+
+The lower-level `getFlowmapCanvasClearColor` helper returns 0–255 values, or
+`undefined` in normal mode. The style helper restores the examples' existing
 `screen` (dark) / `darken` (light) CSS behavior in normal mode. Its default theme,
 like FlowmapLayer's, is dark.
 

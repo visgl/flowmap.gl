@@ -84,6 +84,10 @@ edge coverage, picking, visible highlights, and live mode/fade changes.
 with the new mode, including hidden-hemisphere picking and horizon clipping.
 These test pages are served only by the development server.
 
+The separate canvas clears once per frame before drawing all repeated worlds.
+The blending checks also cover repeated-world rendering and picking in both
+themes, including redraws and clearing removed layers without leaving trails.
+
 ## Antimeridian wrapping
 
 The `wrapLongitude` control (on by default in this example) passes deck.gl's
