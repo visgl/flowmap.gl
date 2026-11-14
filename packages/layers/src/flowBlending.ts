@@ -1,4 +1,4 @@
-import {picking} from '@deck.gl/core';
+import {picking, type Effect} from '@deck.gl/core';
 import type {ShaderModule} from '@luma.gl/shadertools';
 import type {Model} from '@luma.gl/engine';
 import type {Parameters} from '@luma.gl/core';
@@ -65,8 +65,7 @@ export function getFlowBlendingUniforms(props: FlowBlendingProps) {
 
 /**
  * Separate canvases must clear to opaque white/black and use CSS darken/lighten.
- * Clear once per frame: per-view clears erase earlier repeated-world copies.
- * getFlowmapCanvasClearColor returns values in 0..255.
+ * Pair this style with getFlowmapCanvasEffects for frame-level clearing.
  * Never clear an interleaved canvas: its destination is the basemap itself.
  */
 export function getFlowmapCanvasStyle(props: FlowBlendingProps) {
@@ -87,6 +86,33 @@ export function getFlowmapCanvasClearColor(
   if (props.blendingMode !== 'non-accumulating') return undefined;
   const neutral = (props.darkMode ?? true) ? 0 : 255;
   return [neutral, neutral, neutral, 255];
+}
+
+/**
+ * Effects for a separate flowmap canvas. Clear once per frame so repeated
+ * worlds survive, and leave picking buffers to deck.gl. Do not install these
+ * effects on an interleaved canvas, whose destination is the basemap itself.
+ */
+export function getFlowmapCanvasEffects(props: FlowBlendingProps): Effect[] {
+  const clearColor = getFlowmapCanvasClearColor(props);
+  return clearColor ? [createCanvasClearEffect(clearColor)] : [];
+}
+
+function createCanvasClearEffect(clearColor: readonly number[]): Effect {
+  // Render-pass colors use 0..1; the canvas helper returns 0..255.
+  const color = clearColor.map((value) => value / 255);
+  return {
+    id: 'flowmap-canvas-clear',
+    props: {},
+    useInPicking: false,
+    preRender(options) {
+      if (!options.isPicking && options.clearCanvas !== false) {
+        options.clearColor = color;
+      }
+    },
+    setup() {},
+    cleanup() {},
+  };
 }
 
 export const flowBlending = {

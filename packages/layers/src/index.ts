@@ -22,5 +22,6 @@ export * from './types.js';
 export {
   getFlowmapCanvasStyle,
   getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
 } from './flowBlending.js';
 export type {BlendingMode} from './flowBlending.js';

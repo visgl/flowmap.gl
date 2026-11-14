@@ -18,6 +18,7 @@ test('@flowmap.gl/layers loads in Node.js ESM without browser globals', async ()
     FlowmapLegendWidget,
     getFlowmapCanvasStyle,
     getFlowmapCanvasClearColor,
+    getFlowmapCanvasEffects,
   } = await import('@flowmap.gl/layers');
 
   for (const exportedClass of [
@@ -32,4 +33,5 @@ test('@flowmap.gl/layers loads in Node.js ESM without browser globals', async ()
   }
   assert.equal(typeof getFlowmapCanvasStyle, 'function');
   assert.equal(typeof getFlowmapCanvasClearColor, 'function');
+  assert.equal(typeof getFlowmapCanvasEffects, 'function');
 });

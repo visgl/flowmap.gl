@@ -6,7 +6,7 @@ import {
 } from '@deck.gl/core';
 import {
   getFlowmapCanvasStyle,
-  getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
   type BlendingMode,
 } from '@flowmap.gl/layers';
 import {MapLibreOverlay, type MapLibreOverlayProps} from '@deck.gl/maplibre';
@@ -14,7 +14,6 @@ import type {StyleSpecification} from 'maplibre-gl';
 import {useEffect, useMemo, useState} from 'react';
 import {Map, NavigationControl, useControl} from 'react-map-gl/maplibre';
 import {prepareBasemapStyle} from './basemap-style';
-import {createCanvasClearEffect} from './canvas-clear-effect';
 
 type FlowmapCanvasProps = Pick<MapLibreOverlayProps, 'widgets'> & {
   layers: Layer[];
@@ -71,12 +70,11 @@ export default function FlowmapCanvas({
     const View = globe ? GlobeView : MapView;
     return new View({id: 'maplibre'});
   }, [globe]);
-  const effects = useMemo(() => {
-    const clearColor = interleaved
-      ? undefined
-      : getFlowmapCanvasClearColor({blendingMode, darkMode});
-    return clearColor ? [createCanvasClearEffect(clearColor)] : [];
-  }, [interleaved, blendingMode, darkMode]);
+  const effects = useMemo(
+    () =>
+      interleaved ? [] : getFlowmapCanvasEffects({blendingMode, darkMode}),
+    [interleaved, blendingMode, darkMode],
+  );
   const canvasStyle = useMemo(
     () =>
       interleaved ? undefined : getFlowmapCanvasStyle({blendingMode, darkMode}),

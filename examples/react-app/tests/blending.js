@@ -5,9 +5,9 @@ import {
   CurvedFlowLinesLayer,
   AnimatedFlowLinesLayer,
   getFlowmapCanvasClearColor,
+  getFlowmapCanvasEffects,
 } from '@flowmap.gl/layers';
 import {getColors} from '@flowmap.gl/data';
-import {createCanvasClearEffect} from '../src/map/canvas-clear-effect';
 
 const results = globalThis.document.getElementById('results');
 const lines = [];
@@ -337,7 +337,7 @@ async function run() {
       deck.setProps({
         views: new MapView({repeat: true}),
         viewState: {longitude: 180, latitude: 0, zoom: -1},
-        effects: [createCanvasClearEffect(clearColor)],
+        effects: getFlowmapCanvasEffects(props),
       });
       const empty = await capture([]);
       assert(
