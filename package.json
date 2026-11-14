@@ -14,7 +14,11 @@
     "dev:example": "turbo dev --filter='./examples/react-app' --filter './packages/*'",
     "build:example": "turbo build --filter='./examples/react-app' --filter './packages/*'",
     "build": "turbo run build --filter './packages/*' --concurrency 1",
-    "test:node": "pnpm build && node --test test/*.test.mjs",
+    "test": "pnpm test:node && pnpm test:browser",
+    "test:imports": "pnpm build && node --test test/*.test.mjs",
+    "test:node": "pnpm test:imports && vitest run --project node",
+    "test:browser": "vitest run --project browser",
+    "test:watch": "vitest",
     "build:docs": "pnpm --dir docs install --frozen-lockfile && pnpm --dir docs build",
     "build:site": "pnpm build:example && pnpm build:docs && shx cp -r examples/react-app/dist docs/build/demo",
     "prettier": "prettier . --write",
@@ -37,16 +41,21 @@
     "typescript": "^6.0.2"
   },
   "devDependencies": {
+    "@deck.gl/core": "^9.4.0",
     "@eslint/js": "^10.0.1",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
+    "@vitest/browser-playwright": "^4.1.12",
     "eslint": "^10.0.1",
     "husky": "^9.1.7",
     "lerna": "^9.0.7",
     "lint-staged": "^16.4.0",
+    "playwright": "^1.65.1",
     "shx": "^0.4.0",
     "turbo": "2.9.14",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.1",
+    "vite": "^8.3.5",
+    "vitest": "^4.1.12"
   },
   "volta": {
     "node": "22.23.4"

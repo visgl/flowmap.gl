@@ -1,10 +1,12 @@
 import {clusterLocations, buildIndex} from '@flowmap.gl/data';
-import FlowmapSelectors from '../../../packages/data/src/FlowmapSelectors';
+import FlowmapSelectors from '../../packages/data/src/FlowmapSelectors';
 import baseline from './flat-clusters.json';
 import {
   indexGlobePoints,
   projectGlobe,
-} from '../../../packages/data/src/cluster/globe-projection';
+} from '../../packages/data/src/cluster/globe-projection';
+
+import {assert, test} from 'vitest';
 
 const accessors = {
   getLocationId: (d) => d.id,
@@ -14,9 +16,6 @@ const accessors = {
   getFlowDestId: (d) => d.dest,
   getFlowMagnitude: (d) => d.count,
 };
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
 const generate = (locations, projection) =>
   clusterLocations(
     locations,
@@ -25,7 +24,26 @@ const generate = (locations, projection) =>
     {maxZoom: 5, projection},
   );
 
-export function checkClustering(report) {
+const locations = [
+  {id: 'a', lon: 179, lat: 10, weight: 1},
+  {id: 'b', lon: -179, lat: 10, weight: 3},
+  {id: 'north-a', lon: 45, lat: 89},
+  {id: 'north-b', lon: -135, lat: 89},
+  {id: 'south', lon: 45, lat: -89},
+  {id: 'dest', lon: 90, lat: 0},
+];
+const unequalPairs = [
+  {id: 'a', lon: 0, lat: 0},
+  {id: 'b', lon: 0.01, lat: 0},
+  {id: 'c', lon: 90, lat: 0},
+  {id: 'd', lon: 92, lat: 0},
+];
+const flows = [
+  {origin: 'a', dest: 'dest', count: 3},
+  {origin: 'b', dest: 'dest', count: 7},
+  {origin: 'a', dest: 'b', count: 5},
+];
+test('flat hierarchy preserves centers, IDs, levels and duplicates', () => {
   // Captured from the original Mercator implementation before this change.
   assert(
     JSON.stringify(generate(baseline.locations, undefined)) ===
@@ -37,18 +55,9 @@ export function checkClustering(report) {
       JSON.stringify(baseline.levels),
     'Explicit Mercator hierarchy changed',
   );
-  report(
-    'PASS exact flat hierarchy regression (centers, IDs, levels, duplicates)',
-  );
+});
 
-  const locations = [
-    {id: 'a', lon: 179, lat: 10, weight: 1},
-    {id: 'b', lon: -179, lat: 10, weight: 3},
-    {id: 'north-a', lon: 45, lat: 89},
-    {id: 'north-b', lon: -135, lat: 89},
-    {id: 'south', lon: 45, lat: -89},
-    {id: 'dest', lon: 90, lat: 0},
-  ];
+test('spherical dateline and polar neighbors use weighted centers', () => {
   const levels = generate(locations, 'globe');
   const index = buildIndex(levels);
   const zoom = index.availableZoomLevels[0];
@@ -75,8 +84,13 @@ export function checkClustering(report) {
     index.findClusterFor('south', zoom) !== northId,
     'Opposite hemispheres clustered',
   );
-  report('PASS spherical dateline/polar neighbors and weighted centers');
+});
 
+test('globe hierarchy preserves leaves and total flow magnitude', () => {
+  const levels = generate(locations, 'globe');
+  const index = buildIndex(levels);
+  const zoom = index.availableZoomLevels[0];
+  const datelineId = index.findClusterFor('a', zoom);
   for (const level of levels) {
     const leaves = level.nodes.flatMap((node) =>
       node.children ? index.expandCluster(node) : [node.id],
@@ -93,11 +107,6 @@ export function checkClustering(report) {
       'Nonfinite centroid',
     );
   }
-  const flows = [
-    {origin: 'a', dest: 'dest', count: 3},
-    {origin: 'b', dest: 'dest', count: 7},
-    {origin: 'a', dest: 'b', count: 5},
-  ];
   const aggregated = index.aggregateFlows(flows, zoom, accessors);
   assert(
     aggregated.length === 2 &&
@@ -110,14 +119,9 @@ export function checkClustering(report) {
     ),
     'Outgoing flows not combined',
   );
-  report('PASS globe hierarchy and flow magnitude conservation');
+});
 
-  const unequalPairs = [
-    {id: 'a', lon: 0, lat: 0},
-    {id: 'b', lon: 0.01, lat: 0},
-    {id: 'c', lon: 90, lat: 0},
-    {id: 'd', lon: 92, lat: 0},
-  ];
+test('clusters survive independent merges at different zooms', () => {
   const unequalLevels = clusterLocations(unequalPairs, accessors, () => 1, {
     projection: 'globe',
     maxZoom: 20,
@@ -132,8 +136,9 @@ export function checkClustering(report) {
       'Carried cluster lost descendants between zoom levels',
     );
   }
-  report('PASS clusters survive independent merges at different zooms');
+});
 
+test('equatorial neighbor index bounds candidates for 50,000 locations', () => {
   const equator = Array.from({length: 50000}, (_, i) =>
     projectGlobe(0, -0.05 + (i * 0.1) / 49999),
   );
@@ -142,8 +147,9 @@ export function checkClustering(report) {
     nearby(equator[25000]).length < 100,
     'Equatorial index returns unbounded candidates',
   );
-  report('PASS equatorial neighbor-index scalability (50,000 locations)');
+});
 
+test('projection-specific selectors preserve caches, manual levels, selections and supplied clusters', () => {
   const selectors = new FlowmapSelectors(accessors);
   const data = {locations, flows};
   const state = {
@@ -248,10 +254,4 @@ export function checkClustering(report) {
     'Rotation reprojected locations',
   );
   assert(selectors.getLocationsTree(flat, data), 'Flat Mercator tree missing');
-  report(
-    'PASS projection-specific selections and cached globe points without Mercator indexing',
-  );
-  report(
-    'PASS projection switching, manual levels, stable hierarchy, supplied clusters',
-  );
-}
+});
