@@ -324,6 +324,9 @@ export default class FlowmapLayer<
     if (changeFlags.viewportChanged || changeFlags.dataChanged) {
       this.setState({highlightedObject: undefined});
     }
+    if (oldProps.pickable !== props.pickable) {
+      this.setState({highlightedObject: undefined, pickingInfo: undefined});
+    }
 
     if (
       changeFlags.viewportChanged ||
@@ -781,6 +784,10 @@ export default class FlowmapLayer<
               this.getSubLayerProps({
                 id: 'circles',
                 data: circleAttributes,
+                parameters: {
+                  ...FlowCirclesLayer.defaultProps.parameters,
+                  ...(props.parameters as Record<string, unknown>),
+                },
                 emptyColor: props.darkMode
                   ? [0, 0, 0, 255]
                   : [255, 255, 255, 255],
