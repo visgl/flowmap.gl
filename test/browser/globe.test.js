@@ -521,6 +521,49 @@ describe.each(['normal', 'non-accumulating'])(
       }
     });
 
+    test('globe zoom crosses the Mercator transition and reaches 20 in every flow mode', async () => {
+      for (const mode of ['straight', 'animated-straight', 'curved']) {
+        for (const zoom of [8, 12.01, 16, 20, 8]) {
+          const longitude = -73.57;
+          const latitude = 45.5;
+          // Keep a local corridor visible at every scale, including street level.
+          const offset = (80 * 360) / (512 * 2 ** zoom);
+          const layer = makeLayer(
+            mode,
+            route(
+              [longitude - offset, latitude],
+              [longitude + offset, latitude],
+            ),
+          );
+          deck.setProps({
+            views: new GlobeView({parameters: {cullMode: 'none'}}),
+            viewState: {longitude, latitude, zoom},
+            layers: [layer],
+          });
+          await frames();
+          const expected =
+            mode === 'animated-straight'
+              ? AnimatedFlowLinesLayer
+              : mode === 'straight' && zoom > 12
+                ? FlowLinesLayer
+                : CurvedFlowLinesLayer;
+          assert(
+            layer
+              .getSubLayers()
+              .some((sublayer) => sublayer instanceof expected),
+            `${mode} at zoom ${zoom}: wrong rendering path`,
+          );
+          assert(
+            (mode === 'curved'
+              ? pickCurve([longitude, latitude])
+              : pick([longitude, latitude])
+            )?.index === 0,
+            `${mode} at zoom ${zoom}: local route is not pickable`,
+          );
+        }
+      }
+    });
+
     test('bound globe and flat views render and pick independently in both view orders', async () => {
       const globeView = new GlobeView({id: 'globe-view', x: 0, width: '50%'});
       const flatView = new MapView({id: 'flat-view', x: '50%', width: '50%'});
