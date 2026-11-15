@@ -393,8 +393,12 @@ const layers = [
 ];
 ```
 
-Globe depth and culling parameters are defaults; explicit layer or sublayer
-`parameters` take precedence.
+Flowmap sublayers disable face culling by default in both projections. This keeps
+flat flow geometry visible when `GlobeView` switches to a Mercator viewport above
+zoom 12 while retaining its back-face culling setting. The flowmap automatically
+uses its flat rendering and clustering paths at those zoom levels.
+Explicit layer or sublayer `parameters` take precedence over this culling default
+and the globe depth defaults.
 
 #### `wrapLongitude`
 

@@ -68,12 +68,7 @@ export default function FlowmapCanvas({
   );
   const views = useMemo(() => {
     const View = globe ? GlobeView : MapView;
-    return new View({
-      id: 'maplibre',
-      // GlobeView switches to Mercator above zoom 12; its default back-face
-      // culling would hide the flat flow geometry after that transition.
-      parameters: {cullMode: 'none'},
-    });
+    return new View({id: 'maplibre'});
   }, [globe]);
   const effects = useMemo(
     () =>

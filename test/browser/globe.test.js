@@ -438,29 +438,31 @@ describe.each(['normal', 'non-accumulating'])(
       }
     });
 
-    test('explicit globe render parameters are preserved', async () => {
-      const parameterLayer = makeLayer('curved', route([-40, 0], [40, 0]), {
-        parameters: {
-          depthCompare: 'less-equal',
-          depthWriteEnabled: true,
-          cullMode: 'back',
-        },
-      });
-      deck.setProps({
-        layers: [parameterLayer],
-        viewState: {longitude: 0, latitude: 0, zoom: 1},
-      });
-      await frames();
-      const parameters = parameterLayer
-        .getSubLayers()
-        .find((layer) => layer instanceof CurvedFlowLinesLayer)
-        .props.parameters;
-      assert(
-        parameters.depthCompare === 'less-equal' &&
-          parameters.depthWriteEnabled &&
-          parameters.cullMode === 'back',
-        'Explicit globe render parameters overwritten',
-      );
+    test('explicit render parameters survive the globe-to-flat transition', async () => {
+      for (const zoom of [1, 16]) {
+        const parameterLayer = makeLayer('curved', route([-40, 0], [40, 0]), {
+          parameters: {
+            depthCompare: 'less-equal',
+            depthWriteEnabled: true,
+            cullMode: 'back',
+          },
+        });
+        deck.setProps({
+          layers: [parameterLayer],
+          viewState: {longitude: 0, latitude: 0, zoom},
+        });
+        await frames();
+        const parameters = parameterLayer
+          .getSubLayers()
+          .find((layer) => layer instanceof CurvedFlowLinesLayer)
+          .props.parameters;
+        assert(
+          parameters.depthCompare === 'less-equal' &&
+            parameters.depthWriteEnabled &&
+            parameters.cullMode === 'back',
+          `Explicit render parameters overwritten at zoom ${zoom}`,
+        );
+      }
     });
 
     test('dateline, polar and antipodal great circles remain pickable in every mode', async () => {
@@ -536,7 +538,7 @@ describe.each(['normal', 'non-accumulating'])(
             ),
           );
           deck.setProps({
-            views: new GlobeView({parameters: {cullMode: 'none'}}),
+            views: new GlobeView(),
             viewState: {longitude, latitude, zoom},
             layers: [layer],
           });
