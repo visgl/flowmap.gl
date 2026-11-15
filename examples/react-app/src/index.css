@@ -51,14 +51,29 @@ code {
   pointer-events: none;
 }
 
+.lil-gui .example-choice-control {
+  flex-wrap: wrap;
+}
+.lil-gui .example-choice-control .lil-widget {
+  flex: 1 1 125px;
+  width: auto;
+  min-width: 0;
+}
 .lil-gui .example-choice-links {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
 }
 .lil-gui .example-choice-links button {
   width: auto;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--widget-height);
+  overflow-wrap: anywhere;
   border: 0;
   padding: 2px 0;
   background: none;
