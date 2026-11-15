@@ -51,6 +51,32 @@ code {
   pointer-events: none;
 }
 
+.lil-gui .example-choice-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+.lil-gui .example-choice-links button {
+  width: auto;
+  border: 0;
+  padding: 2px 0;
+  background: none;
+  color: #7cdbdc;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.lil-gui .example-choice-links button[aria-pressed='true'] {
+  color: var(--text-color);
+  font-weight: bold;
+  text-decoration: none;
+}
+.lil-gui .example-choice-links button:focus-visible {
+  outline: 2px solid #7cdbdc;
+  outline-offset: 2px;
+}
+
 /* Allow the overlay canvas to blend against the basemap across MapLibre's
    control container. Individual widgets already have their own z-index. */
 .separate-canvas {
