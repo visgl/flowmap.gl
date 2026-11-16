@@ -106,7 +106,7 @@ function App() {
 
   useEffect(() => {
     setTooltip(undefined);
-  }, [globe]);
+  }, [globe, config.pickable]);
   const handleViewStateChange = ({viewState}: any) => {
     if (globe) setGlobeViewState(viewState);
     else setViewState(viewState);
@@ -124,7 +124,7 @@ function App() {
       data,
       opacity: config.opacity,
       blendingMode: config.blendingMode,
-      pickable: true,
+      pickable: config.pickable,
       darkMode: config.darkMode,
       colorScheme: config.colorScheme,
       fadeAmount: config.fadeAmount,

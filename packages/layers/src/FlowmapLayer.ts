@@ -324,6 +324,9 @@ export default class FlowmapLayer<
     if (changeFlags.viewportChanged || changeFlags.dataChanged) {
       this.setState({highlightedObject: undefined});
     }
+    if (oldProps.pickable !== props.pickable) {
+      this.setState({highlightedObject: undefined, pickingInfo: undefined});
+    }
 
     if (
       changeFlags.viewportChanged ||
@@ -461,15 +464,18 @@ export default class FlowmapLayer<
 
   protected getSubLayerProps(props: Record<string, any> = {}): any {
     const sublayerProps = super.getSubLayerProps(props);
-    if (!this._isGlobe()) return sublayerProps;
+    const globe = this._isGlobe();
     return {
       ...sublayerProps,
-      extensions: [...(sublayerProps.extensions ?? []), globeOcclusion],
-      // Occlusion is handled in the shader, without a globe depth buffer.
+      extensions: globe
+        ? [...(sublayerProps.extensions ?? []), globeOcclusion]
+        : sublayerProps.extensions,
       parameters: {
+        // Flow geometry is two-sided, including when GlobeView falls back to
+        // Mercator at high zoom but retains its default back-face culling.
         cullMode: 'none',
-        depthCompare: 'always',
-        depthWriteEnabled: false,
+        // Globe occlusion is handled in the shader, without a depth buffer.
+        ...(globe ? {depthCompare: 'always', depthWriteEnabled: false} : {}),
         ...(this.typedProps.parameters as Record<string, unknown>),
         ...sublayerProps.parameters,
       },
@@ -778,6 +784,10 @@ export default class FlowmapLayer<
               this.getSubLayerProps({
                 id: 'circles',
                 data: circleAttributes,
+                parameters: {
+                  ...FlowCirclesLayer.defaultProps.parameters,
+                  ...(props.parameters as Record<string, unknown>),
+                },
                 emptyColor: props.darkMode
                   ? [0, 0, 0, 255]
                   : [255, 255, 255, 255],

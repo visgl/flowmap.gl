@@ -24,8 +24,8 @@ From the repository root, run `pnpm build` and then
   [Global Flights dataset](https://gist.github.com/ilyabo/15998ce470d8b4fe6ea5d94187adc89b),
   pinned to a snapshot. Both spherical and H3 clustering are available.
   It starts in globe mode with dark mode enabled. The right-hand Controls panel
-  contains `globe`, `basemapLabels`, and the data-source link alongside the other
-  settings. Turning `globe` off shows the same flights on the flat map and restores
+  contains labeled projection and dataset choices alongside the other
+  settings. Selecting `flat` shows the same flights on the flat map and restores
   its last camera and selected rendering mode.
 - `/globe.html` redirects to the main example, preserving query settings.
 - Both projections use MapLibre's camera and gestures with an interleaved
@@ -57,9 +57,11 @@ whose endpoints are both off-screen. `both` still requires both endpoints to be
 visible. Globe location coordinates are cached across camera moves; no Mercator
 index is built for globe visibility. Exactly antipodal endpoints use a deterministic
 fallback plane because their shortest route is ambiguous. Routes use 96 segments;
-this is not adaptive tessellation. The examples cap globe zoom at 12, before
-`GlobeView` switches to Mercator. Flat mode retains its existing flow rendering modes
-and Mercator clustering, with the same OpenFreeMap styles and label controls.
+this is not adaptive tessellation. Both projections allow zoom up to 20.
+Above zoom 12, `GlobeView` switches to a Mercator viewport and the flow layer
+uses its flat rendering and clustering paths. Flat mode retains its existing flow
+rendering modes and Mercator clustering, with the same OpenFreeMap styles and label
+controls.
 
 ## Non-accumulating blending
 

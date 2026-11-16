@@ -438,29 +438,31 @@ describe.each(['normal', 'non-accumulating'])(
       }
     });
 
-    test('explicit globe render parameters are preserved', async () => {
-      const parameterLayer = makeLayer('curved', route([-40, 0], [40, 0]), {
-        parameters: {
-          depthCompare: 'less-equal',
-          depthWriteEnabled: true,
-          cullMode: 'back',
-        },
-      });
-      deck.setProps({
-        layers: [parameterLayer],
-        viewState: {longitude: 0, latitude: 0, zoom: 1},
-      });
-      await frames();
-      const parameters = parameterLayer
-        .getSubLayers()
-        .find((layer) => layer instanceof CurvedFlowLinesLayer)
-        .props.parameters;
-      assert(
-        parameters.depthCompare === 'less-equal' &&
-          parameters.depthWriteEnabled &&
-          parameters.cullMode === 'back',
-        'Explicit globe render parameters overwritten',
-      );
+    test('explicit render parameters survive the globe-to-flat transition', async () => {
+      for (const zoom of [1, 16]) {
+        const parameterLayer = makeLayer('curved', route([-40, 0], [40, 0]), {
+          parameters: {
+            depthCompare: 'less-equal',
+            depthWriteEnabled: true,
+            cullMode: 'back',
+          },
+        });
+        deck.setProps({
+          layers: [parameterLayer],
+          viewState: {longitude: 0, latitude: 0, zoom},
+        });
+        await frames();
+        const parameters = parameterLayer
+          .getSubLayers()
+          .find((layer) => layer instanceof CurvedFlowLinesLayer)
+          .props.parameters;
+        assert(
+          parameters.depthCompare === 'less-equal' &&
+            parameters.depthWriteEnabled &&
+            parameters.cullMode === 'back',
+          `Explicit render parameters overwritten at zoom ${zoom}`,
+        );
+      }
     });
 
     test('dateline, polar and antipodal great circles remain pickable in every mode', async () => {
@@ -518,6 +520,49 @@ describe.each(['normal', 'non-accumulating'])(
             .some((p) => p.index >= 0),
           `${mode}: flat picking failed`,
         );
+      }
+    });
+
+    test('globe zoom crosses the Mercator transition and reaches 20 in every flow mode', async () => {
+      for (const mode of ['straight', 'animated-straight', 'curved']) {
+        for (const zoom of [8, 12.01, 16, 20, 8]) {
+          const longitude = -73.57;
+          const latitude = 45.5;
+          // Keep a local corridor visible at every scale, including street level.
+          const offset = (80 * 360) / (512 * 2 ** zoom);
+          const layer = makeLayer(
+            mode,
+            route(
+              [longitude - offset, latitude],
+              [longitude + offset, latitude],
+            ),
+          );
+          deck.setProps({
+            views: new GlobeView(),
+            viewState: {longitude, latitude, zoom},
+            layers: [layer],
+          });
+          await frames();
+          const expected =
+            mode === 'animated-straight'
+              ? AnimatedFlowLinesLayer
+              : mode === 'straight' && zoom > 12
+                ? FlowLinesLayer
+                : CurvedFlowLinesLayer;
+          assert(
+            layer
+              .getSubLayers()
+              .some((sublayer) => sublayer instanceof expected),
+            `${mode} at zoom ${zoom}: wrong rendering path`,
+          );
+          assert(
+            (mode === 'curved'
+              ? pickCurve([longitude, latitude])
+              : pick([longitude, latitude])
+            )?.index === 0,
+            `${mode} at zoom ${zoom}: local route is not pickable`,
+          );
+        }
       }
     });
 

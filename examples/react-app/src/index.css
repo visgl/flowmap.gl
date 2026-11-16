@@ -51,11 +51,45 @@ code {
   pointer-events: none;
 }
 
-.lil-gui .example-data-source {
-  display: block;
-  padding: 8px;
+.lil-gui .example-choice-control {
+  flex-wrap: wrap;
+}
+.lil-gui .example-choice-control .lil-widget {
+  flex: 1 1 125px;
+  width: auto;
+  min-width: 0;
+}
+.lil-gui .example-choice-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+}
+.lil-gui .example-choice-links button {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--widget-height);
+  overflow-wrap: anywhere;
+  border: 0;
+  padding: 2px 0;
+  background: none;
   color: #7cdbdc;
-  font-size: 12px;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.lil-gui .example-choice-links button[aria-pressed='true'] {
+  color: var(--text-color);
+  font-weight: bold;
+  text-decoration: none;
+}
+.lil-gui .example-choice-links button:focus-visible {
+  outline: 2px solid #7cdbdc;
+  outline-offset: 2px;
 }
 
 /* Allow the overlay canvas to blend against the basemap across MapLibre's

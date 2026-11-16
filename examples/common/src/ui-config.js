@@ -94,7 +94,7 @@ export const initLilGui = (gui, {scaleLockEnabled = true} = {}) => {
   const clusteringEnabled = clustering.add(UI_INITIAL, 'clusteringEnabled');
   const clusteringMethod = clustering
     .add(UI_INITIAL, 'clusteringMethod', ['HCA', 'H3'])
-    .enable(FlowmapLayer.defaultProps.clusteringEnabled);
+    .enable(UI_INITIAL.clusteringEnabled);
 
   const clusteringAuto = clustering.add(UI_INITIAL, 'clusteringAuto');
   const clusteringLevel = clustering
