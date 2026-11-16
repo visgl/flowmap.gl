@@ -25,11 +25,16 @@ async function waitForFlows(page, selector, visible = true) {
   while (Date.now() < deadline) {
     const colored = await page.evaluate(
       (selector) =>
-        new Promise((resolve) => {
+        new Promise((resolve, reject) => {
           globalThis.requestAnimationFrame(() => {
             const canvas = globalThis.document.querySelector(selector);
-            const gl = canvas?.getContext('webgl2');
+            const gl = globalThis.__flowmapTestContexts.get(canvas);
             if (!gl) return resolve(null);
+            if (!gl.getContextAttributes().preserveDrawingBuffer) {
+              return reject(
+                new Error('Flow pixel checks require preserveDrawingBuffer'),
+              );
+            }
             const pixels = new Uint8Array(canvas.width * canvas.height * 4);
             gl.readPixels(
               0,
@@ -118,6 +123,19 @@ for (const [example, dev] of [
         }
       });
       const page = await context.newPage();
+      // Observe the app's context creation. Calling getContext ourselves can
+      // race Deck's async initialization and lock in browser defaults (notably
+      // preserveDrawingBuffer=false), making visible static flows read as empty.
+      await page.addInitScript(() => {
+        const contexts = new WeakMap();
+        globalThis.__flowmapTestContexts = contexts;
+        const getContext = globalThis.HTMLCanvasElement.prototype.getContext;
+        globalThis.HTMLCanvasElement.prototype.getContext = function (...args) {
+          const context = getContext.apply(this, args);
+          if (args[0] === 'webgl2' && context) contexts.set(this, context);
+          return context;
+        };
+      });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       page.on('console', (message) => {

@@ -102,6 +102,9 @@ test.each(MODES)('%s preserves magnitude order when wrapping', async (mode) => {
     colorScheme: ['#174044', '#c8ffff'],
     flowLineThicknessScale: 4,
     flowLineCurviness: 0,
+    // Isolate draw order from camera-dependent animation phase. A long tail
+    // gives uniform pulse opacity; layer opacity still tests translucent overlap.
+    _subLayerProps: {'animated-flow-lines': {animationTailLength: 1e6}},
   };
   // Moving the same crossing arrows away from the meridian gives a reference
   // with identical geometry and magnitude scales, but no wrapping passes.

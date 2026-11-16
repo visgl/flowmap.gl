@@ -46,6 +46,7 @@
     "@eslint/js": "^10.0.1",
     "@flowmap.gl/data": "workspace:*",
     "@flowmap.gl/layers": "workspace:*",
+    "@luma.gl/core": "^9.4.2",
     "@vitest/browser-playwright": "^4.1.12",
     "eslint": "^10.0.1",
     "husky": "^9.1.7",

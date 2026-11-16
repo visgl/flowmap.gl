@@ -4,7 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Layer, picking, project32} from '@deck.gl/core';
+import {
+  _GlobeViewport as GlobeViewport,
+  Layer,
+  picking,
+  project32,
+} from '@deck.gl/core';
 import {Model} from '@luma.gl/engine';
 import FragmentShader from './AnimatedFlowLinesLayerFragment.glsl.js';
 import VertexShader from './AnimatedFlowLinesLayerVertex.glsl.js';
@@ -156,7 +161,10 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
       },
     });
     const model = this._getModel();
-    this.setState({model, vertexCount: model.vertexCount});
+    this.setState({
+      model,
+      vertexCount: model.vertexCount,
+    });
   }
 
   getNeedsRedraw(): string | false {
@@ -166,7 +174,6 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
   updateState(params: any): void {
     super.updateState(params);
     const {changeFlags, props, oldProps} = params;
-
     if (
       !this.state.model ||
       changeFlags.extensionsChanged ||
@@ -189,11 +196,29 @@ export default class AnimatedFlowLinesLayer<F> extends Layer {
     if (!model) {
       return;
     }
+    const {viewport, device} = this.context;
+    const pixelRatio =
+      options.shaderModuleProps?.project?.devicePixelRatio ??
+      device.canvasContext!.cssToDeviceRatio();
+    const framebufferHeight =
+      options.renderPass.props.framebuffer?.height ??
+      device.canvasContext!.getDrawingBufferSize()[1];
     model.shaderInputs.setProps({
       animatedFlowLines: {
         thicknessUnit: thicknessUnit * 2.0,
         animationTailLength,
         currentTime: animationTime,
+        globeCenter:
+          viewport instanceof GlobeViewport
+            ? viewport.projectPosition(
+                viewport.unproject([viewport.width / 2, viewport.height / 2]),
+              )
+            : [0, 0, 1],
+        screenOrigin: [
+          (viewport.x + viewport.width / 2) * pixelRatio,
+          framebufferHeight - (viewport.y + viewport.height / 2) * pixelRatio,
+          pixelRatio,
+        ],
       },
     });
     applyFlowBlending(
